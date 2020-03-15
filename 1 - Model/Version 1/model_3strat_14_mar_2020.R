@@ -34,11 +34,17 @@ model_strat <- function (t, x, params) {
   ###### Equations
   make_eqn_strat = function(group){
    S = paste("dS", group, "dt = -S", group,
-             "*p*(v11*I1 + vA11*A1 + v21*I2 + vA21*A2 + v31*I3 + vA31*A3 + v1Q1*I1Q + vA1Q1*A1Q + v2Q1*I2Q + vA2Q1*A2Q + v3Q1*I3Q + vA3Q1*A3Q)", 
+             "*p*(v1", group, "*I1 + vA1", group, "*A1 + v2", group, 
+             "*I2 + vA2", group, "*A2 + v3", group, "*I3 + vA3", group, "*A3 + v1Q", group, 
+             "*I1Q + vA1Q", group, "*A1Q + v2Q", group, "*I2Q + vA2Q", group, "*A2Q + v3Q", group, 
+             "*I3Q + vA3Q", group, "*A3Q)", 
              sep = "")
 
    E = paste("dE", group, "dt = -delta*E", group, "+ S", group, 
-             "*p*(v11*I1 + vA11*A1 + v21*I2 + vA21*A2 +  v31*I3 + vA31*A3 +v1Q1*I1Q + vA1Q1*A1Q + v2Q1*I2Q + vA2Q1*A2Q + v3Q1*I3Q + vA3Q1*A3Q)",
+             "*p*(v1", group, "*I1 + vA1", group, "*A1 + v2", group, 
+             "*I2 + vA2", group, "*A2 + v3", group, "*I3 + vA3", group, "*A3 + v1Q", group, 
+             "*I1Q + vA1Q", group, "*A1Q + v2Q", group, "*I2Q + vA2Q", group, "*A2Q + v3Q", group, 
+             "*I3Q + vA3Q", group, "*A3Q)",
              sep = "")
    
    A = paste("dA", group, "dt = delta*E", group, "-(1-alpha", group, ")*epsilon*A", group, "-gamma*A", group, sep = "") 
@@ -48,7 +54,7 @@ model_strat <- function (t, x, params) {
    "*omega + (1-m", group, ")*gamma) - (1-q", group, 
    ")*(mH", group, "*omega + (1-mH", group, ")*gamma))*I", group, sep = "")
    
-   R = paste("dR", group, "dt = gamma*A", group, "+ (q", group, "*(1-m", group, ")*gamma - (1-q", 
+   R = paste("dR", group, "dt = gamma*A", group, "+ (q", group, "*(1-m", group, ")*gamma + (1-q", 
              group, ")*(1-mH", group, ")*gamma)*I", group, sep = "")
    
    return(c(S, E, I, A, R))
