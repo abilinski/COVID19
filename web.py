@@ -4,8 +4,8 @@ import dash_core_components as dcc
 
 from dash.dependencies import Input, Output
 
-from config import Config
-from model_parameters import ModelParameters
+from webapp.config import Config
+from webapp.model_parameters import ModelParameters
 
 
 app = dash.Dash(__name__, external_stylesheets=Config.STYLESHEET)
