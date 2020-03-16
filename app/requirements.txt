@@ -1,0 +1,6 @@
+black
+isort
+pre-commit
+pandas
+dash
+gunicorn
