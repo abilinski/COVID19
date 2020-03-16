@@ -10,6 +10,8 @@ from model_parameters import ModelParameters
 
 app = dash.Dash(__name__, external_stylesheets=Config.STYLESHEET)
 
+server = app.server
+
 
 
 app.layout = html.Div([
