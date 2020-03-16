@@ -181,10 +181,14 @@ vA3Q3Q = v3Q3Q
 
 # demographics
 n = 100000
+
+# these match US proportions
 young = .24
 medium = .6
 old = .15
-start = obs/c
+
+
+start = obs/c/327000000*100000
 x = data.frame(
 
 # initial conditions
@@ -243,7 +247,7 @@ At3Q = 0
 ############## RUN MODEL
 
 # very roughly estimated
-p = .00005
+p = .00015
 
 # run the model
 test = run_model(model_strat, xstart = as.numeric(x), times = c(1:60), params, method = "lsodes")
@@ -251,6 +255,7 @@ names(test)[2:ncol(test)] = names(x)
 
 # total number of observed cases a week after the start
 sum(test[7,] %>% select(It1, It2, It3, It1Q, It2Q, It3Q))*c
+3600/c/327000000*100000
 
 
 
