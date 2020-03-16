@@ -247,14 +247,15 @@ At3Q = 0
 ############## RUN MODEL
 
 # very roughly estimated
-p = .00015
+p = .000065
 
 # run the model
 test = run_model(model_strat, xstart = as.numeric(x), times = c(1:60), params, method = "lsodes")
 names(test)[2:ncol(test)] = names(x)
 
 # total number of observed cases a week after the start
-sum(test[7,] %>% select(It1, It2, It3, It1Q, It2Q, It3Q))*c
+sum(test[7,] %>% select(It1, It2, It3, It1Q, It2Q, It3Q, 
+                        At1, At2, At3, At1Q, At2Q, At3Q))*c
 3600/c/327000000*100000
 
 
