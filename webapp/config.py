@@ -1,2 +1,4 @@
+import os
+
 class Config:
-    STYLESHEET = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+    DEBUG = os.environ.get("COVID_DEBUG") or False
