@@ -1,4 +1,7 @@
-language: ruby
-rvm:
- - 2.2
- - jruby
+language: python
+python:
+  - "3.6"      # current default Python on Travis CI
+install:
+  - pip install -r requirements.txt
+script:
+  - python -c 'import web' # Just make sure you can import the code, don't run it
