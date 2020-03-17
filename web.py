@@ -13,25 +13,27 @@ from webapp.vizualizations import Vizualizations
 app = dash.Dash(__name__)
 server = app.server
 
+
 def make_submit_control():
     return html.Div(
-        [
-            html.Button("Submit", id="submit-button")
-        ],
+        [html.Button("Submit", id="submit-button")],
         #  title="Click to send all of the control values to the spectrometer.",
         #  className="control",
     )
 
-control_status = html.Div(
-    id="submit-status",
-    title="Contains information about the success or failure of your commands.",
-    children=[""],
-),
+
+control_status = (
+    html.Div(
+        id="submit-status",
+        title="Contains information about the success or failure of your commands.",
+        children=[""],
+    ),
+)
 
 app.layout = Layout().render(
     parameter_renderer=Parameters().render,
     submit_renderer=make_submit_control,
-    output_renderer=Vizualizations().render
+    output_renderer=Vizualizations().render,
 )
 
 
