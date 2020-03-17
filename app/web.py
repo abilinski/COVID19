@@ -13,16 +13,26 @@ from vizualizations import Vizualizations
 
 app = dash.Dash(__name__)
 
-app.layout = Layout().render(
-    parameter_renderer=Parameters().render, output_renderer=Vizualizations().render
-)
+def make_submit_control():
+    return html.Div(
+        [
+            html.Button("Submit", id="submit-button")
+        ],
+        #  title="Click to send all of the control values to the spectrometer.",
+        #  className="control",
+    )
 
-#  @app.callback(Output("tabs-content", "children"), [Input("tabs", "value")])
-#  def render_content(tab):
-#  if tab == "tab-1":
-#  return html.Div([html.H3("Tab content 1")])
-#  elif tab == "tab-2":
-#  return html.Div([html.H3("Tab content 2")])
+control_status = html.Div(
+    id="submit-status",
+    title="Contains information about the success or failure of your commands.",
+    children=[""],
+),
+
+app.layout = Layout().render(
+    parameter_renderer=Parameters().render,
+    submit_renderer=make_submit_control,
+    output_renderer=Vizualizations().render
+)
 
 
 if __name__ == "__main__":

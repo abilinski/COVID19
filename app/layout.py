@@ -6,20 +6,24 @@ class Layout:
     def __init__(self):
         pass
 
-    def render(self, parameter_renderer=None, output_renderer=None):
+    def render(self, parameter_renderer=None, submit_renderer=None, output_renderer=None):
 
         parameters = parameter_renderer() if parameter_renderer else None
+        submit = submit_renderer() if submit_renderer else None
         outputs = output_renderer() if output_renderer else None
+
 
         return html.Div(
             id="app-container",
             children=[
                 # Banner
                 html.Div(id="banner", className="banner", children="Tester",),
+
                 # Left column
                 html.Div(
-                    id="left-column", className="four columns", children=parameters,
+                    id="left-column", className="four columns", children=[parameters, submit]
                 ),
+
                 # Right column
                 html.Div(
                     id="right-column", className="eight columns", children=outputs,
