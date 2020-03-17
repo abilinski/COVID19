@@ -22,9 +22,9 @@ def __percent_selector_params():
 def number_of_cases_input():
     return (
         "Number of Cases",
-        "parameter-cases_n",
+        "parameter-cases-n",
         dcc.Input,
-        dict(id="cases-input", placeholder=0, type="number", min=0),
+        dict(placeholder=0, type="number", min=0, value=0),
     )
 
 
@@ -65,10 +65,11 @@ def render_control(control):
     except AttributeError:
         ctor = control.klass
 
-    component = ctor(**control.attrs)
+    component = ctor(id=control.selector, **control.attrs)
 
     control = html.Div(
-        id=control.selector, children=[html.P(control.label), component,],
+        id=f"{control.selector}-wrapper",
+        children=[html.P(control.label), component],
     )
 
     return control
@@ -81,11 +82,10 @@ class ParameterControl:
         self.klass = klass
         self.attrs = attrs
 
-    # gets whether we look for "value", "on", etc.
-    def val_string(self):
-        if "value" in self.component_attr:
+    def get_value(self):
+        if "value" in self.attrs:
             return "value"
-        elif "on" in self.component_attr:
+        elif "on" in self.attrs:
             return "on"
 
     # changes value ('on' or 'value', etc.)
@@ -103,15 +103,15 @@ class Parameters:
         functools.partial(no_contact_zone, "65+"),
     ]
 
-    def __init__(self):
+    def __init__(self, controls=PARAMETER_FUNCS):
         self.parameter_controls = []
 
-    def render(self):
         for f in Parameters.PARAMETER_FUNCS:
             attrs = f()
             ctrl = ParameterControl(*attrs)
             self.parameter_controls.append(ctrl)
 
+    def render(self):
         return html.Div(
             id="parameters",
             children=[render_control(c) for c in self.parameter_controls],
