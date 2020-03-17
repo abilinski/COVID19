@@ -105,8 +105,9 @@ setwd("~/Dropbox/COVID19/0 - Parameters")
 
 # read in parameters
 df = read.csv("parameters_16_mar_2020v2.csv", as.is = T)
+#df = read.csv("parameters_17_mar_2020.csv", as.is = T)
 
-  params = df[i,]
+  params = df[1,]
   attach(params)
   
   #### ADJUSTMENTS BASED ON MODEL SIMPLIFICATIONS 
@@ -184,8 +185,7 @@ df = read.csv("parameters_16_mar_2020v2.csv", as.is = T)
   # demographics
   #n = 100000
   n = 1938000
-  kappa = .5
-  
+
   # these match US proportions
   young = .24
   medium = .6
@@ -204,62 +204,62 @@ df = read.csv("parameters_16_mar_2020v2.csv", as.is = T)
   x = data.frame(
     
     # initial conditions
-    S1 = n*(1-s)*young - start*young*(1-s),
-    E1 = start*(1-s)*young,
-    I1 = start*(1-s)*young*(1-alpha1),
-    A1 = start*(1-s)*young*(alpha1),
-    R1 = 0,
+    S_1 = n*(1-s)*young - start*young*(1-s),
+    E_1 = start*(1-s)*young,
+    I_1 = start*(1-s)*young*(1-alpha1),
+    A_1 = start*(1-s)*young*(alpha1),
+    R_1 = 0,
     
-    S2 = n*(1-s)*medium - start*medium*(1-s),
-    E2 = start*(1-s)*medium,
-    I2 = start*(1-s)*medium*(1-alpha2),
-    A2 = start*(1-s)*medium*(alpha2),
-    R2 = 0,
+    S_2 = n*(1-s)*medium - start*medium*(1-s),
+    E_2 = start*(1-s)*medium,
+    I_2 = start*(1-s)*medium*(1-alpha2),
+    A_2 = start*(1-s)*medium*(alpha2),
+    R_2 = 0,
     
-    S3 = n*(1-s)*old - start*old*(1-s),
-    E3 = start*(1-s)*old,
-    I3 = start*(1-s)*old*(1-alpha3)*(1-s),
-    A3 = start*(1-s)*old*(alpha3)*(1-s),
-    R3 = 0,
+    S_3 = n*(1-s)*old - start*old*(1-s),
+    E_3 = start*(1-s)*old,
+    I_3 = start*(1-s)*old*(1-alpha3)*(1-s),
+    A_3 = start*(1-s)*old*(alpha3)*(1-s),
+    R_3 = 0,
     
-    S1Q = n*(s)*young - start*young*(s),
-    E1Q = start*(s)*young,
-    I1Q = start*(s)*young*(alpha1),
-    A1Q = start*(s)*young*(alpha1),
-    R1Q = 0,
+    S_1Q = n*(s)*young - start*young*(s),
+    E_1Q = start*(s)*young,
+    I_1Q = start*(s)*young*(alpha1),
+    A_1Q = start*(s)*young*(alpha1),
+    R_1Q = 0,
     
-    S2Q = n*(s)*medium - start*medium*(s),
-    E2Q = start*(s)*medium, 
-    I2Q = start*(s)*medium*(1-alpha2),
-    A2Q = start*(s)*medium*(alpha2),
-    R2Q = 0,
+    S_2Q = n*(s)*medium - start*medium*(s),
+    E_2Q = start*(s)*medium, 
+    I_2Q = start*(s)*medium*(1-alpha2),
+    A_2Q = start*(s)*medium*(alpha2),
+    R_2Q = 0,
     
-    S3Q = n*(s)*old - start*old*(s),
-    E3Q = start*(s)*old,
-    I3Q = start*(s)*old*(1-alpha3)*(s),
-    A3Q = start*(s)*old*(alpha3)*(s),
-    R3Q = 0,
+    S_3Q = n*(s)*old - start*old*(s),
+    E_3Q = start*(s)*old,
+    I_3Q = start*(s)*old*(1-alpha3)*(s),
+    A_3Q = start*(s)*old*(alpha3)*(s),
+    R_3Q = 0,
     
-    It1 = 0,
-    It2 = 0,
-    It3 = 0,
-    It1Q = 0,
-    It2Q = 0,
-    It3Q = 0,
+    I_1_cum = 0,
+    I_2_cum = 0,
+    I_3_cum = 0,
+    I_1Q_cum = 0,
+    I_2Q_cum = 0,
+    I_3Q_cum = 0,
     
-    At1 = 0,
-    At2 = 0,
-    At3 = 0,
-    At1Q = 0,
-    At2Q = 0,
-    At3Q = 0,
+    A_1_cum = 0,
+    A_2_cum = 0,
+    A_3_cum = 0,
+    A_1Q_cum = 0,
+    A_2Q_cum = 0,
+    A_3Q_cum = 0,
     
-    Dt1 = 0,
-    Dt2 = 0,
-    Dt3 = 0,
-    Dt1Q = 0,
-    Dt2Q = 0,
-    Dt3Q = 0
+    D_1_cum = 0,
+    D_2_cum = 0,
+    D_3_cum = 0,
+    D_1Q_cum = 0,
+    D_2Q_cum = 0,
+    D_3Q_cum = 0
     
   )
   
@@ -271,6 +271,10 @@ df = read.csv("parameters_16_mar_2020v2.csv", as.is = T)
   # run the model
   test = run_model(model_strat, xstart = as.numeric(x), times = c(1:30), params, method = "lsodes")
   names(test)[2:ncol(test)] = names(x)
+  
+
+  f = make_plots(test)
+  print(f[[2]])
   
   
   # cut contact matrix in half
