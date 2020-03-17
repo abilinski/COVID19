@@ -4,3 +4,4 @@ pre-commit
 pandas
 dash
 gunicorn
+dash_daq
