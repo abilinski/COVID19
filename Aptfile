@@ -1,3 +1,0 @@
-# Install R
-:repo:deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35
-r-base
