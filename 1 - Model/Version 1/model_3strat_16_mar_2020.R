@@ -7,7 +7,7 @@
 #************************************* MODEL FUNCTIONS ************************************#
 
 ############## STRATIFIED MODEL
-model_strat <- function (t, x, ...) {
+model_strat <- function (t, x, parms) {
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; I1 = x[3]; A1 = x[4]; R1 = x[5]
@@ -17,8 +17,34 @@ model_strat <- function (t, x, ...) {
   S2Q = x[21]; E2Q = x[22]; I2Q = x[23]; A2Q = x[24]; R2Q = x[25]
   S3Q = x[26]; E3Q = x[27]; I3Q = x[28]; A3Q = x[29]; R3Q = x[30]
   
-  # attach parameters into workspace
-  #attach(params)
+  # pull in params
+  # pulled from: paste(names(params), " = parms$", names(params), sep = "", collapse = ";")
+  # in case params change
+  # could be cleaner
+  v11 = parms$v11;v12 = parms$v12;v13 = parms$v13;v21 = parms$v21;v22 = parms$v22
+  v23 = parms$v23;v31 = parms$v31;v32 = parms$v32;v33 = parms$v33;s = parms$s
+  e = parms$e;p = parms$p;R0 = parms$R0;kappa = parms$kappa;alpha1 = parms$alpha1
+  alpha2 = parms$alpha2;alpha3 = parms$alpha3;epsilon = parms$epsilon;delta = parms$delta
+  gamma = parms$gamma;m1 = parms$m1;m2 = parms$m2;m3 = parms$m3;c = parms$c
+  obs = parms$obs;e_ratio = parms$e_ratio;k_report = parms$k_report;k_inf = parms$k_inf
+  k_susp = parms$k_susp;omega = parms$omega;alpha1Q = parms$alpha1Q;alpha2Q = parms$alpha2Q
+  alpha3Q = parms$alpha3Q;m1Q = parms$m1Q;m2Q = parms$m2Q;m3Q = parms$m3Q;v11Q = parms$v11Q
+  v1Q1 = parms$v1Q1;v1Q1Q = parms$v1Q1Q;v12Q = parms$v12Q;v1Q2 = parms$v1Q2;v1Q2Q = parms$v1Q2Q
+  v13Q = parms$v13Q;v1Q3 = parms$v1Q3;v1Q3Q = parms$v1Q3Q;v21Q = parms$v21Q;v2Q1 = parms$v2Q1
+  v2Q1Q = parms$v2Q1Q;v22Q = parms$v22Q;v2Q2 = parms$v2Q2;v2Q2Q = parms$v2Q2Q;v23Q = parms$v23Q
+  v2Q3 = parms$v2Q3;v2Q3Q = parms$v2Q3Q;v31Q = parms$v31Q;v3Q1 = parms$v3Q1;v3Q1Q = parms$v3Q1Q
+  v32Q = parms$v32Q;v3Q2 = parms$v3Q2;v3Q2Q = parms$v3Q2Q;v33Q = parms$v33Q;v3Q3 = parms$v3Q3
+  v3Q3Q = parms$v3Q3Q;vA11 = parms$vA11;vA12 = parms$vA12;vA13 = parms$vA13;vA11Q = parms$vA11Q
+  vA12Q = parms$vA12Q;vA13Q = parms$vA13Q;vA21 = parms$vA21;vA22 = parms$vA22;vA23 = parms$vA23
+  vA21Q = parms$vA21Q;vA22Q = parms$vA22Q;vA23Q = parms$vA23Q;vA31 = parms$vA31;vA32 = parms$vA32
+  vA33 = parms$vA33;vA31Q = parms$vA31Q;vA32Q = parms$vA32Q;vA33Q = parms$vA33Q;vA1Q1 = parms$vA1Q1
+  vA1Q2 = parms$vA1Q2;vA1Q3 = parms$vA1Q3;vA1Q1Q = parms$vA1Q1Q;vA1Q2Q = parms$vA1Q2Q
+  vA1Q3Q = parms$vA1Q3Q;vA2Q1 = parms$vA2Q1;vA2Q2 = parms$vA2Q2;vA2Q3 = parms$vA2Q3
+  vA2Q1Q = parms$vA2Q1Q;vA2Q2Q = parms$vA2Q2Q;vA2Q3Q = parms$vA2Q3Q;vA3Q1 = parms$vA3Q1
+  vA3Q2 = parms$vA3Q2;vA3Q3 = parms$vA3Q3;vA3Q1Q = parms$vA3Q1Q;vA3Q2Q = parms$vA3Q2Q
+  vA3Q3Q = parms$vA3Q3Q;N1 = parms$N1;N2 = parms$N2;N3 = parms$N3;N1Q = parms$N1Q;N2Q = parms$N2Q
+  N3Q = parms$N3Q
+  
   
   ###### Equations
   ### YOUNG
@@ -193,96 +219,86 @@ make_plots = function(test, params){
   return(list(a,b,c,d,e,f,g))
 }
 
-############## RUN CODE
-
-# libraries
-library(tidyverse)
-library(deSolve)
-library(ggthemes)
-library(tictoc)
-
-# set working directory
-setwd("~/Dropbox/COVID19/0 - Parameters")
-
-# read in parameters
-params = read.csv("parameters_17_mar_2020.csv", as.is = T)[1,]
-  attach(params)
+############### RUN PARAMETER VECTOR
+run_param_vec = function(params, val, p.adj = NA){
+  
+  # adjust if calibrating
+  params$p = ifelse(is.na(p.adj), params$p, p.adj)
   
   #### ADJUSTMENTS BASED ON MODEL SIMPLIFICATIONS 
   # same time to infection whether recovery or death
-  omega = gamma
+  params$omega = params$gamma
   
   # asymptomatic and mortality prob same whether socially distanced (Q) or no
-  alpha1Q = alpha1
-  alpha2Q = alpha2
-  alpha3Q = alpha3
-  m1Q = m1
-  m2Q = m2
-  m3Q = m3
+  params$alpha1Q = params$alpha1
+  params$alpha2Q = params$alpha2
+  params$alpha3Q = params$alpha3
+  params$m1Q = params$m1
+  params$m2Q = params$m2
+  params$m3Q = params$m3
   
   # contact rates for socially distanced
   # contact rates between socially distanced and non-socially distanced are social distance rates
-  v1Q1Q = v1Q1 = v11Q = e*v11
-  v1Q2Q = v1Q2 = v12Q = e*v12
-  v1Q3Q = v1Q3 = v13Q = e*v13
+  params$v1Q1Q = params$v1Q1 = params$v11Q = params$e*params$v11
+  params$v1Q2Q = params$v1Q2 = params$v12Q = params$e*params$v12
+  params$v1Q3Q = params$v1Q3 = params$v13Q = params$e*params$v13
   
-  v2Q1Q = v2Q1 = v21Q = e*v21
-  v2Q2Q = v2Q2 = v22Q = e*v22
-  v2Q3Q = v2Q3 = v23Q = e*v23
+  params$v2Q1Q = params$v2Q1 = params$v21Q = params$e*params$v21
+  params$v2Q2Q = params$v2Q2 = params$v22Q = params$e*params$v22
+  params$v2Q3Q = params$v2Q3 = params$v23Q = params$e*params$v23
   
-  v3Q1Q = v3Q1 = v31Q = e*v31
-  v3Q2Q = v3Q2 = v32Q = e*v32
-  v3Q3Q = v3Q3 = v33Q = e*v33
+  params$v3Q1Q = params$v3Q1 = params$v31Q = params$e*params$v31
+  params$v3Q2Q = params$v3Q2 = params$v32Q = params$e*params$v32
+  params$v3Q3Q = params$v3Q3 = params$v33Q = params$e*params$v33
   
   # contact rates are same whether asymptomatic or no
   # (this might be adjusted with some interventions)
   # but they have lower infection prob (kappa)
-  vA11 = v11*kappa
-  vA12 = v12*kappa
-  vA13 = v13*kappa
-  vA11Q = v11Q*kappa
-  vA12Q = v12Q*kappa
-  vA13Q = v13Q*kappa
+  params$vA11 = params$v11*params$kappa
+  params$vA12 = params$v12*params$kappa
+  params$vA13 = params$v13*params$kappa
+  params$vA11Q = params$v11Q*params$kappa
+  params$vA12Q = params$v12Q*params$kappa
+  params$vA13Q = params$v13Q*params$kappa
   
-  vA21 = v21*kappa
-  vA22 = v22*kappa
-  vA23 = v23*kappa
-  vA21Q = v21Q*kappa
-  vA22Q = v22Q*kappa
-  vA23Q = v23Q*kappa
+  params$vA21 = params$v21*params$kappa
+  params$vA22 = params$v22*params$kappa
+  params$vA23 = params$v23*params$kappa
+  params$vA21Q = params$v21Q*params$kappa
+  params$vA22Q = params$v22Q*params$kappa
+  params$vA23Q = params$v23Q*params$kappa
   
-  vA31 = v31*kappa
-  vA32 = v32*kappa
-  vA33 = v33*kappa
-  vA31Q = v31Q*kappa
-  vA32Q = v32Q*kappa
-  vA33Q = v33Q*kappa
+  params$vA31 = params$v31*params$kappa
+  params$vA32 = params$v32*params$kappa
+  params$vA33 = params$v33*params$kappa
+  params$vA31Q = params$v31Q*params$kappa
+  params$vA32Q = params$v32Q*params$kappa
+  params$vA33Q = params$v33Q*params$kappa
   
-  vA1Q1 = v1Q1*kappa
-  vA1Q2 = v1Q2*kappa
-  vA1Q3 = v1Q3*kappa
-  vA1Q1Q = v1Q1Q*kappa
-  vA1Q2Q = v1Q2Q*kappa
-  vA1Q3Q = v1Q3Q*kappa
+  params$vA1Q1 = params$v1Q1*params$kappa
+  params$vA1Q2 = params$v1Q2*params$kappa
+  params$vA1Q3 = params$v1Q3*params$kappa
+  params$vA1Q1Q = params$v1Q1Q*params$kappa
+  params$vA1Q2Q = params$v1Q2Q*params$kappa
+  params$vA1Q3Q = params$v1Q3Q*params$kappa
   
-  vA2Q1 = v2Q1*kappa
-  vA2Q2 = v2Q2*kappa
-  vA2Q3 = v2Q3*kappa
-  vA2Q1Q = v2Q1Q*kappa
-  vA2Q2Q = v2Q2Q*kappa
-  vA2Q3Q = v2Q3Q*kappa
+  params$vA2Q1 = params$v2Q1*params$kappa
+  params$vA2Q2 = params$v2Q2*params$kappa
+  params$vA2Q3 = params$v2Q3*params$kappa
+  params$vA2Q1Q = params$v2Q1Q*params$kappa
+  params$vA2Q2Q = params$v2Q2Q*params$kappa
+  params$vA2Q3Q = params$v2Q3Q*params$kappa
   
-  vA3Q1 = v3Q1*kappa
-  vA3Q2 = v3Q2*kappa
-  vA3Q3 = v3Q3*kappa
-  vA3Q1Q = v3Q1Q*kappa
-  vA3Q2Q = v3Q2Q*kappa
-  vA3Q3Q = v3Q3Q*kappa
-  
+  params$vA3Q1 = params$v3Q1*params$kappa
+  params$vA3Q2 = params$v3Q2*params$kappa
+  params$vA3Q3 = params$v3Q3*params$kappa
+  params$vA3Q1Q = params$v3Q1Q*params$kappa
+  params$vA3Q2Q = params$v3Q2Q*params$kappa
+  params$vA3Q3Q = params$v3Q3Q*params$kappa
+
   ############## SET INITIAL CONDITIONS
   
   # demographics
-  p = 0.05
   n = 1938000
   
   # these match US proportions
@@ -300,12 +316,12 @@ params = read.csv("parameters_17_mar_2020.csv", as.is = T)[1,]
   #start_kids = obs_kids/(c*k_report*young)
   start = start_kids = 24
   
-  N1 = if_else(n*(1-s)*young == 0, 1, n*(1-s)*young)
-  N2 = if_else(n*(1-s)*medium == 0, 1, n*(1-s)*medium)
-  N3 = if_else(n*(1-s)*old == 0, 1, n*(1-s)*old)
-  N1Q = if_else(n*(s)*young == 0, 1, n*(s)*young)
-  N2Q = if_else(n*(s)*medium == 0, 1, n*(s)*medium)
-  N3Q = if_else(n*(s)*old == 0, 1, n*(s)*old)
+  params$N1 = if_else(n*(1-s)*young == 0, 1, n*(1-s)*young)
+  params$N2 = if_else(n*(1-s)*medium == 0, 1, n*(1-s)*medium)
+  params$N3 = if_else(n*(1-s)*old == 0, 1, n*(1-s)*old)
+  params$N1Q = if_else(n*(s)*young == 0, 1, n*(s)*young)
+  params$N2Q = if_else(n*(s)*medium == 0, 1, n*(s)*medium)
+  params$N3Q = if_else(n*(s)*old == 0, 1, n*(s)*old)
   
   x = data.frame(
     
@@ -372,23 +388,91 @@ params = read.csv("parameters_17_mar_2020.csv", as.is = T)[1,]
   ############## RUN MODEL
   
   # very roughly estimated
-  p = .05
-  
+  p = .072
+
   # run the model
   tic()
   test = run_model(model_strat, xstart = as.numeric(x), times = c(1:30), params, method = "lsodes")
-  toc()
-  
-  # rename columns (a pain to do in tidyverse)
   names(test)[2:ncol(test)] = names(x)
-  
-  f = make_plots(test, params = params)
-  #multiplot(f[[1]], f[[2]],
-  #          f[[3]], f[[4]],
-  #          f[[5]], f[[6]])
+  toc()
+  return(test)
+}
 
-  multiplot(f[[2]], f[[3]], cols = 2)
+############## RUN CODE
+
+# libraries
+library(tidyverse)
+library(deSolve)
+library(ggthemes)
+library(tictoc)
+
+# set working directory
+setwd("~/Dropbox/COVID19/0 - Parameters")
+
+# read in parameters
+df = read.csv("parameters_17_mar_2020.csv", as.is = T)
+vec = df[1,]
+test = run_param_vec(vec, 1)
+f = make_plots(test, params = params)
+#multiplot(f[[1]], f[[2]],
+#          f[[3]], f[[4]],
+#          f[[5]], f[[6]])
+
+multiplot(f[[2]], f[[3]], cols = 2)
+
+############## CALIBRATION (CUMULATIVE CASES)
+
+# Observed data (Santa Clara data. Cumulative number of cases)
+ts = read.csv("time_series_SCC.csv", as.is = T)[6:20,] # These rows are for March 1st - 15th# Set a reasonable range of p
+
+# run calibration
+run_calib = function(p_cand, vec, obs = ts$cum_cases, cum = T){
+  sumsq <- c()
+  for (i in 1:length(p_cand)) {  # Select a candidate value of parameter p
+
+    test = run_param_vec(vec, p.adj = p_cand[i])
+    est = vec$k_report*vec$c*(test$I_1_cum+test$I_1Q_cum+test$A_1_cum+test$A_1Q_cum) + 
+      vec$c*(test$I_2_cum+test$I_2Q_cum+test$A_2_cum+test$A_2Q_cum +
+           test$I_3_cum+test$I_3Q_cum+test$A_3_cum+test$A_3Q_cum)
+    # c is the reporting rate for adults
+    # k_report is the relative reporting rate for kids  # Calculate the squared difference.
+    if(cum) sumsq[i] = sum((est[1:15] - obs)^2)
+    if(!cum)  sumsq[i] = sum((diff(est[1:14]) - diff(obs))^2)
+  }
   
+  return(list(best.p = p_cand[which.min(sumsq)], est, obs))
+  
+}
+
+#### CUMULATIVE CASES
+
+vec$kappa = .25
+
+# run initially 
+p_cand = seq(0.001, 0.1, by=0.005)# Run the model, calculate the least-squares
+calib1 = run_calib(p_cand, vec)
+  
+# pull fit
+results = run_calib(calib[[1]], vec)
+plot_data = data.frame(cases = c(results[[2]], results[[3]]), day = c(1:30, 1:15), 
+                       id = c(rep("Observed", 30), rep("Actual", 15)))
+
+ggplot(plot_data, aes(x = day, y = cases, group = id, col = id)) + geom_line() + 
+  theme_minimal() + scale_color_discrete(name = "") + xlim(0, 15) + ylim(0, 100)
+
+#### CHANGE IN CASES
+
+calib2 = run_calib(p_cand, vec, cum = F)
+
+# pull fit
+results = run_calib(calib[[1]], vec)
+plot_data = data.frame(cases = c(results[[2]], results[[3]]), day = c(1:30, 1:15), 
+                       id = c(rep("Observed", 30), rep("Actual", 15)))
+
+ggplot(plot_data, aes(x = day, y = cases, group = id, col = id)) + geom_line() + 
+  theme_minimal() + scale_color_discrete(name = "") + xlim(0, 15) + ylim(0, 100)
+
+
 ############## RUN MODEL CHANGING HALFWAY THROUGH
   
   # run the model
