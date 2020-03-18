@@ -216,11 +216,20 @@ make_plots = function(test, params){
     facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
   
-  return(list(a,b,c,d,e,f,g))
+  # Check fit
+  ts = read.csv("time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+    mutate(time = 1:15, Total_obs = cum_cases)
+  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line() +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Cumulative cases by age")
+  
+  
+  return(list(a,b,c,d,e,f,g,h))
 }
 
 ############### RUN PARAMETER VECTOR
-run_param_vec = function(params, val, p.adj = NA){
+run_param_vec = function(params, val, p.adj = NA, days_out = 30){
   
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
@@ -298,14 +307,6 @@ run_param_vec = function(params, val, p.adj = NA){
 
   ############## SET INITIAL CONDITIONS
   
-  # demographics
-  n = 1938000
-  
-  # these match US proportions
-  young = .24
-  medium = .6
-  old = .15
-  
   # assuming you don't have specific reporting rates
   # you can instead pull from obs_adults and obs_kids by 
   # adding to parameter vector
@@ -314,52 +315,52 @@ run_param_vec = function(params, val, p.adj = NA){
   #obs_kids = obs*young
   #start = obs_adults/(c*(medium+old))
   #start_kids = obs_kids/(c*k_report*young)
-  start = start_kids = 24
+  start = start_kids = params$obs
   
-  params$N1 = if_else(n*(1-s)*young == 0, 1, n*(1-s)*young)
-  params$N2 = if_else(n*(1-s)*medium == 0, 1, n*(1-s)*medium)
-  params$N3 = if_else(n*(1-s)*old == 0, 1, n*(1-s)*old)
-  params$N1Q = if_else(n*(s)*young == 0, 1, n*(s)*young)
-  params$N2Q = if_else(n*(s)*medium == 0, 1, n*(s)*medium)
-  params$N3Q = if_else(n*(s)*old == 0, 1, n*(s)*old)
+  params$N1 = if_else(params$n*(1-params$s)*params$young == 0, 1, params$n*(1-params$s)*params$young)
+  params$N2 = if_else(params$n*(1-params$s)*params$medium == 0, 1, params$n*(1-params$s)*params$medium)
+  params$N3 = if_else(params$n*(1-params$s)*params$old == 0, 1, params$n*(1-params$s)*params$old)
+  params$N1Q = if_else(params$n*(params$s)*params$young == 0, 1, params$n*(params$s)*params$young)
+  params$N2Q = if_else(params$n*(params$s)*params$medium == 0, 1, params$n*(params$s)*params$medium)
+  params$N3Q = if_else(params$n*(params$s)*params$old == 0, 1, params$n*(params$s)*params$old)
   
   x = data.frame(
     
     # initial conditions
-    S_1 = n*(1-s)*young - start_kids*young*(1-s),
-    E_1 = start_kids*(1-s)*young,
-    I_1 = start_kids*(1-s)*young*(1-alpha1),
-    A_1 = start_kids*(1-s)*young*(alpha1),
+    S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
+    E_1 = start_kids*(1-params$s)*params$young,
+    I_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
+    A_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
     R_1 = 0,
     
-    S_2 = n*(1-s)*medium - start*medium*(1-s),
-    E_2 = start*(1-s)*medium,
-    I_2 = start*(1-s)*medium*(1-alpha2),
-    A_2 = start*(1-s)*medium*(alpha2),
+    S_2 = params$n*(1-params$s)*params$medium - start*params$medium*(1-params$s),
+    E_2 = start*(1-params$s)*params$medium,
+    I_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
+    A_2 = start*(1-params$s)*params$medium*(params$alpha2),
     R_2 = 0,
     
-    S_3 = n*(1-s)*old - start*old*(1-s),
-    E_3 = start*(1-s)*old,
-    I_3 = start*(1-s)*old*(1-alpha3)*(1-s),
-    A_3 = start*(1-s)*old*(alpha3)*(1-s),
+    S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
+    E_3 = start*(1-params$s)*params$old,
+    I_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
+    A_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
     R_3 = 0,
     
-    S_1Q = n*(s)*young - start_kids*young*(s),
-    E_1Q = start_kids*(s)*young,
-    I_1Q = start_kids*(s)*young*(alpha1),
-    A_1Q = start_kids*(s)*young*(alpha1),
+    S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
+    E_1Q = start_kids*(params$s)*params$young,
+    I_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    A_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     R_1Q = 0,
     
-    S_2Q = n*(s)*medium - start*medium*(s),
-    E_2Q = start*(s)*medium, 
-    I_2Q = start*(s)*medium*(1-alpha2),
-    A_2Q = start*(s)*medium*(alpha2),
+    S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
+    E_2Q = start*(params$s)*params$medium, 
+    I_2Q = start*(params$s)*params$medium*(1-params$alpha2),
+    A_2Q = start*(params$s)*params$medium*(params$alpha2),
     R_2Q = 0,
     
-    S_3Q = n*(s)*old - start*old*(s),
-    E_3Q = start*(s)*old,
-    I_3Q = start*(s)*old*(1-alpha3)*(s),
-    A_3Q = start*(s)*old*(alpha3)*(s),
+    S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
+    E_3Q = start*(params$s)*params$old,
+    I_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
+    A_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
     R_3Q = 0,
     
     I_1_cum = 0,
@@ -388,17 +389,17 @@ run_param_vec = function(params, val, p.adj = NA){
   ############## RUN MODEL
   
   # very roughly estimated
-  p = .072
+  p = .048
 
   # run the model
   tic()
-  test = run_model(model_strat, xstart = as.numeric(x), times = c(1:30), params, method = "lsodes")
+  test = run_model(model_strat, xstart = as.numeric(x), times = c(1:days_out), params, method = "lsodes")
   names(test)[2:ncol(test)] = names(x)
   toc()
   return(test)
 }
 
-############## RUN CODE
+############## LIBRARIES
 
 # libraries
 library(tidyverse)
@@ -406,90 +407,49 @@ library(deSolve)
 library(ggthemes)
 library(tictoc)
 
-# set working directory
-setwd("~/Dropbox/COVID19/0 - Parameters")
-
-# read in parameters
-df = read.csv("parameters_17_mar_2020.csv", as.is = T)
-vec = df[1,]
-test = run_param_vec(vec, 1)
-f = make_plots(test, params = params)
-#multiplot(f[[1]], f[[2]],
-#          f[[3]], f[[4]],
-#          f[[5]], f[[6]])
-
-multiplot(f[[2]], f[[3]], cols = 2)
-
-############## CALIBRATION (CUMULATIVE CASES)
-
-# Observed data (Santa Clara data. Cumulative number of cases)
-ts = read.csv("time_series_SCC.csv", as.is = T)[6:20,] # These rows are for March 1st - 15th# Set a reasonable range of p
-
-# run calibration
-run_calib = function(p_cand, vec, obs = ts$cum_cases, cum = T){
-  sumsq <- c()
-  for (i in 1:length(p_cand)) {  # Select a candidate value of parameter p
-
-    test = run_param_vec(vec, p.adj = p_cand[i])
-    est = vec$k_report*vec$c*(test$I_1_cum+test$I_1Q_cum+test$A_1_cum+test$A_1Q_cum) + 
-      vec$c*(test$I_2_cum+test$I_2Q_cum+test$A_2_cum+test$A_2Q_cum +
-           test$I_3_cum+test$I_3Q_cum+test$A_3_cum+test$A_3Q_cum)
-    # c is the reporting rate for adults
-    # k_report is the relative reporting rate for kids  # Calculate the squared difference.
-    if(cum) sumsq[i] = sum((est[1:15] - obs)^2)
-    if(!cum)  sumsq[i] = sum((diff(est[1:14]) - diff(obs))^2)
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
   }
   
-  return(list(best.p = p_cand[which.min(sumsq)], est, obs))
-  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
 }
 
-#### CUMULATIVE CASES
-
-vec$kappa = .25
-
-# run initially 
-p_cand = seq(0.001, 0.1, by=0.005)# Run the model, calculate the least-squares
-calib1 = run_calib(p_cand, vec)
-  
-# pull fit
-results = run_calib(calib[[1]], vec)
-plot_data = data.frame(cases = c(results[[2]], results[[3]]), day = c(1:30, 1:15), 
-                       id = c(rep("Observed", 30), rep("Actual", 15)))
-
-ggplot(plot_data, aes(x = day, y = cases, group = id, col = id)) + geom_line() + 
-  theme_minimal() + scale_color_discrete(name = "") + xlim(0, 15) + ylim(0, 100)
-
-#### CHANGE IN CASES
-
-calib2 = run_calib(p_cand, vec, cum = F)
-
-# pull fit
-results = run_calib(calib[[1]], vec)
-plot_data = data.frame(cases = c(results[[2]], results[[3]]), day = c(1:30, 1:15), 
-                       id = c(rep("Observed", 30), rep("Actual", 15)))
-
-ggplot(plot_data, aes(x = day, y = cases, group = id, col = id)) + geom_line() + 
-  theme_minimal() + scale_color_discrete(name = "") + xlim(0, 15) + ylim(0, 100)
-
-
-############## RUN MODEL CHANGING HALFWAY THROUGH
-  
-  # run the model
-  test = run_model(model_strat, xstart = as.numeric(x), times = c(1:15), params, method = "lsodes")
-  names(test)[2:ncol(test)] = names(x)
-  
-  # cut contact matrix in half
-  x2 = tail(test, n = 1)[-1]
-  v11 = v11/2; v12 = v12/2; v13= v13/2; v21=v21/2; v22= v22/2; v23 = v23/2; v31 = v31/2; v32 = v32/2; v33 = v33/2
-  test2 = run_model(model_strat, xstart = as.numeric(x2), times = c(1:15), params, method = "lsodes")
-  names(test2)[2:ncol(test2)] = names(x)
-  test2$time = c(16:30)
-  
-  out = bind_rows(test, test2)
-  f = make_plots(out, params = params)
-  multiplot(f[[2]], f[[3]], cols = 2)
-  
-  
-  
-  
