@@ -14,8 +14,18 @@ from webapp.vizualizations import Vizualizations
 app = dash.Dash(__name__)
 server = app.server
 
+chart1 = html.Div(
+    id="submit-status",
+    title="Contains information about the success or failure of your commands.",
+    children=["Test"]
+)
+
+chart2 = html.Div(
+    children="Something else"
+)
+
 parameters = Parameters()
-vizualizations = Vizualizations()
+vizualizations = Vizualizations([chart1, chart2])
 
 def make_submit_control():
     return html.Div(

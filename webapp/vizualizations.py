@@ -6,12 +6,11 @@ from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output, State
 
 class Vizualizations:
-    def __init__(self):
-        pass
+    def __init__(self, charts):
+        self.charts = charts
 
     def render(self):
-        return html.Div(
-        id="submit-status",
-        title="Contains information about the success or failure of your commands.",
-        children=["Test"],
-    )
+        tabs = [dcc.Tab(label=f"Tab {i}", children=[chart]) for i, chart in  enumerate(self.charts)]
+        return html.Div([
+            dcc.Tabs(id="tabs", value='tab-1', children=tabs)
+        ])
