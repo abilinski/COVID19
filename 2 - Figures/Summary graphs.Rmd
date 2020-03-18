@@ -9,7 +9,7 @@ This document summarizes model output for COVID-19.
 
 ############## RUN CODE
 
-source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_17_mar_2020_951EDT.R")
+source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_18_mar_2020.R")
 
 # set working directory
 setwd("~/Dropbox/COVID19/0 - Parameters")
@@ -41,7 +41,7 @@ for(i in 1:nrow(df)){
 
 ############## RUN CODE
 
-source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_17_mar_2020_951EDT.R")
+source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_18_mar_2020.R")
 
 # set working directory
 setwd("~/Dropbox/COVID19/0 - Parameters")
