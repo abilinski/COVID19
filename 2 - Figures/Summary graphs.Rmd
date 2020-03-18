@@ -17,11 +17,16 @@ setwd("~/Dropbox/COVID19/0 - Parameters")
 # read in parameters
 df = read.csv("parameters_17_mar_2020.csv", as.is = T)
 
+# loop over parameter vectors
 for(i in 1:nrow(df)){
   params = df[i,]
   print(params)
+  
+  # run scenario for 30 days
   test = run_param_vec(params = df[i,], params2 = NULL, days_out1 = 30,
                        days_out2 = NULL, model_type = run_basic)
+  
+  # make plots
   f = make_plots(test, params = params)
   multiplot(f[[2]], f[[6]],
             f[[5]], f[[4]],
@@ -44,20 +49,22 @@ setwd("~/Dropbox/COVID19/0 - Parameters")
 # read in parameters
 df = read.csv("parameters_17_mar_2020.csv", as.is = T)
 
+# loop over vectors
 for(i in 1:nrow(df)){
   params_int = df[i,]
   print(params_int)
   
-  # run base
-  test = run_param_vec(params = df[1,], params2 = NULL, days_out1 = 30,
+  # run base for 15 days
+  test = run_param_vec(params = df[1,], params2 = NULL, days_out1 = 15,
                        days_out2 = NULL, model_type = run_basic)
   f = make_plots(test, params = params_int)
 
-  # run intervention
+  # run intervention for another 30 days
   test_int = run_param_vec(params = df[1,], params2 = params_int, days_out1 = 15,
                        days_out2 = 30, model_type = run_int)
   g = make_plots(test_int, params = params_int)
   
+  # make plots
   multiplot(f[[2]], g[[2]],
             f[[9]], g[[9]],
             cols = 2)
