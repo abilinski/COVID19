@@ -176,10 +176,10 @@ make_plots = function(test, params){
     summarize(val2 = sum(value)) %>% group_by(time) %>% mutate(Total = sum(val2),
                                                                val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
                                                                Total_obs = sum(val_obs),
-                                                               Hospital = .17*.13*Total,
+                                                               Hospital = .1*Total,
                                                                Ventilator = .05*Total)
   b = ggplot(out_cases, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
-    geom_line(aes(y = Total), col = "black") +
+    geom_line(aes(y = Total), col = "black") + scale_linetype(guide = F) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                            title = "Cumulative cases by age")
   b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
@@ -226,9 +226,10 @@ make_plots = function(test, params){
   ts = read.csv("time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
     mutate(time = 1:15, Total_obs = cum_cases)
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line() +
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line(aes(lty = id)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                             title = "Cumulative cases by age")
+                                                             title = "Calibration") + 
+    scale_linetype(name = "")
   
   
   return(list(a,b,c,d,e,f,g,h,b2))

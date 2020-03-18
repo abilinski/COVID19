@@ -6,7 +6,7 @@
 
 ############## WORKING DIRECTOY AND MODEL FUNCTIONS
 setwd("~/Dropbox/COVID19/0 - Parameters/")
-source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_17_mar_2020_1520EST.R")
+source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_18_mar_2020_1520EST.R")
 
 n = 1938000
 
