@@ -13,8 +13,8 @@ def __percent_selector_params():
     steps = [i * step_size for i in range(0, int(1 / step_size), 1)]
 
     mark_size = 0.10
-    marks = [i * step_size for i in range(0, int(1 / mark_size), 1)]
-    marks_dict = {step: percentify(step) for step in steps}
+    marks = [0] + [i * mark_size for i in range(0, int(1 / mark_size), 1)] + [1]
+    marks_dict = {mark: percentify(mark) for mark in marks}
 
     return {"min": 0, "max": 1, "step": step_size, "value": 0.10, "marks": marks_dict}
 

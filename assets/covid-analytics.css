@@ -85,11 +85,7 @@ H5, H3 {
   width: 100%;
 }
 
-#parameters > div {
-  width: 100%;
-}
-
-#parameters > p {
+p {
   font-weight: bold;
 }
 
