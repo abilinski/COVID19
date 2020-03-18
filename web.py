@@ -4,6 +4,7 @@ import dash_core_components as dcc
 from dash.exceptions import PreventUpdate
 
 from dash.dependencies import Input, Output, State
+from webapp import model
 
 from webapp.config import Config
 from webapp.layout import Layout
@@ -53,6 +54,7 @@ def calculate(n_clicks_timestamp, *state):
     # dictionary of commands; component id and associated value
     commands = {controls[i].selector: state[i] for i in range(len(controls))}
 
+    model_output = model.run(state)
     #  failed, succeeded = spec.send_control_values(commands)
 #
     summary = []
@@ -65,6 +67,8 @@ def calculate(n_clicks_timestamp, *state):
         summary.append(f"{key.upper()}: {value}")
         summary.append(html.Br())
 
+    summary.append("Model output: %s" % (model_output))
+    summary.append(html.Br())
 
     return html.Div(summary)
 
