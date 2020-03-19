@@ -1,6 +1,6 @@
 ### Blank for now
 
-library(tidyverse)
-library(deSolve)
-library(ggthemes)
-library(tictoc)
+install.packages(tidyverse)
+#library(deSolve)
+#library(ggthemes)
+#library(tictoc)
