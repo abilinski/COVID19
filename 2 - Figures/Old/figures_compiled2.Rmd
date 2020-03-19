@@ -1,0 +1,35 @@
+---
+title: "COVID-19 Model Output"
+output: html_document
+---
+
+This document summarizes model output for COVID-19.
+
+```{r, echo = F, message = F, warning = F, fig.height = 11, fig.width = 8}
+
+############## RUN CODE
+
+source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_17_mar_2020_951EDT.R")
+#source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_17_mar_2020_1520EST.R")
+
+# set working directory
+setwd("~/Dropbox/COVID19/0 - Parameters")
+
+# read in parameters
+df = read.csv("parameters_17_mar_2020.csv", as.is = T)
+
+for(i in 1:nrow(df)){
+  params = df[i,]
+  print(params)
+  test = run_param_vec(params = df[i,], params2 = NULL, days_out1 = 30,
+                       days_out2 = NULL, model_type = run_basic)
+  f = make_plots(test, params = params)
+  multiplot(f[[2]], f[[6]],
+            f[[5]], f[[4]],
+            f[[3]], f[[8]],
+            cols = 2)
+
+}
+
+}
+```
