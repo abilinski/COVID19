@@ -43,7 +43,7 @@ ui <- fluidPage(
                conditionalPanel(
                    condition = "input.intervention == 1",
                    numericInput("days_out1", label="intervention starts at", value=15)
-               )
+               ),
                numericInput("days_out2", label="simulation time (days)", value=30),
                numericInput("R0", label="R0", value=2.2),
                numericInput("delta", label=HTML("&delta;:"), value=0.2),
