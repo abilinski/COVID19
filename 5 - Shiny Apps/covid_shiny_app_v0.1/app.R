@@ -50,7 +50,17 @@ ui <- fluidPage(
                numericInput("R0", label="R0", value=2.2),
                numericInput("delta", label=HTML("&delta;:"), value=0.2),
                numericInput("gamma", label=HTML("&gamma;:"), value=0.2),
-               numericInput("n", label="n", value=1938000)
+               numericInput("n", label="n", value=1938000),
+               numericInput("v11",label= "v11", value = df$v11[1], step = .1 ),
+               numericInput("v12",label= "v12", value = df$v12[1], step = .1 ),
+               numericInput("v13",label= "v13", value = df$v13[1], step = .1 ),
+               numericInput("v21",label= "v21", value = df$v21[1], step = .1 ),
+               numericInput("v22",label= "v22", value = df$v22[1], step = .1 ),
+               numericInput("v23",label= "v23", value = df$v23[1], step = .1 ),
+               numericInput("v31",label= "v31", value = df$v31[1], step = .1 ),
+               numericInput("v32",label= "v32", value = df$v32[1], step = .1 ),
+               numericInput("v33",label= "v33", value = df$v33[1], step = .1 ),
+               
         ),
         column(2,
                sliderInput("s", label = "s", min = 0, 
@@ -86,7 +96,7 @@ ui <- fluidPage(
                sliderInput("medium", label = "medium ", min = 0, 
                            max = 1, value = 0.6),
                sliderInput("old", label = "old", min = 0, 
-                           max = 1, value = 0.15),
+                           max = 1, value = 0.15) #,
                #p("*young+medium+old <= 1"),
         ),
         column(2,
@@ -114,7 +124,7 @@ server <- function(input, output) {
         print(param_vec)
     })
     
-    ## download adjusted paramters
+    ## download adjusted parameters
     output$download <- downloadHandler(
         filename = function() {
             paste("parameters_shiny_",Sys.Date(),".csv", sep = "")
