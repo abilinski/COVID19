@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(shinyjs)
 source("source/model_3strat_18_mar_2020.R")
 # upload paramters
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
@@ -20,6 +21,7 @@ ui <- fluidPage(
 
     # Application title
     titlePanel("covid_epi_model"),
+    shinyjs::useShinyjs(),
     tabsetPanel(
         tabPanel("Fits", plotOutput("fit")),
         tabPanel("Comp flows", plotOutput("comp_flow")),
@@ -40,13 +42,9 @@ ui <- fluidPage(
                             choices = list("yes" = 1, "no" = 2), selected = 2),
                conditionalPanel(
                    condition = "input.intervention == 1",
-                   numericInput("days_out1", label="intervention starts at", value=15),
-                   numericInput("days_out2", label="simulation time (days)", value=30)
+                   numericInput("days_out1", label="intervention starts at", value=15)
                ),
-               conditionalPanel(
-                   condition = "input.intervention == 2",
-                   numericInput("days_out1", label="simulation time (days)", value=30)
-               ),
+               numericInput("days_out2", label="simulation time (days)", value=30),
                numericInput("R0", label="R0", value=2.2),
                numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -60,7 +58,8 @@ ui <- fluidPage(
                sliderInput("p", label = "p: Pr(transmission/contact)", min = 0.01, 
                            max = 0.1, value = 0.05),
                sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
-                           max = 1, value = 0.375)
+                           max = 1, value = 0.375),
+               actionButton("reset_inputs", "Reset All Parameters")
         ),
         column(2,
                sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
@@ -267,6 +266,16 @@ server <- function(input, output) {
         
     })
 
+    # if the user preses the Reset All Parameters actionButton, use the
+    # shinyjs::reset function to reset all parameters to their default values. 
+    # 
+    # right now this includes the interventions, is that the behavior we want?
+    observeEvent(input$reset_inputs, { 
+      sapply(c('days_out1', 'days_out2', 'R0', 'delta', 'gamma', 'n', 's', 'e',
+               'p', 'kappa', 'alpha1', 'alpha2', 'alpha3', 'c', 'm1', 'm2',
+               'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp'),
+             shinyjs::reset)
+    })
 }
 
 # Run the application 
