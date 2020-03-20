@@ -10,12 +10,12 @@
 model_strat <- function (t, x, parms) {
   
   # initial conditions
-  S1 = x[1]; E1 = x[2]; I1 = x[3]; A1 = x[4]; R1 = x[5]
-  S2 = x[6]; E2 = x[7]; I2 = x[8]; A2 = x[9]; R2 = x[10]
-  S3 = x[11]; E3 = x[12]; I3 = x[13]; A3 = x[14]; R3 = x[15]
-  S1Q = x[16]; E1Q = x[17]; I1Q = x[18]; A1Q = x[19]; R1Q = x[20]
-  S2Q = x[21]; E2Q = x[22]; I2Q = x[23]; A2Q = x[24]; R2Q = x[25]
-  S3Q = x[26]; E3Q = x[27]; I3Q = x[28]; A3Q = x[29]; R3Q = x[30]
+  S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
+  S2 = x[8]; E2 = x[9]; UI2 = x[10]; DI2 = x[11]; UA2 = x[12]; DA2 = x[13]; R2 = x[14]
+  S3 = x[15]; E3 = x[16]; UI3 = x[17]; DI3 = x[18]; UA3 = x[19]; DA3 = x[20]; R3 = x[21]
+  S1Q = x[22]; E1Q = x[23]; UI1Q = x[24]; DI1Q = x[25]; UA1Q = x[26]; DA1Q = x[27]; R1Q = x[28]
+  S2Q = x[29]; E2Q = x[30]; UI2Q = x[31]; DI2Q = x[32]; UA2Q = x[33]; DA2Q = x[34]; R2Q = x[35]
+  S3Q = x[36]; E3Q = x[37]; UI3Q = x[38]; DI3Q = x[39]; UA3Q = x[40]; DA3Q = x[41]; R3Q = x[42]
   
   # pull in params
   # pulled from: paste(names(params), " = parms$", names(params), sep = "", collapse = ";")
@@ -365,38 +365,50 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
     E_1 = start_kids*(1-params$s)*params$young,
-    I_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
-    A_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
+    UI_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
+    DI_1 = 0,
+    UA_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
+    DA_1 = 0,
     R_1 = 0,
     
     S_2 = params$n*(1-params$s)*params$medium - start*params$medium*(1-params$s),
     E_2 = start*(1-params$s)*params$medium,
-    I_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
-    A_2 = start*(1-params$s)*params$medium*(params$alpha2),
+    UI_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
+    DI_2 = 0,
+    UA_2 = start*(1-params$s)*params$medium*(params$alpha2),
+    DA_2 = 0,
     R_2 = 0,
     
     S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
     E_3 = start*(1-params$s)*params$old,
-    I_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
-    A_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
+    UI_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
+    DI_3 = 0,
+    UA_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
+    DA_3 = 0,
     R_3 = 0,
     
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
-    I_1Q = start_kids*(params$s)*params$young*(params$alpha1),
-    A_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    UI_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    DI_1Q = 0,
+    UA_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    DA_1Q = 0,
     R_1Q = 0,
     
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
     E_2Q = start*(params$s)*params$medium, 
-    I_2Q = start*(params$s)*params$medium*(1-params$alpha2),
-    A_2Q = start*(params$s)*params$medium*(params$alpha2),
+    UI_2Q = start*(params$s)*params$medium*(1-params$alpha2),
+    DI_2Q = 0,
+    UA_2Q = start*(params$s)*params$medium*(params$alpha2),
+    DA_2Q = 0,
     R_2Q = 0,
     
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
-    I_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
-    A_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
+    UI_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
+    I_3Q = 0,
+    UA_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
+    A_3Q = 0,
     R_3Q = 0,
     
     I_1_cum = 0,
