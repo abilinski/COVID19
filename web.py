@@ -11,29 +11,38 @@ from webapp.layout import Layout
 from webapp.parameters import Parameters
 from webapp.vizualizations import Vizualizations
 
+external_stylesheets = [
+    "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
+]
+external_scripts = [
+    "https://code.jquery.com/jquery-3.1.1.min.js",
+    "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js",
+]
 
-app = dash.Dash(__name__)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=external_stylesheets,
+    external_scripts=external_scripts,
+)
 server = app.server
 
 chart1 = html.Div(
     id="submit-status",
     title="Contains information about the success or failure of your commands.",
-    children=["Test"]
+    children=["Status should wind up here."],
 )
 
-chart2 = html.Div(
-    children="Something else"
-)
+chart2 = html.Div(children="Something else")
 
 parameters = Parameters()
 vizualizations = Vizualizations([chart1, chart2])
 
+
 def make_submit_control():
-    return html.Div(
-        [html.Button("Submit", id="submit-button", n_clicks=0)],
-        #  title="Click to send all of the control values to the spectrometer.",
-        #  className="control",
+    return html.Button(
+        "Submit", id="submit-button", className="ui primary button fluid", n_clicks=0
     )
+
 
 app.layout = Layout().render(
     parameter_renderer=parameters.render,
@@ -41,10 +50,13 @@ app.layout = Layout().render(
     output_renderer=vizualizations.render,
 )
 
+
 @app.callback(
     Output("submit-status", "children"),
     [Input("submit-button", "n_clicks_timestamp")],
-    state=[State(ctrl.selector, ctrl.get_value()) for ctrl in parameters.parameter_controls]
+    state=[
+        State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.parameter_controls
+    ],
 )
 def calculate(n_clicks_timestamp, *state):
     if n_clicks_timestamp is None:
@@ -54,9 +66,8 @@ def calculate(n_clicks_timestamp, *state):
     # dictionary of commands; component id and associated value
     commands = {controls[i].selector: state[i] for i in range(len(controls))}
 
-    model_output = model.run(state)
-    #  failed, succeeded = spec.send_control_values(commands)
-#
+    # model_output = model.run(state)
+
     summary = []
 
     summary.append("The following parameters were successfully updated: ")
@@ -67,8 +78,8 @@ def calculate(n_clicks_timestamp, *state):
         summary.append(f"{key.upper()}: {value}")
         summary.append(html.Br())
 
-    summary.append("Model output: %s" % (model_output))
-    summary.append(html.Br())
+    #  summary.append("Model output: %s" % (model_output))
+    #  summary.append(html.Br())
 
     return html.Div(summary)
 
