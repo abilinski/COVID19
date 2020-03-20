@@ -152,7 +152,7 @@ run_model <- function(func, xstart, times, params, method = "lsodes") {
 make_plots = function(test, params){
   
   k_report = params$k_report
-  c = params$c
+  c = params$c ##############I haven't found where c is used, so was not able to delete it, please check --Lin Zhu 3/19/20
   
   # formatting
   out = test %>%
@@ -365,6 +365,8 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
   
   x = data.frame(
     
+    ###assumption: no detected in initial condition
+    
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
     E_1 = start_kids*(1-params$s)*params$young,
@@ -413,18 +415,18 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
     UA_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
     A_3Q = 0,
     R_3Q = 0)%>%
-    mutate(I_1_cum = I_1,
-           I_2_cum = I_2,
-           I_3_cum = I_3,
-           I_1Q_cum = I_1Q,
-           I_2Q_cum = I_2Q,
-           I_3Q_cum = I_3Q,
-           A_1_cum = A_1,
-           A_2_cum = A_2,
-           A_3_cum = A_3,
-           A_1Q_cum = A_1Q,
-           A_2Q_cum = A_2Q,
-           A_3Q_cum = A_3Q,
+    mutate(I_1_cum = UI_1,
+           I_2_cum = UI_2,
+           I_3_cum = UI_3,
+           I_1Q_cum = UI_1Q,
+           I_2Q_cum = UI_2Q,
+           I_3Q_cum = UI_3Q,
+           A_1_cum = UA_1,
+           A_2_cum = UA_2,
+           A_3_cum = UA_3,
+           A_1Q_cum = UA_1Q,
+           A_2Q_cum = UA_2Q,
+           A_3Q_cum = UA_3Q,
            D_1_cum = 0,
            D_2_cum = 0,
            D_3_cum = 0,
