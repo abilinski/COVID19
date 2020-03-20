@@ -1,4 +1,7 @@
 libssl-dev
 libxml2-dev
 libcurl4-openssl-dev
-r-cran-car
+liblapack-dev
+liblapack3
+libopenblas-base
+libopenblas-dev
