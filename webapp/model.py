@@ -1,4 +1,3 @@
-
 """
 Actually run the model
 """
@@ -6,13 +5,12 @@ Actually run the model
 import subprocess
 import os
 
-R_SCRIPT="helloworld.R"
+R_SCRIPT = "helloworld.R"
 
 
 def run(parameters):
 
     abspath = os.path.abspath(R_SCRIPT)
-
 
     cmd = ["Rscript", abspath]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
