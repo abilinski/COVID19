@@ -46,10 +46,13 @@ model_strat <- function (t, x, parms) {
   N3Q = parms$N3Q
   
   ###time varying detection rate
+  #added 3 parameters: initial detection rate for I (det_ini), increasing rate by time step (det_inc), a multiplier <1 to represent less detection rate for A (k_det_a)
   #for symptomatic
-  rdetecti <- params_rdetecti[t]
+  #assuming a cap detection rate of 1
+  rdetecti <- min(parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
   #for asymptomatic
-  rdetecta <- params_rdetecta[t]
+  #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
+  rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
   
   ###### Equations
   ### YOUNG
@@ -409,30 +412,27 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
     I_3Q = 0,
     UA_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
     A_3Q = 0,
-    R_3Q = 0,
+    R_3Q = 0)%>%
+    mutate(I_1_cum = I_1,
+           I_2_cum = I_2,
+           I_3_cum = I_3,
+           I_1Q_cum = I_1Q,
+           I_2Q_cum = I_2Q,
+           I_3Q_cum = I_3Q,
+           A_1_cum = A_1,
+           A_2_cum = A_2,
+           A_3_cum = A_3,
+           A_1Q_cum = A_1Q,
+           A_2Q_cum = A_2Q,
+           A_3Q_cum = A_3Q,
+           D_1_cum = 0,
+           D_2_cum = 0,
+           D_3_cum = 0,
+           D_1Q_cum = 0,
+           D_2Q_cum = 0,
+           D_3Q_cum = 0
+    )
     
-    I_1_cum = 0,
-    I_2_cum = 0,
-    I_3_cum = 0,
-    I_1Q_cum = 0,
-    I_2Q_cum = 0,
-    I_3Q_cum = 0,
-    
-    A_1_cum = 0,
-    A_2_cum = 0,
-    A_3_cum = 0,
-    A_1Q_cum = 0,
-    A_2Q_cum = 0,
-    A_3Q_cum = 0,
-    
-    D_1_cum = 0,
-    D_2_cum = 0,
-    D_3_cum = 0,
-    D_1Q_cum = 0,
-    D_2Q_cum = 0,
-    D_3Q_cum = 0
-    
-  )
   
   ############## RUN MODEL----------------------
   # run the model
