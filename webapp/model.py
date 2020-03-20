@@ -5,7 +5,7 @@ Actually run the model
 import subprocess
 import os
 
-R_SCRIPT="1 - Model/Most recent/model_3strat_18_mar_2020.R"
+R_SCRIPT = "1 - Model/Most recent/model_3strat_18_mar_2020.R"
 
 
 def run(parameters):
