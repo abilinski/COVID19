@@ -21,7 +21,7 @@ ui <- fluidPage(
     # Application title
     titlePanel("covid_epi_model"),
     tabsetPanel(
-        tabPanel("Fits", plotOutput("fit")),
+        tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
         tabPanel("Comp flows", plotOutput("comp_flow")),
         tabPanel("Cumulative cases", plotOutput("cum_case")), 
         tabPanel("Deaths & New case ratio", plotOutput("death_new_case")),
@@ -41,7 +41,7 @@ ui <- fluidPage(
                conditionalPanel(
                    condition = "input.intervention == 1",
                    numericInput("days_out1", label="intervention starts at", value=15),
-                   numericInput("days_out2", label="simulation time (days)", value=30)
+                   numericInput("days_out2", label="simulation time (days)", value=30),
                ),
                conditionalPanel(
                    condition = "input.intervention == 2",
@@ -144,13 +144,17 @@ server <- function(input, output) {
         multiplot(f[[8]],
                   cols = 1)
         } else {
+            ### run model without intervention
+            test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$days_out2,
+                                 days_out2 = NULL, model_type = run_basic) #days_out2 here is sim time
             ### run intervention halfway
             test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$days_out1,
                                      days_out2 = input$days_out2, model_type = run_int)
             ### make plots
-            g = make_plots(test_int, params = param_vec)
+            g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
             multiplot(g[[8]],
                       cols = 1)
+            
         }
         
     })
@@ -172,11 +176,14 @@ server <- function(input, output) {
             multiplot(f[[7]],
                       cols = 1)
         } else {
+            ### run model without intervention
+            test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$days_out2,
+                                 days_out2 = NULL, model_type = run_basic) #days_out2 here is sim time
             ### run intervention halfway
             test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$days_out1,
                                      days_out2 = input$days_out2, model_type = run_int)
             ### make plots
-            g = make_plots(test_int, params = param_vec)
+            g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
             multiplot(g[[7]],
                       cols = 1)
         }
@@ -200,11 +207,14 @@ server <- function(input, output) {
             multiplot(f[[2]], f[[4]],
                       cols = 2)
         } else {
+            ### run model without intervention
+            test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$days_out2,
+                                 days_out2 = NULL, model_type = run_basic) #days_out2 here is sim time
             ### run intervention halfway
             test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$days_out1,
                                      days_out2 = input$days_out2, model_type = run_int)
             ### make plots
-            g = make_plots(test_int, params = param_vec)
+            g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
             multiplot(g[[2]], g[[4]],
                       cols = 2)
         }
@@ -228,11 +238,14 @@ server <- function(input, output) {
             multiplot(f[[5]],f[[3]],
                       cols = 2)
         } else {
+            ### run model without intervention
+            test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$days_out2,
+                                 days_out2 = NULL, model_type = run_basic) #days_out2 here is sim time
             ### run intervention halfway
             test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$days_out1,
                                      days_out2 = input$days_out2, model_type = run_int)
             ### make plots
-            g = make_plots(test_int, params = param_vec)
+            g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
             multiplot(g[[5]],g[[3]],
                       cols = 2)
         }
@@ -256,11 +269,14 @@ server <- function(input, output) {
             multiplot(f[[9]],f[[6]],
                       cols = 2)
         } else {
+            ### run model without intervention
+            test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$days_out2,
+                                 days_out2 = NULL, model_type = run_basic) #days_out2 here is sim time
             ### run intervention halfway
             test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$days_out1,
                                      days_out2 = input$days_out2, model_type = run_int)
             ### make plots
-            g = make_plots(test_int, params = param_vec)
+            g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
             multiplot(g[[9]],g[[6]],
                       cols = 2)
         }
