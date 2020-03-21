@@ -11,7 +11,7 @@ RUN pip3 install --no-cache-dir -q -r /tmp/requirements.txt
 
 
 # Run the image as a non-root user
-RUN adduser myuser
+RUN adduser --disabled-password --gecos "" myuser
 USER myuser
 
 
