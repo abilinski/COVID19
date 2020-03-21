@@ -10,6 +10,7 @@ from webapp.config import Config
 from webapp.layout import Layout
 from webapp.parameters import Parameters
 from webapp.vizualizations import Vizualizations
+import os
 
 external_stylesheets = [
     "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
@@ -58,6 +59,14 @@ app.layout = Layout().render(
         State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.parameter_controls
     ],
 )
+
+@server.route('/buildinfo')
+def build_info(*args):
+    if os.path.isfile("/buildinfo"):
+        with open("/buildinfo") as f:
+            return "Running in docker container: %s" % (f.read(),)
+    return "Not running in docker"
+
 def calculate(n_clicks_timestamp, *state):
     if n_clicks_timestamp is None:
         raise PreventUpdate
