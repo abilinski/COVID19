@@ -9,6 +9,8 @@
 
 library(shiny)
 source("source/model_3strat_18_mar_2020.R")
+source("source/manual_R0_calc_17_mar_2020.R")
+source("source/calc_p_from_R0.R")
 # upload paramters
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
 df = read.csv("source/parameters_18_mar_2020.csv", as.is = T)
@@ -47,7 +49,7 @@ ui <- fluidPage(
                    condition = "input.intervention == 2",
                    numericInput("days_out1", label="simulation time (days)", value=30)
                ),
-               numericInput("R0", label="R0", value=2.2),
+               numericInput("R0", label="R0", value=2.2, min= 1.5, max = 3.5),
                numericInput("delta", label=HTML("&delta;:"), value=0.2),
                numericInput("gamma", label=HTML("&gamma;:"), value=0.2),
                numericInput("n", label="n", value=1938000),
@@ -59,7 +61,7 @@ ui <- fluidPage(
                numericInput("v23",label= "v23", value = df$v23[1], step = .1 ),
                numericInput("v31",label= "v31", value = df$v31[1], step = .1 ),
                numericInput("v32",label= "v32", value = df$v32[1], step = .1 ),
-               numericInput("v33",label= "v33", value = df$v33[1], step = .1 ),
+               numericInput("v33",label= "v33", value = df$v33[1], step = .1 )
                
         ),
         column(2,
@@ -113,13 +115,14 @@ ui <- fluidPage(
 
 # Define server logic required to run the model and display the results
 server <- function(input, output) {
-   
+  
     ## for debugging 
     output$renderprint<-renderPrint({
         temp<-c(unlist(reactiveValuesToList(input)))
         input_names<-names(temp)[!names(temp) %in% c("intervention","days_out1","days_out2")]
         old_vec<-param_vec
         param_vec[input_names]=as.numeric(temp[input_names])
+        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         print(old_vec)
         print(param_vec)
     })
