@@ -10,7 +10,9 @@
 library(shiny)
 library(shinyjs)
 source("source/model_3strat_18_mar_2020.R")
-# upload paramter names (should hardcode the names in the future)
+source("source/manual_R0_calc_17_mar_2020.R")
+source("source/calc_p_from_R0.R")
+# upload parameter names (should hardcode the names in the future)
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
 df = read.csv("source/parameters_18_mar_2020.csv", as.is = T)
 old_vec = df[1,]
@@ -159,13 +161,15 @@ ui <- fluidPage(
 
 # Define server logic required to run the model and display the results
 server <- function(input, output) {
-   
+  
     ## for debugging 
     output$renderprint<-renderPrint({
         temp<-c(unlist(reactiveValuesToList(input)))
+
         # input_names<-names(temp)[!names(temp) %in% c("sim_time","int_time")]
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         # test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
@@ -178,6 +182,7 @@ server <- function(input, output) {
         # print(tail(test_int))
     })
     
+
     ## download adjusted base parameters
     output$download <- downloadHandler(
         filename = function() {
