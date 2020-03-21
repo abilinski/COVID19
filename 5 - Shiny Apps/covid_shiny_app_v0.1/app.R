@@ -15,7 +15,7 @@ source("source/model_3strat_18_mar_2020.R")
 df = read.csv("source/parameters_18_mar_2020.csv", as.is = T)
 old_vec = df[1,]
 param_vec = df[1,]
-param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio", "obs")]
+param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
 param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
 
 # Define UI for application
@@ -47,6 +47,7 @@ ui <- fluidPage(
                    numericInput("R0", label="R0", value=2.2),
                    numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                    numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+                   numericInput("obs", label="obs cases at day1", value=100),
                    numericInput("n", label="n: total population", value=1938000)
                    #maybe put matrix here
             ),
@@ -105,6 +106,7 @@ ui <- fluidPage(
                           numericInput("R0_int", label="R0", value=2.2),
                           numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                           numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+                          numericInput("obs_int", label="obs cases at day1", value=100),
                           numericInput("n_int", label="n: total population", value=1938000)
                           #maybe put matrix here
                    ),
