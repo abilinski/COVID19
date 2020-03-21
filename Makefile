@@ -3,7 +3,7 @@ include Makefile.config
 .PHONY: build push
 
 build:
-	docker build -t $(NS)/$(REPO):$(VERSION) .
+	docker build --build-arg BUILDHOST="$(shell hostname -f)" -t $(NS)/$(REPO):$(VERSION) .
 
 push:
 	docker push $(NS)/$(REPO):$(VERSION)
