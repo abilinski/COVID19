@@ -128,7 +128,6 @@ run_model <- function(func, xstart, times, params, method = "lsodes") {
 }
 
 ############## POST-PROCESSING
-  
 make_plots = function(test, params){
   
   k_report = params$k_report
@@ -159,15 +158,15 @@ make_plots = function(test, params){
            
            # get only age
            strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-           )
+    )
   
   
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value))
-
+  
   # Flows by compartment
   a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2) %>% summarize(value = sum(value)), 
-         aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
+             aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
     scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
   
@@ -181,7 +180,7 @@ make_plots = function(test, params){
   b = ggplot(out_cases, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total), col = "black") + scale_linetype(guide = F) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                           title = "Cumulative cases by age")
+                                                             title = "Cumulative cases by age")
   b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
               aes(x = time, y = value, group = var, col = var)) + geom_line() + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -191,13 +190,13 @@ make_plots = function(test, params){
   out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2) %>%
     summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf)
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() + 
-           theme_minimal() + scale_color_discrete(name = "") + 
-           labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
-         
+    theme_minimal() + scale_color_discrete(name = "") + 
+    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+  
   
   # Observed cases by age
   d = ggplot(out_cases, aes(x = time, y = val_obs,
-                        group = strat3, col = strat3)) + geom_line() +
+                            group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total_obs), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
   
@@ -237,9 +236,10 @@ make_plots = function(test, params){
 
 ############### RUN PARAMETER VECTOR
 
-process_params = function(params, p.adj = NA){
+process_params = function(params, p.adj = NA, obs.adj = NA){
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
+  params$obs = ifelse(is.na(obs.adj), params$obs, obs.adj)
   
   #### ADJUSTMENTS BASED ON MODEL SIMPLIFICATIONS 
   # same time to infection whether recovery or death
@@ -323,13 +323,13 @@ process_params = function(params, p.adj = NA){
 }
 
 ############### RUN PARAMETER VECTOR
-run_param_vec = function(params, params2 = NULL, p.adj = NA,
+run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
                          days_out1 = 30, days_out2 = NULL, model_type = run_basic){
   
   
   # process parameters
-  params = process_params(params, p.adj = p.adj)
-  if(!is_null(params2)) params2 = process_params(params2, p.adj = p.adj)
+  params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)
+  if(!is_null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj)
 
   ############## SET INITIAL CONDITIONS
   
@@ -380,21 +380,21 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
     E_3Q = start*(params$s)*params$old,
     I_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
     A_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
-    R_3Q = 0,
+    R_3Q = 0) %>% 
     
-    I_1_cum = 0,
-    I_2_cum = 0,
-    I_3_cum = 0,
-    I_1Q_cum = 0,
-    I_2Q_cum = 0,
-    I_3Q_cum = 0,
+mutate(I_1_cum = I_1,
+    I_2_cum = I_2,
+    I_3_cum = I_3,
+    I_1Q_cum = I_1Q,
+    I_2Q_cum = I_2Q,
+    I_3Q_cum = I_3Q,
     
-    A_1_cum = 0,
-    A_2_cum = 0,
-    A_3_cum = 0,
-    A_1Q_cum = 0,
-    A_2Q_cum = 0,
-    A_3Q_cum = 0,
+    A_1_cum = A_1,
+    A_2_cum = A_2,
+    A_3_cum = A_3,
+    A_1Q_cum = A_1Q,
+    A_2Q_cum = A_2Q,
+    A_3Q_cum = A_3Q,
     
     D_1_cum = 0,
     D_2_cum = 0,
