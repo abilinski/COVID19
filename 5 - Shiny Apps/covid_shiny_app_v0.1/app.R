@@ -13,9 +13,9 @@ source("source/model_3strat_18_mar_2020.R")
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
 df = read.csv("source/parameters_18_mar_2020.csv", as.is = T)
 old_vec = df[1,]
-param_vec = df[2,]
+param_vec = df[1,]
 param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio", "obs")]
-param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base,function(x) paste(x,"int", sep="_"))))
+param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
 
 # Define UI for application
 ui <- fluidPage(
@@ -31,7 +31,7 @@ ui <- fluidPage(
         #tabPanel("Intervention", plotOutput("intervention"))
         
     ),
-    #verbatimTextOutput("renderprint"),
+    verbatimTextOutput("renderprint"),
     
     hr(),
     column(6,
@@ -157,12 +157,19 @@ server <- function(input, output) {
     output$renderprint<-renderPrint({
         temp<-c(unlist(reactiveValuesToList(input)))
         # input_names<-names(temp)[!names(temp) %in% c("sim_time","int_time")]
-        old_vec[param_names_base]=as.numeric(temp[param_names_base])
-        param_vec[param_names_int]=as.numeric(temp[param_names_int])
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
+        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
+                             days_out2 = NULL, model_type = run_basic)
+        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
+                                 days_out2 = input$sim_time, model_type = run_int)
         print(old_vec)
         print(param_vec)
+        #print(as.numeric(temp[param_names_int]))
+        print(tail(test))
+        print(tail(test_int))
     })
     
     ## download adjusted parameters
@@ -182,9 +189,9 @@ server <- function(input, output) {
     output$fit <- renderPlot({
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]=as.numeric(temp[param_names_base])
-        param_vec[param_names_int]=as.numeric(temp[param_names_int])
-        old_vec$Scenario<-'Base' # can leave it outside in reactive()
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         
         ### run model without intervention
@@ -204,9 +211,9 @@ server <- function(input, output) {
     output$comp_flow<- renderPlot({
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]=as.numeric(temp[param_names_base])
-        param_vec[param_names_int]=as.numeric(temp[param_names_int])
-        old_vec$Scenario<-'Base' # can leave it outside in reactive()
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         
         ### run model without intervention
@@ -226,9 +233,9 @@ server <- function(input, output) {
     output$cum_case<- renderPlot({
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]=as.numeric(temp[param_names_base])
-        param_vec[param_names_int]=as.numeric(temp[param_names_int])
-        old_vec$Scenario<-'Base' # can leave it outside in reactive()
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         
         ### run model without intervention
@@ -248,9 +255,9 @@ server <- function(input, output) {
     output$death_new_case<- renderPlot({
         ### update the param_vec using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]=as.numeric(temp[param_names_base])
-        param_vec[param_names_int]=as.numeric(temp[param_names_int])
-        old_vec$Scenario<-'Base' # can leave it outside in reactive()
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         
         ### run model without intervention
@@ -270,9 +277,9 @@ server <- function(input, output) {
     output$care_symptoms<- renderPlot({
         ### update the param_vec using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]=as.numeric(temp[param_names_base])
-        param_vec[param_names_int]=as.numeric(temp[param_names_int])
-        old_vec$Scenario<-'Base' # can leave it outside in reactive()
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         
         ### run model without intervention
