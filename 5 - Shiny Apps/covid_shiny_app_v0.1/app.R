@@ -31,7 +31,7 @@ ui <- fluidPage(
         #tabPanel("Intervention", plotOutput("intervention"))
         
     ),
-    verbatimTextOutput("renderprint"),
+    #verbatimTextOutput("renderprint"),
     
     hr(),
     column(6,
@@ -172,15 +172,28 @@ server <- function(input, output) {
         print(tail(test_int))
     })
     
-    ## download adjusted parameters
+    ## download adjusted base parameters
     output$download <- downloadHandler(
         filename = function() {
-            paste("parameters_shiny_",Sys.Date(),".csv", sep = "")
+            paste("parameters_base_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
             temp<-c(unlist(reactiveValuesToList(input)))
-            input_names<-names(temp)[!names(temp) %in% c("intervention","days_out1","days_out2")]
-            param_vec[input_names]=as.numeric(temp[input_names])
+            old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+            old_vec$Scenario<-'Base'
+            write.csv(old_vec, file, row.names = FALSE)
+        }
+    )
+    
+    ## download adjusted intervention parameters
+    output$download_int <- downloadHandler(
+        filename = function() {
+            paste("parameters_int_",Sys.Date(),".csv", sep = "")
+        },
+        content = function(file) {
+            temp<-c(unlist(reactiveValuesToList(input)))
+            param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+            param_vec$Scenario<-'Intervention'
             write.csv(param_vec, file, row.names = FALSE)
         }
     )
