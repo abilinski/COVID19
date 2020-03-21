@@ -5,3 +5,6 @@ liblapack-dev
 liblapack3
 libopenblas-base
 libopenblas-dev
+libglu1-mesa-dev
+freeglut3-dev
+mesa-common-dev
