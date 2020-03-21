@@ -360,9 +360,9 @@ make_plots_int = function(test, params, test_int, params_int){
   
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
   ts = read.csv("source/time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
-    mutate(time = 1:15, Total_obs = cum_cases)
+    mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
