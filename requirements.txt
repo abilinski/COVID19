@@ -1,7 +1,10 @@
+gunicorn
+Flask
+Jinja2
+Werkzeug
 black
 isort
 pre-commit
 pandas
 dash
-gunicorn
 dash_daq
