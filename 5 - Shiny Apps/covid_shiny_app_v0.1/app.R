@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(shinyjs)
 source("source/model_3strat_18_mar_2020.R")
 # upload paramter names (should hardcode the names in the future)
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
@@ -22,6 +23,7 @@ ui <- fluidPage(
 
     # Application title
     titlePanel("covid_epi_model"),
+    shinyjs::useShinyjs(),
     tabsetPanel(
         tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
         tabPanel("Comp flows", plotOutput("comp_flow")),
@@ -34,6 +36,7 @@ ui <- fluidPage(
     #verbatimTextOutput("renderprint"),
     
     hr(),
+<<<<<<< HEAD
     column(6,
            h3("Base case parameters"),
            wellPanel(
@@ -42,53 +45,116 @@ ui <- fluidPage(
                    numericInput("sim_time", label="simulation time (days)", value=30),
                    #numericInput("int_time", label="intervention starts at", value=15),
                    numericInput("R0", label="R0", value=2.2),
-                   numericInput("delta", label=HTML("&delta;:"), value=0.2),
-                   numericInput("gamma", label=HTML("&gamma;:"), value=0.2),
-                   numericInput("n", label="n", value=1938000)
+                   numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
+                   numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+                   numericInput("n", label="n: total population", value=1938000)
                    #maybe put matrix here
             ),
             column(4,
-                   sliderInput("s", label = "s", min = 0, 
+                   sliderInput("s", label = "s: Frc socially distanced)", min = 0, 
                                max = 1, value = 0),
-                   sliderInput("e", label = "e", min = 0, 
+                   sliderInput("e", label = "e: Social distance multiplier)", min = 0, 
                                max = 1, value = 0),
-                   sliderInput("p", label = "p", min = 0.01, 
+                   sliderInput("p", label = "p: Pr(transmission/contact)", min = 0.01, 
                                max = 0.1, value = 0.05),
-                   sliderInput("kappa", label = HTML("&kappa;:"), min = 0, 
+                   sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                                max = 1, value = 0.375),
-                   sliderInput("m1", label = "m1", min = 0, 
+                   sliderInput("m1", label = "m1: mortality yng", min = 0, 
                                max = 1, value = 0),
-                   sliderInput("m2", label = "m2", min = 0, 
+                   sliderInput("m2", label = "m2: mortality med", min = 0, 
                                max = 1, value = 0.005),
-                   sliderInput("m3", label = "m3", min = 0, 
+                   sliderInput("m3", label = "m3: mortality old", min = 0, 
                                max = 1, value = 0.1),
-                   sliderInput("k_report", label = "k_report", min = 0, 
+                   sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
                                max = 1, value = 1)
+                   actionButton("reset_inputs", "Reset All Parameters")
             ),
             column(4,
-                   sliderInput("alpha1", label = HTML("&alpha;1"), min = 0, 
+                   sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
                                max = 1, value = 0.75),
-                   sliderInput("alpha2", label = HTML("&alpha;2"), min = 0, 
+                   sliderInput("alpha2", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
                                max = 1, value = 0.3),
-                   sliderInput("alpha3", label = HTML("&alpha;1"), min = 0, 
+                   sliderInput("alpha3", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
                                max = 1, value = 0.3),
-                   sliderInput("c", label = "c", min = 0, 
+                   sliderInput("c", label = "c: Reporting rate", min = 0, 
                                max = 1, value = 0.13),
-                   sliderInput("young", label = "youth", min = 0, 
+                   sliderInput("young", label = "Frc youth", min = 0, 
                                max = 1, value = 0.24),
-                   sliderInput("medium", label = "adults", min = 0, 
+                   sliderInput("medium", label = "Frc adults", min = 0, 
                                max = 1, value = 0.6),
-                   sliderInput("old", label = "older adults", min = 0, 
+                   sliderInput("old", label = "Frc older adults", min = 0, 
                                max = 1, value = 0.15),
-                   sliderInput("k_inf", label = "k_inf", min = 0, 
+                   sliderInput("k_inf", label = "k_inf: rel infectiousness for yng", min = 0, 
                                max = 1, value = 1),
-                   sliderInput("k_susp", label = "k_susp", min = 0, 
+                   sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
                                max = 1, value = 1)
                    #p("*young+medium+old <= 1"),
                 ),
             downloadButton("download", "Download parameters"),
                   
             )
+=======
+    
+    fluidRow(#class = "text-center",
+        column(2,
+               radioButtons("intervention", label = "Intervention",
+                            choices = list("yes" = 1, "no" = 2), selected = 2),
+               conditionalPanel(
+                   condition = "input.intervention == 1",
+                   numericInput("days_out1", label="intervention starts at", value=15)
+               ),
+               numericInput("days_out2", label="simulation time (days)", value=30),
+               numericInput("R0", label="R0", value=2.2),
+               numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
+               numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+               numericInput("n", label="n: total population", value=1938000)
+        ),
+        column(2,
+               sliderInput("s", label = "s: Frc socially distanced)", min = 0, 
+                           max = 1, value = 0),
+               sliderInput("e", label = "e: Social distance multiplier)", min = 0, 
+                           max = 1, value = 0),
+               sliderInput("p", label = "p: Pr(transmission/contact)", min = 0.01, 
+                           max = 0.1, value = 0.05),
+               sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
+                           max = 1, value = 0.375),
+               actionButton("reset_inputs", "Reset All Parameters")
+        ),
+        column(2,
+               sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
+                           max = 1, value = 0.75),
+               sliderInput("alpha2", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
+                           max = 1, value = 0.3),
+               sliderInput("alpha3", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
+                           max = 1, value = 0.3),
+               sliderInput("c", label = "c: Reporting rate", min = 0, 
+                           max = 1, value = 0.13)
+        ),
+        column(2,
+               sliderInput("m1", label = "m1: mortality yng", min = 0, 
+                           max = 1, value = 0),
+               sliderInput("m2", label = "m2: mortality med", min = 0, 
+                           max = 1, value = 0.005),
+               sliderInput("m3", label = "m3: mortality old", min = 0, 
+                           max = 1, value = 0.1)
+        ),
+        column(2,
+               sliderInput("young", label = "Frc young pop", min = 0, 
+                           max = 1, value = 0.24),
+               sliderInput("medium", label = "Frc medium pop", min = 0, 
+                           max = 1, value = 0.6),
+               sliderInput("old", label = "Frc old pop", min = 0, 
+                           max = 1, value = 0.15),
+               #p("*young+medium+old <= 1"),
+        ),
+        column(2,
+               sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
+                           max = 1, value = 1),
+               sliderInput("k_inf", label = "k_inf: rel infectiousness for yng", min = 0, 
+                           max = 1, value = 1),
+               sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
+                           max = 1, value = 1)
+>>>>>>> e793f348d09f62912a260718a9321a82c3de941a
         )
     ),
     column(6,
@@ -308,7 +374,18 @@ server <- function(input, output) {
         
     })
 
+    # if the user preses the Reset All Parameters actionButton, use the
+    # shinyjs::reset function to reset all parameters to their default values. 
+    # 
+    # right now this includes the interventions, is that the behavior we want?
+    observeEvent(input$reset_inputs, { 
+      sapply(c('days_out1', 'days_out2', 'R0', 'delta', 'gamma', 'n', 's', 'e',
+               'p', 'kappa', 'alpha1', 'alpha2', 'alpha3', 'c', 'm1', 'm2',
+               'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp'),
+             shinyjs::reset)
+    })
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
