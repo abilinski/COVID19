@@ -5,4 +5,3 @@ liblapack-dev
 liblapack3
 libopenblas-base
 libopenblas-dev
-r-mathlib
