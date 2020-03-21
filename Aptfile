@@ -8,3 +8,4 @@ libopenblas-dev
 libglu1-mesa-dev
 freeglut3-dev
 mesa-common-dev
+r-cran-car
