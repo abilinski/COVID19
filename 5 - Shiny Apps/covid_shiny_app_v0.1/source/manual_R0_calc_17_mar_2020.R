@@ -8,7 +8,14 @@
 library(matlib)
 
 #### CALCULATE R0
-R_0 <- function (params, n, p, young, medium, old){
+R_0 <- function (params) {#, n, p, young, medium, old){
+  #edited the input because it was having trouble in shiny and params has everything
+  n = params$n
+  p = params$p
+  young = params$young
+  medium = params$medium
+  old = params$old
+  
   
   DFE <-c(young , medium, old , c(0,0,0))*n;
   
