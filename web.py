@@ -78,7 +78,6 @@ def calculate(n_clicks_timestamp, *state):
     controls = parameters.parameter_controls
     # dictionary of commands; component id and associated value
     commands = {controls[i].selector: state[i] for i in range(len(controls))}
-    raise ValueError(commands)
 
     # model_output = model.run(state)
 
