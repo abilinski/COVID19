@@ -52,14 +52,6 @@ app.layout = Layout().render(
 )
 
 
-@app.callback(
-    Output("submit-status", "children"),
-    [Input("submit-button", "n_clicks_timestamp")],
-    state=[
-        State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.parameter_controls
-    ],
-)
-
 @server.route('/buildinfo')
 def build_info(*args):
     if os.path.isfile("/buildinfo"):
@@ -72,6 +64,13 @@ def run_model(*args):
     model_output = model.run({})
     return str(model_output)
 
+@app.callback(
+    Output("submit-status", "children"),
+    [Input("submit-button", "n_clicks_timestamp")],
+    state=[
+        State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.parameter_controls
+    ],
+)
 def calculate(n_clicks_timestamp, *state):
     if n_clicks_timestamp is None:
         raise PreventUpdate
@@ -79,6 +78,7 @@ def calculate(n_clicks_timestamp, *state):
     controls = parameters.parameter_controls
     # dictionary of commands; component id and associated value
     commands = {controls[i].selector: state[i] for i in range(len(controls))}
+    raise ValueError(commands)
 
     # model_output = model.run(state)
 
