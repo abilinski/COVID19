@@ -1,4 +1,4 @@
-FROM lmassa/covid19-model-base:0.4
+FROM lmassa/covid19-model-base:0.5
 ARG BUILDHOST
 
 # Run the image as a non-root user
