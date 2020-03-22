@@ -5,7 +5,7 @@ Actually run the model
 import subprocess
 import os
 
-R_SCRIPT = "1 - Model/Most recent/model_3strat_18_mar_2020.R"
+R_SCRIPT = "1 - Model/Most recent/run_model.R"
 
 
 def run(parameters):
@@ -17,4 +17,5 @@ def run(parameters):
     out, err = proc.communicate()
     if proc.returncode != 0:
         raise ValueError("Error running Rscript: %s %s" % (err, out))
+    print(type(out))
     return out
