@@ -1,18 +1,8 @@
-FROM lmassa/covid19-model-base:0.3
+FROM lmassa/covid19-model-base:0.4
 ARG BUILDHOST
-
-# Install python and pip
-RUN apt update
-RUN apt-get install python3 python3-pip bash -y
-COPY ./requirements.txt /tmp/requirements.txt
-
-# Install dependencies
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
-
 
 # Run the image as a non-root user
 RUN adduser --disabled-password --gecos "" myuser
-
 
 # Add our code
 WORKDIR /opt/webapp
