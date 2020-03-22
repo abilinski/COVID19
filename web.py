@@ -67,6 +67,11 @@ def build_info(*args):
             return "Running in docker container: %s" % (f.read(),)
     return "Not running in docker"
 
+@server.route('/model')
+def run_model(*args):
+    model_output = model.run({})
+    return str(model_output)
+
 def calculate(n_clicks_timestamp, *state):
     if n_clicks_timestamp is None:
         raise PreventUpdate
@@ -94,4 +99,9 @@ def calculate(n_clicks_timestamp, *state):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=Config.DEBUG)
+    if os.environ.get("BIND_ALL_IPS"):
+        host="0.0.0.0"
+    else:
+        host=None
+
+    app.run_server(host=host, debug=Config.DEBUG)
