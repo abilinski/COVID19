@@ -12,12 +12,16 @@ library(tidyverse)
 library(stringr)
 
 # set working directory
-setwd("~/Dropbox/COVID19/4 - Serosurveys")
+#setwd("~/Dropbox/COVID19/4 - Serosurveys")
+wd <- getwd()
 df = read.csv("parameters_18_mar_2020_CA_v2.csv", as.is = T)
 
-# source files
-source("~/Dropbox/COVID19/1 - Model/Most recent/model_3strat_18_mar_2020.R")
+setwd('..')
 
+# source files
+source("./1 - Model/Most recent/model_3strat_18_mar_2020.R")
+
+setwd(wd)
 #### CHOOSE THESE ####
 
 # day on which to start calibration
@@ -30,7 +34,7 @@ day_end = 16
 
 ############## CALIBRATION (CUMULATIVE CASES)
 # Observed data (Santa Clara data. Cumulative number of cases)
-ts = read.csv("~/Dropbox/COVID19/4 - Serosurveys/CA-CASES-Guess.csv", as.is = T) # These rows are for March 1st - 15th# Set a reasonable range of p
+ts = read.csv("CA-CASES-Guess.csv", as.is = T) # These rows are for March 1st - 15th# Set a reasonable range of p
 
 # function to run calibration
 run_calib = function(p_cand, vec, obs = ts$cum_cases, cum = T, day_start = 1, day_end = 15){
@@ -78,17 +82,17 @@ keep = bind_rows(keep, data.frame(id = 1:16, cases = results[[3]], scenario = "O
 
 diff = day_end-day_start+1
 # make plot 1
-pdf(paste("fit_fig_", diff, ".pdf", sep = ""),width=6, height=3.5)
 
 ggplot(keep, aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + geom_line() + theme_minimal() + 
   labs(x = "Day", y = "Cumulative detected cases", title = paste("Fit to", diff, "day(s)")) + scale_linetype(guide = F) + 
   scale_color_brewer(name = "", palette = "Set2")
 
-dev.off()
+ggsave(paste("fit_fig_", diff, ".pdf", sep = ""),width=6, height=3.5)
+
 
 #### CALCULATE CUMULATIVE CASES ####
 
-make_plots = function(test){
+make_plots = function(test,label){
   
   # formatting
   out = test %>%
@@ -118,15 +122,19 @@ make_plots = function(test){
     )
   
   # Cases by age
-  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, comp, scenario) %>% 
+  out_cases <- out %>% filter(cum == T & comp!="D") %>% group_by(time, comp, scenario) %>% 
     summarize(val2 = sum(value)) %>% group_by(time, scenario) %>% mutate(Total = sum(val2)) %>%
     gather(var, value, Total) %>% mutate(lab = ifelse(var=="Total", "Cumulative cases", "Hospitalized cases"))
   
-  a = ggplot(out_cases, aes(x = time, y = value, group = scenario, col = scenario)) + geom_line() +
+  # make plots
+  print(ggplot(out_cases, aes(x = time, y = value, group = scenario, col = scenario)) + geom_line() +
     theme_minimal() + scale_color_brewer(name = "", palette = "Set1") + labs(x = "Time (days)", y = "") + 
     facet_wrap(.~lab, scales = "free") + 
-    theme(strip.text = element_text(size=12, face="bold")) + ylim(0, 150000)
-  return(list(a, out_cases))
+    theme(strip.text = element_text(size=12, face="bold")) + ylim(0, 150000))
+ # save plots
+  ggsave(paste0("rl_fig2_", label, ".pdf"),width=6.5, height=3.5)
+  
+  return(list(out_cases))
 }
 
 # reset test
@@ -151,17 +159,11 @@ run_ests = function(label, ind){
   }
   
   # make output
-  out = make_plots(test)
+  out = make_plots(test,label)
   
   # store output
-  write.csv(out[[2]] %>% filter(comp=="I"), file = paste0("Estimates_", label, ".csv"))
+  write.csv(out[[1]] %>% filter(comp=="I"), file = paste0("Estimates_", label, ".csv"))
   
-  # make plots
-  pdf(paste0("rl_fig2_", label, ".pdf"),width=6.5, height=3.5)
-  
-  out[[1]]
-   
-  dev.off()
 
 }
 
