@@ -15,3 +15,10 @@ RUN apt-get install xorg libx11-dev libglu1-mesa-dev  -y
 
 COPY init.R /init.R
 RUN Rscript /init.R
+
+
+RUN apt-get install python3 python3-pip bash -y
+COPY ./requirements.txt /tmp/requirements.txt
+
+# Install dependencies
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
