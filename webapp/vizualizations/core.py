@@ -2,6 +2,7 @@ import dash
 import dash_html_components as html
 import dash_core_components as dcc
 
+
 def make_vizualizations():
     tab_parameter_dump = VizualizationTab(
         "Parameters",
@@ -25,7 +26,9 @@ class Vizualizations:
                 className="ui tabular menu",
                 children=[
                     html.A(
-                        className="item", children=viz.name, **{"data-tab": viz.name}
+                        className="item active" if i == 0 else "item",
+                        children=viz.name,
+                        **{"data-tab": viz.name},
                     )
                     for i, viz in enumerate(self.vizualizations)
                 ],
@@ -33,7 +36,11 @@ class Vizualizations:
         ]
 
         html_tabs = [
-            html.Div(className="ui tab", children=viz.render(), **{"data-tab": viz.name})
+            html.Div(
+                className="ui tab active" if i == 0 else "ui tab",
+                children=viz.render(),
+                **{"data-tab": viz.name},
+            )
             for i, viz in enumerate(self.vizualizations)
         ]
 
@@ -47,6 +54,5 @@ class VizualizationTab:
 
     def render(self):
         return html.Div(
-            id=f"vizualizations-tab-{self.name.lower()}",
-            children=self.vizualization
+            id=f"vizualizations-tab-{self.name.lower()}", children=self.vizualization
         )

@@ -7,7 +7,6 @@ from webapp.parameters.implementer import ImplementerParameters
 from webapp.parameters.queuing import QueuingParameters
 
 
-
 def make_parameters():
     tab_implementer = ParameterTab(
         ImplementerParameters.NAME, ImplementerParameters.CONTROLS
@@ -29,14 +28,22 @@ class Parameters:
             html.Div(
                 className="ui tabular menu",
                 children=[
-                    html.A(className="item", children=pg.name, **{"data-tab": pg.name})
+                    html.A(
+                        className="item active" if i == 0 else "item",
+                        children=pg.name,
+                        **{"data-tab": pg.name},
+                    )
                     for i, pg in enumerate(self.parameter_groups)
                 ],
             )
         ]
 
         html_tabs = [
-            html.Div(className="ui tab", children=pg.render(), **{"data-tab": pg.name})
+            html.Div(
+                className="ui tab active" if i == 0 else "ui tab",
+                children=pg.render(),
+                **{"data-tab": pg.name},
+            )
             for i, pg in enumerate(self.parameter_groups)
         ]
 
