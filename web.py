@@ -22,21 +22,27 @@ def make_submit_control():
     )
 
 
+parameters = make_parameters()
+vizualizations = make_vizualizations()
+
 app.layout = Layout().render(
     parameter_renderer=parameters.render,
     submit_renderer=make_submit_control,
     output_renderer=vizualizations.render,
 )
 
+Application.register_callbacks(app)
 
-@server.route('/buildinfo')
+@server.route("/buildinfo")
 def build_info(*args):
     if os.path.isfile("/buildinfo"):
         with open("/buildinfo") as f:
             return "Running in docker container: %s" % (f.read(),)
+
     return "Not running in docker"
 
-@server.route('/model')
+
+@server.route("/model")
 def run_model(*args):
     model_output = model.run({})
     return str(model_output)
@@ -44,17 +50,15 @@ def run_model(*args):
 @app.callback(
     Output("submit-status", "children"),
     [Input("submit-button", "n_clicks_timestamp")],
-    state=[
-        State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.parameter_controls
-    ],
+    state=[State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.controls()],
 )
 def calculate(n_clicks_timestamp, *state):
     if n_clicks_timestamp is None:
         raise PreventUpdate
 
-    controls = parameters.parameter_controls
+    controls = parameters.parameter_groups
     # dictionary of commands; component id and associated value
-    commands = {controls[i].selector: state[i] for i in range(len(controls))}
+    commands = {ctrl.selector: state[i] for i, ctrl in enumerate(parameters.controls())}
 
     model_output = model.run(commands)
 
@@ -76,8 +80,8 @@ def calculate(n_clicks_timestamp, *state):
 
 if __name__ == "__main__":
     if os.environ.get("BIND_ALL_IPS"):
-        host="0.0.0.0"
+        host = "0.0.0.0"
     else:
-        host=None
+        host = None
 
     app.run_server(host=host, debug=Config.DEBUG)
