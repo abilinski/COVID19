@@ -42,6 +42,7 @@ class Layout:
                                     children=[
                                         # Left column
                                         html.Div(
+                                            id="parameters",
                                             className="four wide column",
                                             children=[
                                                 html.H2("Parameters"),
