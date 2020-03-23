@@ -18,5 +18,10 @@
 $(window).bind("load", function() {
   setTimeout(function() {
     $('.menu.tabular .item').tab();
-  }, 1000);
-})
+
+    $('.ui.sticky')
+      .sticky({
+        context: '#parameters'
+      });
+  }, 500);
+});
