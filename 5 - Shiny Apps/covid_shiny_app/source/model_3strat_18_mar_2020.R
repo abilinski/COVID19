@@ -299,7 +299,7 @@ make_plots_int = function(test, params, test_int, params_int){
   
   
   # make graphs of output over time
-  out_age = out %>% group_by(comp, cum) %>% summarize(sum(value))
+  out_age = out %>% group_by(comp, cum) %>% summarize(sum(value)) %>% ungroup()
   
   # Flows by compartment
   a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)), 
@@ -313,7 +313,7 @@ make_plots_int = function(test, params, test_int, params_int){
                                                                val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
                                                                Total_obs = sum(val_obs),
                                                                Hospital = .17*.13*Total,
-                                                               Ventilator = .05*Total)
+                                                               Ventilator = .05*Total) %>% ungroup()
   b = ggplot(out_cases, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -325,7 +325,7 @@ make_plots_int = function(test, params, test_int, params_int){
   
   # Effective R
   out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2, int) %>%
-    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf)
+    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) + 
     theme_minimal() + scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
@@ -340,7 +340,7 @@ make_plots_int = function(test, params, test_int, params_int){
   
   # Deaths by age
   out_death = out %>% filter(cum == T & comp=="D") %>% group_by(time, strat3, int) %>% 
-    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2))
+    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2)) %>% ungroup()
   e = ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
@@ -348,7 +348,7 @@ make_plots_int = function(test, params, test_int, params_int){
   
   # Cases by symptoms
   out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2, int) %>% 
-    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2))
+    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
   f = ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
@@ -361,7 +361,7 @@ make_plots_int = function(test, params, test_int, params_int){
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
   ts = read.csv("source/time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
     mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
   h = ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
