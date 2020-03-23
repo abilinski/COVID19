@@ -1,7 +1,9 @@
 make_eqn_strat = function(group){
-  S = paste("dS", group, "dt = -S", group, "*k_susp*p*(k_inf*v1", group, "*(UI1+DI1)/N1 + vA1", group, "*(UA1+DA1)/N1 + v2", group, "*(UI2+DI2)/N2 + vA2", group, "*(UA2+DA2)/N2 + v3", group, "*(UI3+DI3)/N3 + vA3", group, "*(UA3+DA3)/N3 + k_inf*v1Q", group, "*(UI1Q+DI1Q)/N1Q + vA1Q", group, "*(UA1Q+DA1Q)/N1Q + v2Q", group, "*(UI2Q+DI2Q)/N2Q + vA2Q", group, "*(UA2Q+DA2Q)/N2Q + v3Q", group, "*(UI3Q+DI3Q)/N3Q + vA3Q", group, "*(UA3Q+DA3Q)/N3Q)", sep = "")
+  F = paste("S", group, "*k_susp*p*(k_inf*v1", group, "*(UI1+k_det_c*DI1)/N1 + vA1", group, "*(UA1+k_det_c*DA1)/N1 + v2", group, "*(UI2+k_det_c*DI2)/N2 + vA2", group, "*(UA2+k_det_c*DA2)/N2 + v3", group, "*(UI3+k_det_c*DI3)/N3 + vA3", group, "*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
   
-  E = paste("dE", group, "dt = -delta*E", group, " +S", group, "*k_susp*p*(k_inf*v1", group, "*(UI1+DI1)/N1 + vA1", group, "*(UA1+DA1)/N1 + v2", group, "*(UI2+DI2)/N2 + vA2", group, "*(UA2+DA2)/N2 + v3", group, "*(UI3+DI3)/N3 + vA3", group, "*(UA3+DA3)/N3 + k_inf*v1Q", group, "*(UI1Q+DI1Q)/N1Q + vA1Q", group, "*(UA1Q+DA1Q)/N1Q + v2Q", group, "*(UI2Q+DI2Q)/N2Q + vA2Q", group, "*(UA2Q+DA2Q)/N2Q + v3Q", group, "*(UI3Q+DI3Q)/N3Q + vA3Q", group, "*(UA3Q+DA3Q)/N3Q)", sep = "")
+  S = paste("dS", group, "dt = -", F, sep = "")
+  
+  E = paste("dE", group, "dt = -delta*E", group, " +", F, sep = "")
   
   UI = paste("dUI", group, "dt = (1-alpha", group, ")*delta*E", group, " - (rdetecti + m", group, "*omega + (1-m", group, ")*gamma)*UI", group, sep = "")
   
@@ -22,13 +24,15 @@ make_eqn_strat = function(group){
   return(c(S, E, UI, DI, UA, DA, R, IT, AT, DT))
 }
 
-make_eqn_strat(2)
+make_eqn_strat(3)
 #####note: when generating for 2 and 3, delete *k_susp in both S and E
 
 make_eqn_strat_Q = function(group){
-  S = paste("dS", group, "Qdt = -S", group, "Q*k_susp*p*(k_inf*v1", group, "Q*(UI1+DI1)/N1 + vA1", group, "Q*(UA1+DA1)/N1 + v2", group, "Q*(UI2+DI2)/N2 + vA2", group, "Q*(UA2+DA2)/N2 + v3", group, "Q*(UI3+DI3)/N3 + vA3", group, "Q*(UA3+DA3)/N3 + k_inf*v1Q", group, "Q*(UI1Q+DI1Q)/N1Q + vA1Q", group, "Q*(UA1Q+DA1Q)/N1Q + v2Q", group, "Q*(UI2Q+DI2Q)/N2Q + vA2Q", group, "Q*(UA2Q+DA2Q)/N2Q + v3Q", group, "Q*(UI3Q+DI3Q)/N3Q + vA3Q", group, "Q*(UA3Q+DA3Q)/N3Q)", sep = "")
+  F = paste("S", group, "Q*k_susp*p*(k_inf*v1", group, "Q*(UI1+k_det_c*DI1)/N1 + vA1", group, "Q*(UA1+k_det_c*DA1)/N1 + v2", group, "Q*(UI2+k_det_c*DI2)/N2 + vA2", group, "Q*(UA2+k_det_c*DA2)/N2 + v3", group, "Q*(UI3+k_det_c*DI3)/N3 + vA3", group, "Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "Q*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
   
-  E = paste("dE", group, "Qdt = -delta*E", group, "Q + S", group, "Q*k_susp*p*(k_inf*v1", group, "Q*(UI1+DI1)/N1 + vA1", group, "Q*(UA1+DA1)/N1 + v2", group, "Q*(UI2+DI2)/N2 + vA2", group, "Q*(UA2+DA2)/N2 + v3", group, "Q*(UI3+DI3)/N3 + vA3", group, "Q*(UA3+DA3)/N3 + k_inf*v1Q", group, "Q*(UI1Q+DI1Q)/N1Q + vA1Q", group, "Q*(UA1Q+DA1Q)/N1Q + v2Q", group, "Q*(UI2Q+DI2Q)/N2Q + vA2Q", group, "Q*(UA2Q+DA2Q)/N2Q + v3Q", group, "Q*(UI3Q+DI3Q)/N3Q + vA3Q", group, "Q*(UA3Q+DA3Q)/N3Q)", sep = "")
+  S = paste("dS", group, "Qdt = -", F, sep = "")
+  
+  E = paste("dE", group, "Qdt = -delta*E", group, "Q + ", F, sep = "")
   
   UI = paste("dUI", group, "Qdt = (1-alpha", group, "Q)*delta*E", group, "Q - (rdetecti + m", group, "Q*omega + (1-m", group, "Q)*gamma)*UI", group, "Q",sep = "")
   

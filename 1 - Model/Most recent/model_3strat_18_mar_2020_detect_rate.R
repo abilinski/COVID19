@@ -54,10 +54,12 @@ model_strat <- function (t, x, parms) {
   #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
   rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
   
+  k_det_c <- parms$k_det_c
+  
   ###### Equations
   ### YOUNG
-  dS1dt = -S1*k_susp*p*(k_inf*v11*(UI1+DI1)/N1 + vA11*(UA1+DA1)/N1 + v21*(UI2+DI2)/N2 + vA21*(UA2+DA2)/N2 + v31*(UI3+DI3)/N3 + vA31*(UA3+DA3)/N3 + k_inf*v1Q1*(UI1Q+DI1Q)/N1Q + vA1Q1*(UA1Q+DA1Q)/N1Q + v2Q1*(UI2Q+DI2Q)/N2Q + vA2Q1*(UA2Q+DA2Q)/N2Q + v3Q1*(UI3Q+DI3Q)/N3Q + vA3Q1*(UA3Q+DA3Q)/N3Q)
-  dE1dt = -delta*E1+ S1*k_susp*p*(k_inf*v11*(UI1+DI1)/N1 + vA11*(UA1+DA1)/N1 + v21*(UI2+DI2)/N2 + vA21*(UA2+DA2)/N2 + v31*(UI3+DI3)/N3 + vA31*(UA3+DA3)/N3 + k_inf*v1Q1*(UI1Q+DI1Q)/N1Q + vA1Q1*(UA1Q+DA1Q)/N1Q + v2Q1*(UI2Q+DI2Q)/N2Q + vA2Q1*(UA2Q+DA2Q)/N2Q + v3Q1*(UI3Q+DI3Q)/N3Q + vA3Q1*(UA3Q+DA3Q)/N3Q)
+  dS1dt = -S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE1dt = -delta*E1+ S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
   dUI1dt = (1-alpha1)*delta*E1 - (rdetecti + m1*omega + (1-m1)*gamma)*UI1
   dDI1dt = rdetecti*UI1 - (m1*omega + (1-m1)*gamma)*DI1
   dUA1dt = alpha1*delta*E1 - (rdetecta + gamma)*UA1
@@ -68,8 +70,8 @@ model_strat <- function (t, x, parms) {
   Dt1 = m1*omega*(UI1+DI1)
   
   ### MEDIUM
-  dS2dt = -S2*p*(k_inf*v12*(UI1+DI1)/N1 + vA12*(UA1+DA1)/N1 + v22*(UI2+DI2)/N2 + vA22*(UA2+DA2)/N2 + v32*(UI3+DI3)/N3 + vA32*(UA3+DA3)/N3 + k_inf*v1Q2*(UI1Q+DI1Q)/N1Q + vA1Q2*(UA1Q+DA1Q)/N1Q + v2Q2*(UI2Q+DI2Q)/N2Q + vA2Q2*(UA2Q+DA2Q)/N2Q + v3Q2*(UI3Q+DI3Q)/N3Q + vA3Q2*(UA3Q+DA3Q)/N3Q)
-  dE2dt = -delta*E2+ S2*p*(k_inf*v12*(UI1+DI1)/N1 + vA12*(UA1+DA1)/N1 + v22*(UI2+DI2)/N2 + vA22*(UA2+DA2)/N2 + v32*(UI3+DI3)/N3 + vA32*(UA3+DA3)/N3 + k_inf*v1Q2*(UI1Q+DI1Q)/N1Q + vA1Q2*(UA1Q+DA1Q)/N1Q + v2Q2*(UI2Q+DI2Q)/N2Q + vA2Q2*(UA2Q+DA2Q)/N2Q + v3Q2*(UI3Q+DI3Q)/N3Q + vA3Q2*(UA3Q+DA3Q)/N3Q)
+  dS2dt = -S2*p*(k_inf*v12*(UI1+k_det_c*DI1)/N1 + vA12*(UA1+k_det_c*DA1)/N1 + v22*(UI2+k_det_c*DI2)/N2 + vA22*(UA2+k_det_c*DA2)/N2 + v32*(UI3+k_det_c*DI3)/N3 + vA32*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE2dt = -delta*E2+ S2*p*(k_inf*v12*(UI1+k_det_c*DI1)/N1 + vA12*(UA1+k_det_c*DA1)/N1 + v22*(UI2+k_det_c*DI2)/N2 + vA22*(UA2+k_det_c*DA2)/N2 + v32*(UI3+k_det_c*DI3)/N3 + vA32*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2*(UA3Q+k_det_c*DA3Q)/N3Q)
   dUI2dt = (1-alpha2)*delta*E2 - (rdetecti + m2*omega + (1-m2)*gamma)*UI2
   dDI2dt = rdetecti*UI2 - (m2*omega + (1-m2)*gamma)*DI2
   dUA2dt = alpha2*delta*E2 - (rdetecta + gamma)*UA2
@@ -80,8 +82,8 @@ model_strat <- function (t, x, parms) {
   Dt2 = m2*omega*(UI2+DI2)
   
   ### OLD
-  dS3dt = -S3*p*(k_inf*v13*(UI1+DI1)/N1 + vA13*(UA1+DA1)/N1 + v23*(UI2+DI2)/N2 + vA23*(UA2+DA2)/N2 + v33*(UI3+DI3)/N3 + vA33*(UA3+DA3)/N3 + k_inf*v1Q3*(UI1Q+DI1Q)/N1Q + vA1Q3*(UA1Q+DA1Q)/N1Q + v2Q3*(UI2Q+DI2Q)/N2Q + vA2Q3*(UA2Q+DA2Q)/N2Q + v3Q3*(UI3Q+DI3Q)/N3Q + vA3Q3*(UA3Q+DA3Q)/N3Q)
-  dE3dt = -delta*E3+ S3*p*(k_inf*v13*(UI1+DI1)/N1 + vA13*(UA1+DA1)/N1 + v23*(UI2+DI2)/N2 + vA23*(UA2+DA2)/N2 + v33*(UI3+DI3)/N3 + vA33*(UA3+DA3)/N3 + k_inf*v1Q3*(UI1Q+DI1Q)/N1Q + vA1Q3*(UA1Q+DA1Q)/N1Q + v2Q3*(UI2Q+DI2Q)/N2Q + vA2Q3*(UA2Q+DA2Q)/N2Q + v3Q3*(UI3Q+DI3Q)/N3Q + vA3Q3*(UA3Q+DA3Q)/N3Q)
+  dS3dt = -S3*p*(k_inf*v13*(UI1+k_det_c*DI1)/N1 + vA13*(UA1+k_det_c*DA1)/N1 + v23*(UI2+k_det_c*DI2)/N2 + vA23*(UA2+k_det_c*DA2)/N2 + v33*(UI3+k_det_c*DI3)/N3 + vA33*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE3dt = -delta*E3+ S3*p*(k_inf*v13*(UI1+k_det_c*DI1)/N1 + vA13*(UA1+k_det_c*DA1)/N1 + v23*(UI2+k_det_c*DI2)/N2 + vA23*(UA2+k_det_c*DA2)/N2 + v33*(UI3+k_det_c*DI3)/N3 + vA33*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3*(UA3Q+k_det_c*DA3Q)/N3Q)
   dUI3dt = (1-alpha3)*delta*E3 - (rdetecti + m3*omega + (1-m3)*gamma)*UI3
   dDI3dt = rdetecti*UI3 - (m3*omega + (1-m3)*gamma)*DI3
   dUA3dt = alpha3*delta*E3 - (rdetecta + gamma)*UA3
@@ -92,8 +94,8 @@ model_strat <- function (t, x, parms) {
   Dt3 = m3*omega*(UI3+DI3)
   
   ### YOUNG - SOCIALLY DISTANCED
-  dS1Qdt = -S1Q*k_susp*p*(k_inf*v11Q*(UI1+DI1)/N1 + vA11Q*(UA1+DA1)/N1 + v21Q*(UI2+DI2)/N2 + vA21Q*(UA2+DA2)/N2 + v31Q*(UI3+DI3)/N3 + vA31Q*(UA3+DA3)/N3 + k_inf*v1Q1Q*(UI1Q+DI1Q)/N1Q + vA1Q1Q*(UA1Q+DA1Q)/N1Q + v2Q1Q*(UI2Q+DI2Q)/N2Q + vA2Q1Q*(UA2Q+DA2Q)/N2Q + v3Q1Q*(UI3Q+DI3Q)/N3Q + vA3Q1Q*(UA3Q+DA3Q)/N3Q)
-  dE1Qdt = -delta*E1Q + S1Q*k_susp*p*(k_inf*v11Q*(UI1+DI1)/N1 + vA11Q*(UA1+DA1)/N1 + v21Q*(UI2+DI2)/N2 + vA21Q*(UA2+DA2)/N2 + v31Q*(UI3+DI3)/N3 + vA31Q*(UA3+DA3)/N3 + k_inf*v1Q1Q*(UI1Q+DI1Q)/N1Q + vA1Q1Q*(UA1Q+DA1Q)/N1Q + v2Q1Q*(UI2Q+DI2Q)/N2Q + vA2Q1Q*(UA2Q+DA2Q)/N2Q + v3Q1Q*(UI3Q+DI3Q)/N3Q + vA3Q1Q*(UA3Q+DA3Q)/N3Q)
+  dS1Qdt = -S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE1Qdt = -delta*E1Q + S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dUI1Qdt = (1-alpha1Q)*delta*E1Q - (rdetecti + m1Q*omega + (1-m1Q)*gamma)*UI1Q
   dDI1Qdt = rdetecti*UI1Q - (m1Q*omega + (1-m1Q)*gamma)*DI1Q
   dUA1Qdt = alpha1Q*delta*E1Q - (rdetecta + gamma)*UA1Q
@@ -104,8 +106,8 @@ model_strat <- function (t, x, parms) {
   Dt1Q = m1Q*omega*(UI1Q+DI1Q)
   
   ### MEDIUM - SOCIALLY DISTANCED
-  dS2Qdt = -S2Q*p*(k_inf*v12Q*(UI1+DI1)/N1 + vA12Q*(UA1+DA1)/N1 + v22Q*(UI2+DI2)/N2 + vA22Q*(UA2+DA2)/N2 + v32Q*(UI3+DI3)/N3 + vA32Q*(UA3+DA3)/N3 + k_inf*v1Q2Q*(UI1Q+DI1Q)/N1Q + vA1Q2Q*(UA1Q+DA1Q)/N1Q + v2Q2Q*(UI2Q+DI2Q)/N2Q + vA2Q2Q*(UA2Q+DA2Q)/N2Q + v3Q2Q*(UI3Q+DI3Q)/N3Q + vA3Q2Q*(UA3Q+DA3Q)/N3Q)
-  dE2Qdt = -delta*E2Q + S2Q*p*(k_inf*v12Q*(UI1+DI1)/N1 + vA12Q*(UA1+DA1)/N1 + v22Q*(UI2+DI2)/N2 + vA22Q*(UA2+DA2)/N2 + v32Q*(UI3+DI3)/N3 + vA32Q*(UA3+DA3)/N3 + k_inf*v1Q2Q*(UI1Q+DI1Q)/N1Q + vA1Q2Q*(UA1Q+DA1Q)/N1Q + v2Q2Q*(UI2Q+DI2Q)/N2Q + vA2Q2Q*(UA2Q+DA2Q)/N2Q + v3Q2Q*(UI3Q+DI3Q)/N3Q + vA3Q2Q*(UA3Q+DA3Q)/N3Q)
+  dS2Qdt = -S2Q*p*(k_inf*v12Q*(UI1+k_det_c*DI1)/N1 + vA12Q*(UA1+k_det_c*DA1)/N1 + v22Q*(UI2+k_det_c*DI2)/N2 + vA22Q*(UA2+k_det_c*DA2)/N2 + v32Q*(UI3+k_det_c*DI3)/N3 + vA32Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE2Qdt = -delta*E2Q + S2Q*p*(k_inf*v12Q*(UI1+k_det_c*DI1)/N1 + vA12Q*(UA1+k_det_c*DA1)/N1 + v22Q*(UI2+k_det_c*DI2)/N2 + vA22Q*(UA2+k_det_c*DA2)/N2 + v32Q*(UI3+k_det_c*DI3)/N3 + vA32Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dUI2Qdt = (1-alpha2Q)*delta*E2Q - (rdetecti + m2Q*omega + (1-m2Q)*gamma)*UI2Q
   dDI2Qdt = rdetecti*UI2Q - (m2Q*omega + (1-m2Q)*gamma)*DI2Q
   dUA2Qdt = alpha2Q*delta*E2Q - (rdetecta + gamma)*UA2Q
@@ -116,8 +118,8 @@ model_strat <- function (t, x, parms) {
   Dt2Q = m2Q*omega*(UI2Q+DI2Q)
   
   ### OLD - SOCIALLY DISTANCED
-  dS3Qdt = -S3Q*p*(k_inf*v13Q*(UI1+DI1)/N1 + vA13Q*(UA1+DA1)/N1 + v23Q*(UI2+DI2)/N2 + vA23Q*(UA2+DA2)/N2 + v33Q*(UI3+DI3)/N3 + vA33Q*(UA3+DA3)/N3 + k_inf*v1Q3Q*(UI1Q+DI1Q)/N1Q + vA1Q3Q*(UA1Q+DA1Q)/N1Q + v2Q3Q*(UI2Q+DI2Q)/N2Q + vA2Q3Q*(UA2Q+DA2Q)/N2Q + v3Q3Q*(UI3Q+DI3Q)/N3Q + vA3Q3Q*(UA3Q+DA3Q)/N3Q)
-  dE3Qdt = -delta*E3Q + S3Q*p*(k_inf*v13Q*(UI1+DI1)/N1 + vA13Q*(UA1+DA1)/N1 + v23Q*(UI2+DI2)/N2 + vA23Q*(UA2+DA2)/N2 + v33Q*(UI3+DI3)/N3 + vA33Q*(UA3+DA3)/N3 + k_inf*v1Q3Q*(UI1Q+DI1Q)/N1Q + vA1Q3Q*(UA1Q+DA1Q)/N1Q + v2Q3Q*(UI2Q+DI2Q)/N2Q + vA2Q3Q*(UA2Q+DA2Q)/N2Q + v3Q3Q*(UI3Q+DI3Q)/N3Q + vA3Q3Q*(UA3Q+DA3Q)/N3Q)
+  dS3Qdt = -S3Q*p*(k_inf*v13Q*(UI1+k_det_c*DI1)/N1 + vA13Q*(UA1+k_det_c*DA1)/N1 + v23Q*(UI2+k_det_c*DI2)/N2 + vA23Q*(UA2+k_det_c*DA2)/N2 + v33Q*(UI3+k_det_c*DI3)/N3 + vA33Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE3Qdt = -delta*E3Q + S3Q*p*(k_inf*v13Q*(UI1+k_det_c*DI1)/N1 + vA13Q*(UA1+k_det_c*DA1)/N1 + v23Q*(UI2+k_det_c*DI2)/N2 + vA23Q*(UA2+k_det_c*DA2)/N2 + v33Q*(UI3+k_det_c*DI3)/N3 + vA33Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dUI3Qdt = (1-alpha3Q)*delta*E3Q - (rdetecti + m3Q*omega + (1-m3Q)*gamma)*UI3Q
   dDI3Qdt = rdetecti*UI3Q - (m3Q*omega + (1-m3Q)*gamma)*DI3Q
   dUA3Qdt = alpha3Q*delta*E3Q - (rdetecta + gamma)*UA3Q
