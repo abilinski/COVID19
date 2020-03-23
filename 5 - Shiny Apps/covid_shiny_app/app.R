@@ -12,6 +12,7 @@ library(shinyjs)
 source("source/model_3strat_18_mar_2020.R")
 source("source/manual_R0_calc_17_mar_2020.R")
 source("source/calc_p_from_R0.R")
+source("source/make_plots_int.R")
 # upload parameter names (should hardcode the names in the future)
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
 df = read.csv("source/parameters_18_mar_2020.csv", as.is = T)
