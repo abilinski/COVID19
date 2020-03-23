@@ -5,13 +5,13 @@ make_eqn_strat = function(group){
   
   E = paste("dE", group, "dt = -delta*E", group, " +", F, sep = "")
   
-  UI = paste("dUI", group, "dt = (1-alpha", group, ")*delta*E", group, " - (rdetecti + m", group, "*omega + (1-m", group, ")*gamma)*UI", group, sep = "")
+  UI = paste("dUI", group, "dt = (1-alpha", group, ")*delta*E", group, " - (rdetecti*q + m", group, "*omega + (1-m", group, ")*gamma)*UI", group, sep = "")
   
-  DI = paste("dDI", group, "dt = rdetecti*UI", group, " - (m", group, "*omega + (1-m", group, ")*gamma)*DI", group, sep = "")
+  DI = paste("dDI", group, "dt = rdetecti*q*UI", group, " - (m", group, "*omega + (1-m", group, ")*gamma)*DI", group, sep = "")
   
-  UA = paste("dUA", group, "dt = alpha", group, "*delta*E", group, " - (rdetecta + gamma)*UA", group, sep = "")
+  UA = paste("dUA", group, "dt = alpha", group, "*delta*E", group, " - (rdetecta*q + gamma)*UA", group, sep = "")
   
-  DA = paste("dDA", group, "dt = rdetecta*UA", group, " - gamma*DA", group, sep = "")
+  DA = paste("dDA", group, "dt = rdetecta*q*UA", group, " - gamma*DA", group, sep = "")
   
   R = paste("dR", group, "dt = (1-m", group, ")*gamma*(UI", group,"+DI", group, ")"," + gamma*(UA", group, "+DA", group, ")", sep = "")
   
@@ -34,13 +34,13 @@ make_eqn_strat_Q = function(group){
   
   E = paste("dE", group, "Qdt = -delta*E", group, "Q + ", F, sep = "")
   
-  UI = paste("dUI", group, "Qdt = (1-alpha", group, "Q)*delta*E", group, "Q - (rdetecti + m", group, "Q*omega + (1-m", group, "Q)*gamma)*UI", group, "Q",sep = "")
+  UI = paste("dUI", group, "Qdt = (1-alpha", group, "Q)*delta*E", group, "Q - (rdetecti*q + m", group, "Q*omega + (1-m", group, "Q)*gamma)*UI", group, "Q",sep = "")
   
-  DI = paste("dDI", group, "Qdt = rdetecti*UI", group, "Q - (m", group, "Q*omega + (1-m", group, "Q)*gamma)*DI", group, "Q", sep = "")
+  DI = paste("dDI", group, "Qdt = rdetecti*Q*UI", group, "Q - (m", group, "Q*omega + (1-m", group, "Q)*gamma)*DI", group, "Q", sep = "")
   
-  UA = paste("dUA", group, "Qdt = alpha", group, "Q*delta*E", group, "Q - (rdetecta + gamma)*UA", group, "Q", sep = "")
+  UA = paste("dUA", group, "Qdt = alpha", group, "Q*delta*E", group, "Q - (rdetecta*q + gamma)*UA", group, "Q", sep = "")
   
-  DA = paste("dDA", group, "Qdt = rdetecta*UA", group, "Q - gamma*DA", group, "Q", sep = "")
+  DA = paste("dDA", group, "Qdt = rdetecta*q*UA", group, "Q - gamma*DA", group, "Q", sep = "")
   
   R = paste("dR", group, "Qdt = (1-m", group, "Q)*gamma*(UI", group, "Q+DI", group, "Q)", " + gamma*(UA", group, "Q+DA", group, "Q)", sep = "")
   
