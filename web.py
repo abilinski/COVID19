@@ -1,42 +1,19 @@
+import os
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-from dash.exceptions import PreventUpdate
 
 from dash.dependencies import Input, Output, State
 from webapp import model
 
+from webapp.app import Application
 from webapp.config import Config
 from webapp.layout import Layout
-from webapp.parameters import Parameters
-from webapp.vizualizations import Vizualizations
-import os
+from webapp.parameters.core import make_parameters
+from webapp.vizualizations.core import make_vizualizations
 
-external_stylesheets = [
-    "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
-]
-external_scripts = [
-    "https://code.jquery.com/jquery-3.1.1.min.js",
-    "https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js",
-]
 
-app = dash.Dash(
-    __name__,
-    external_stylesheets=external_stylesheets,
-    external_scripts=external_scripts,
-)
-server = app.server
-
-chart1 = html.Div(
-    id="submit-status",
-    title="Contains information about the success or failure of your commands.",
-    children=["Status should wind up here."],
-)
-
-chart2 = html.Div(children="Something else")
-
-parameters = Parameters()
-vizualizations = Vizualizations([chart1, chart2])
+app, server = Application.init()
 
 
 def make_submit_control():
