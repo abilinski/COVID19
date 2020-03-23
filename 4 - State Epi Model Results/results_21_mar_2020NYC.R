@@ -83,13 +83,24 @@ keep = bind_rows(keep, data.frame(id = 1:21, cases = results[[3]], scenario = "O
 
 diff = day_end-day_start+1
 # make plot 1
+# ggplot(keep, aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + geom_line() + theme_minimal() + 
+#   labs(x = "Day", y = "Cumulative detected cases", title = paste("Fit to", diff, "day(s)")) + scale_linetype(guide = F) #+ 
+# #scale_color_brewer(name = "", palette = "Set2")
+# 
+# ggsave(paste("fit_fig_", diff, ".pdf", sep = ""),width=6, height=3.5)
 
-ggplot(keep, aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + geom_line() + theme_minimal() + 
+#make plots for each R0
+R0_labels <-c('2.2','2.8','3.2')
+#get rows of keep that correspond to each R0 (379:399 is observed for all)
+obs_inds = 379:399
+R0_inds <- cbind(c(127:252,obs_inds),c(1:126,obs_inds),c(253:378,obs_inds)) #fix this so it's automatic
+for (i in c(1:3)){
+ggplot(keep[R0_inds[,i],], aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + geom_line() + theme_minimal() + 
   labs(x = "Day", y = "Cumulative detected cases", title = paste("Fit to", diff, "day(s)")) + scale_linetype(guide = F) + 
   scale_color_brewer(name = "", palette = "Set2")
 
-ggsave(paste("fit_fig_", diff, ".pdf", sep = ""),width=6, height=3.5)
-
+ggsave(paste("fit_fig_", R0_labels[i],"_", diff, ".pdf", sep = ""),width=6, height=3.5)
+}
 
 #### CALCULATE CUMULATIVE CASES ####
 
@@ -130,8 +141,8 @@ make_plots = function(test,label){
   # make plots
   print(ggplot(out_cases, aes(x = time, y = value, group = scenario, col = scenario)) + geom_line() +
     theme_minimal() + scale_color_brewer(name = "", palette = "Set1") + labs(x = "Time (days)", y = "") + 
-    facet_wrap(.~lab, scales = "free") + 
-    theme(strip.text = element_text(size=12, face="bold")) + ylim(0, 150000))
+    facet_wrap(.~lab, scales = "free") + ggtitle(label) +
+    theme(strip.text = element_text(size=12, face="bold")) + ylim(0, 8000000))
  # save plots
   ggsave(paste0("rl_fig2_", label, ".pdf"),width=6.5, height=3.5)
   
@@ -142,7 +153,12 @@ make_plots = function(test,label){
 test = data.frame()
 
 # store seeds from before
-df$obs = rep(out, 6)
+#df$obs = rep(out, 4)
+#populate correct obs into each R0 scenario
+df$obs[1:24]=rep(out[1:6],4) #R0 2.8
+df$obs[25:48]=rep(out[7:12],4) #R0 2.2
+df$obs[49:72]=rep(out[13:18],4) #R0 3.2
+
 
 # run estimates
 # label is the label you want
@@ -152,8 +168,8 @@ run_ests = function(label, ind){
   for(i in ind){
   
       # run intervention for another 30 days
-    test_int = run_param_vec(params = df[i,], params2 = df[i+4,], days_out1 = 15,
-                             days_out2 = 45, model_type = run_int) %>% mutate(scenario = df$Scenario[i])
+    test_int = run_param_vec(params = df[i,], params2 = df[i+6,], days_out1 = 15,
+                             days_out2 = 76, model_type = run_int) %>% mutate(scenario = df$Scenario[i])
     test = bind_rows(test, test_int)
     
     
@@ -169,6 +185,10 @@ run_ests = function(label, ind){
 }
 
 # run estimates
-run_ests("No_SD", 1:4)
-run_ests("SD", 9:12)
+run_ests("No_SD_R0_2.8", 1:6)
+run_ests("SD_R0_2.8", 13:18)
+run_ests("No_SD_R0_2.2", 25:30)
+run_ests("SD_R0_2.2", 37:42)
+run_ests("No_SD_R0_3.2", 49:54)
+run_ests("SD_R0_3.2", 61:66)
 
