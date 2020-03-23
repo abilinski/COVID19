@@ -66,9 +66,9 @@ def run(controls):
 
     if proc.returncode != 0:
         raise ValueError("Error running Rscript: %s %s" % (err, out))
-    out = out.decode('utf-8')
-    err = err.decode('utf-8')
-    csvfile = out.split('\n')
+    out = out.decode("utf-8")
+    err = err.decode("utf-8")
+    csvfile = out.split("\n")
     reader = csv.DictReader(csvfile)
     result = list(reader)
     # Result is an ordered dict; remove this line to keep it that way
