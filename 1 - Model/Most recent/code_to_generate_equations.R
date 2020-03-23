@@ -1,5 +1,10 @@
 make_eqn_strat = function(group){
-  F = paste("S", group, "*k_susp*p*(k_inf*v1", group, "*(UI1+k_det_c*DI1)/N1 + vA1", group, "*(UA1+k_det_c*DA1)/N1 + v2", group, "*(UI2+k_det_c*DI2)/N2 + vA2", group, "*(UA2+k_det_c*DA2)/N2 + v3", group, "*(UI3+k_det_c*DI3)/N3 + vA3", group, "*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
+  if (group==1) { #only young group have *k_susp
+    F = paste("S", group, "*k_susp*p*(k_inf*v1", group, "*(UI1+k_det_c*DI1)/N1 + vA1", group, "*(UA1+k_det_c*DA1)/N1 + v2", group, "*(UI2+k_det_c*DI2)/N2 + vA2", group, "*(UA2+k_det_c*DA2)/N2 + v3", group, "*(UI3+k_det_c*DI3)/N3 + vA3", group, "*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
+  } else {
+    F = paste("S", group, "*p*(k_inf*v1", group, "*(UI1+k_det_c*DI1)/N1 + vA1", group, "*(UA1+k_det_c*DA1)/N1 + v2", group, "*(UI2+k_det_c*DI2)/N2 + vA2", group, "*(UA2+k_det_c*DA2)/N2 + v3", group, "*(UI3+k_det_c*DI3)/N3 + vA3", group, "*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
+  }
+  
   
   S = paste("dS", group, "dt = -", F, sep = "")
   
@@ -24,11 +29,15 @@ make_eqn_strat = function(group){
   return(c(S, E, UI, DI, UA, DA, R, IT, AT, DT))
 }
 
-make_eqn_strat(3)
-#####note: when generating for 2 and 3, delete *k_susp in both S and E
+make_eqn_strat(1)
 
 make_eqn_strat_Q = function(group){
-  F = paste("S", group, "Q*k_susp*p*(k_inf*v1", group, "Q*(UI1+k_det_c*DI1)/N1 + vA1", group, "Q*(UA1+k_det_c*DA1)/N1 + v2", group, "Q*(UI2+k_det_c*DI2)/N2 + vA2", group, "Q*(UA2+k_det_c*DA2)/N2 + v3", group, "Q*(UI3+k_det_c*DI3)/N3 + vA3", group, "Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "Q*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
+  if (group==1) { #only young group have *k_susp
+    F = paste("S", group, "Q*k_susp*p*(k_inf*v1", group, "Q*(UI1+k_det_c*DI1)/N1 + vA1", group, "Q*(UA1+k_det_c*DA1)/N1 + v2", group, "Q*(UI2+k_det_c*DI2)/N2 + vA2", group, "Q*(UA2+k_det_c*DA2)/N2 + v3", group, "Q*(UI3+k_det_c*DI3)/N3 + vA3", group, "Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "Q*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
+  } else {
+    F = paste("S", group, "Q*p*(k_inf*v1", group, "Q*(UI1+k_det_c*DI1)/N1 + vA1", group, "Q*(UA1+k_det_c*DA1)/N1 + v2", group, "Q*(UI2+k_det_c*DI2)/N2 + vA2", group, "Q*(UA2+k_det_c*DA2)/N2 + v3", group, "Q*(UI3+k_det_c*DI3)/N3 + vA3", group, "Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q", group, "Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q", group, "Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q", group, "Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q", group, "Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q", group, "Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q", group, "Q*(UA3Q+k_det_c*DA3Q)/N3Q)", sep = "")
+  }
+  
   
   S = paste("dS", group, "Qdt = -", F, sep = "")
   
@@ -54,4 +63,3 @@ make_eqn_strat_Q = function(group){
 }
 
 make_eqn_strat_Q(3)
-#####note: when generating for 2 and 3, delete *k_susp in both S and E
