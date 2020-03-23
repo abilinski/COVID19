@@ -13,3 +13,10 @@ calc_p_from_R0<- function (R0_input,vec) {
   # return the value of p that corresponds with the calculated R that's closest to input R
   return(p_cand[which.min(abs(R0-R0_input))])
 }
+
+calc_R0_from_td <-function(td,vec){
+  #calculate time of infectiousness
+  t_inf = 1/vec$gamma 
+  R0 = 1+(t_inf/td)*log(2)
+  return(R0)
+}
