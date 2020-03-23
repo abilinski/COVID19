@@ -5,7 +5,7 @@
 #******************************************************************************************#
 
 #### LIBRARIES
-library(matlib)
+#library(matlib)
 
 #### CALCULATE R0
 R_0 <- function (params) {#, n, p, young, medium, old){
@@ -268,7 +268,7 @@ R_0 <- function (params) {#, n, p, young, medium, old){
   
   #print(F)
   #print(V) 
-  return (eigen(F %*% inv(V))$values[1])
+  return (eigen(F %*% solve(V))$values[1])
   
 }
 
