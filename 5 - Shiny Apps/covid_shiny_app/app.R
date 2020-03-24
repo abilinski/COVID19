@@ -37,7 +37,7 @@ ui <- fluidPage(
         
     ),
     actionButton("reset_inputs", "Reset All Parameters"),
-    #verbatimTextOutput("renderprint"),
+    verbatimTextOutput("renderprint"),
     
     hr(),
     column(6,
@@ -174,14 +174,14 @@ server <- function(input, output) {
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
-        # test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-        #                      days_out2 = NULL, model_type = run_basic)
-        # test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-        #                          days_out2 = input$sim_time, model_type = run_int)
-        print(old_vec)
-        print(param_vec)
-        # print(tail(test))
-        # print(tail(test_int))
+        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
+                            days_out2 = NULL, model_type = run_basic)
+        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
+                                days_out2 = input$sim_time, model_type = run_int)
+        # print(old_vec)
+        # print(param_vec)
+        print(tail(test))
+        print(tail(test_int))
     })
     
 

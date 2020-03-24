@@ -44,7 +44,7 @@ model_strat <- function (t, x, parms) {
   vA3Q2 = parms$vA3Q2;vA3Q3 = parms$vA3Q3;vA3Q1Q = parms$vA3Q1Q;vA3Q2Q = parms$vA3Q2Q
   vA3Q3Q = parms$vA3Q3Q;N1 = parms$N1;N2 = parms$N2;N3 = parms$N3;N1Q = parms$N1Q;N2Q = parms$N2Q
   N3Q = parms$N3Q
-  
+
   ###### Equations
   ### YOUNG
   dS1dt = -S1*k_susp*p*(k_inf*v11*I1/N1 + vA11*A1/N1 + v21*I2/N2 + vA21*A2/N2 + v31*I3/N3 + vA31*A3/N3 + k_inf*v1Q1*I1Q/N1Q + vA1Q1*A1Q/N1Q + v2Q1*I2Q/N2Q + vA2Q1*A2Q/N2Q + v3Q1*I3Q/N3Q + vA3Q1*A3Q/N3Q)
