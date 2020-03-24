@@ -65,7 +65,7 @@ keep = data.frame()
 scen_vec = c(1:6,25:30,54:59)
 # loop over scenarios
 for(k in c(1:length(scen_vec))){
-  p_cand = seq(150, 30000, 150) #110:325
+  p_cand = seq(700, 25000, 50) #110:325
   # run initially 
   calib1 = run_calib(p_cand, df[scen_vec[k],], day_start = day_start, day_end = day_end)
   
@@ -169,7 +169,7 @@ run_ests = function(label, ind){
   
       # run intervention for another 30 days
     test_int = run_param_vec(params = df[i,], params2 = df[i+6,], days_out1 = 15,
-                             days_out2 = 76, model_type = run_int) %>% mutate(scenario = df$Scenario[i])
+                             days_out2 = 50, model_type = run_int) %>% mutate(scenario = df$Scenario[i])
     test = bind_rows(test, test_int)
     
     
@@ -180,15 +180,27 @@ run_ests = function(label, ind){
   
   # store output
   write.csv(out[[1]] %>% filter(comp=="I"), file = paste0("Estimates_", label, ".csv"))
-  
+  return(out[[1]] %>% filter(comp=="I"))
 
 }
 
 # run estimates
-run_ests("No_SD_R0_2.8", 1:6)
-run_ests("SD_R0_2.8", 13:18)
-run_ests("No_SD_R0_2.2", 25:30)
-run_ests("SD_R0_2.2", 37:42)
-run_ests("No_SD_R0_3.2", 49:54)
-run_ests("SD_R0_3.2", 61:66)
+no_sd_r02_8<-run_ests("No_SD_R0_2.8", 1:6)
+sd_r02_8<-run_ests("SD_R0_2.8", 13:18)
+no_sd_r02_2<-run_ests("No_SD_R0_2.2", 25:30)
+sd_r02_2<-run_ests("SD_R0_2.2", 37:42)
+no_sd_r03_2<-run_ests("No_SD_R0_3.2", 49:54)
+sd_r03_2<-run_ests("SD_R0_3.2", 61:66)
+
+diff_plots <- function(no_sd_mat,sd_mat,day,R0,SDpc){
+  # This function makes a boxplot for percentage of cumulative cases averted (applies for hospitalizations too) 
+  # at a certain time (given by the input day) across a range of scenarios for a given R0
+  tmp_diff <- 100*(no_sd_mat[no_sd_mat$time==day,'value']-sd_mat[sd_mat$time==day,'value'])/no_sd_mat[no_sd_mat$time==day,'value']
+  boxplot(tmp_diff,main=paste0("Percent Reduction in Cumulative Cases, R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Percentage")
+  
+  
+}
+
+
+
 
