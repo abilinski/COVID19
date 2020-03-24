@@ -16,3 +16,4 @@ Depends:
   readr,
   plotly,
   tidyr
+RoxygenNote: 6.1.1
