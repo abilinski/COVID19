@@ -46,7 +46,8 @@ ui <- fluidPage(
             column(4,
                    numericInput("sim_time", label="simulation time (days)", value=30),
                    #numericInput("int_time", label="intervention starts at", value=15),
-                   numericInput("R0", label="R0", value=2.2),
+                   #numericInput("R0", label="R0", value=2.2),
+                   numericInput("td", label="Doubling Time", value=2.5),
                    numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                    numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
                    numericInput("obs", label="obs cases at day1", value=100),
@@ -168,8 +169,10 @@ server <- function(input, output) {
 
         # input_names<-names(temp)[!names(temp) %in% c("sim_time","int_time")]
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
@@ -206,6 +209,7 @@ server <- function(input, output) {
         content = function(file) {
             temp<-c(unlist(reactiveValuesToList(input)))
             param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+            param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
             param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
             param_vec$Scenario<-'Intervention'
             write.csv(param_vec, file, row.names = FALSE)
@@ -217,8 +221,10 @@ server <- function(input, output) {
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
@@ -241,8 +247,10 @@ server <- function(input, output) {
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
@@ -265,8 +273,10 @@ server <- function(input, output) {
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
@@ -289,8 +299,10 @@ server <- function(input, output) {
         ### update the param_vec using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
@@ -313,8 +325,10 @@ server <- function(input, output) {
         ### update the param_vec using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
