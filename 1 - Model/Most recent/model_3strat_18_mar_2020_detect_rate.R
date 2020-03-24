@@ -416,9 +416,9 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
     
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
-    UI_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
+    UI_3Q = start*(params$s)*params$old*(1-params$alpha3),
     I_3Q = 0,
-    UA_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
+    UA_3Q = start*(params$s)*params$old*(params$alpha3),
     A_3Q = 0,
     R_3Q = 0)%>%
     mutate(I_1_cum = UI_1,
