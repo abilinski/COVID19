@@ -12,7 +12,7 @@ Loading the package:
     # getwd() should return something like: 
     # ~/path/to/COVID19/1 - R Package/
 
-    # if you're not already there, navigate there using setwd() to 
+    # if getwd() doesn't show the right path, navigate there using setwd() to 
     # set your R session's working directory to the folder containing 
     # this R package.
     
