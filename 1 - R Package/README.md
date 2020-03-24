@@ -42,6 +42,7 @@ intervention scenarios for the COVID19 epidemic.
 # Read More (for Developers)
 
 Learn more about how to use R packages to their maximum potential here: http://r-pkgs.had.co.nz/
+
 Learn more about Shiny here: https://shiny.rstudio.com/
 
 
