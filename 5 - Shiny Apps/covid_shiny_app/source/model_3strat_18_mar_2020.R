@@ -45,7 +45,6 @@ model_strat <- function (t, x, parms) {
   vA3Q3Q = parms$vA3Q3Q;N1 = parms$N1;N2 = parms$N2;N3 = parms$N3;N1Q = parms$N1Q;N2Q = parms$N2Q
   N3Q = parms$N3Q
   
-  
   ###### Equations
   ### YOUNG
   dS1dt = -S1*k_susp*p*(k_inf*v11*I1/N1 + vA11*A1/N1 + v21*I2/N2 + vA21*A2/N2 + v31*I3/N3 + vA31*A3/N3 + k_inf*v1Q1*I1Q/N1Q + vA1Q1*A1Q/N1Q + v2Q1*I2Q/N2Q + vA2Q1*A2Q/N2Q + v3Q1*I3Q/N3Q + vA3Q1*A3Q/N3Q)
@@ -424,11 +423,22 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   # run model after intervention
   # pull last row to start
   x2 = tail(test, n = 1)[-1]
-  
-  
+  x2_process<-x2
+  # set up initial conditions for continuing running intervention (for social distancing)
+  s_names<-rep(c('S', 'E', 'I', 'A', 'R'), each=3)
+  a_names<-rep(1:3, 3)
+  aq_names<-paste(a_names,'Q', sep="")
+  x2_process[paste(s_names, a_names, sep="_")]<-as.numeric((1-params2$s)*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+  x2_process[paste(s_names, aq_names, sep="_")]<-as.numeric(params2$s*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+  # fix 'p' in params2 (intervention) as 'p' in params(base)
+  params2$p<-params$p
+  #print (params)
+  #print (params2)
+  #print (x2)
+  #print (x2_process)
   # rerun
   # get rid of first row to avoid day duplication
-  test2 = run_model(model_strat, xstart = as.numeric(x2), times = c(1:(days_out2-days_out1+1)), 
+  test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)),
                     params2, method = "lsodes")[-1,]
   names(test2)[2:ncol(test2)] = names(xstart)
   test2$time = c((days_out1+1):days_out2)
