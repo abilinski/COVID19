@@ -1,6 +1,6 @@
 # covid.epi R Package
 
-This package contains an epidemiological model of coronavirus-19 transmission. 
+This package contains a deterministic compartmental model model of coronavirus-19 transmission. 
 
 After cloning this repository locally, the package can be loaded or installed
 using the devtools package. Install devtools if you don't already have it with
