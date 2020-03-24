@@ -77,7 +77,7 @@ make_plots_int = function(test, params, test_int, params_int){
     summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2),
                                                                     val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
                                                                     Total_obs = sum(val_obs),
-                                                                    Hospital = .17*.13*Total,
+                                                                    Hospital = .1*Total,
                                                                     Ventilator = .05*Total)
   b = ggplot(out_cases, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
