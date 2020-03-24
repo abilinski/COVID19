@@ -39,4 +39,9 @@ run `runApp()` (or to be extra specific, `covid.epi::runApp()`) and this will
 launch the Shiny app we have been building that allows users to simulate 
 intervention scenarios for the COVID19 epidemic.
 
+# Read More (for Developers)
+
+Learn more about how to use R packages to their maximum potential here: http://r-pkgs.had.co.nz/
+Learn more about Shiny here: https://shiny.rstudio.com/
+
 
