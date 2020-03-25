@@ -128,6 +128,8 @@ run_model <- function(func, xstart, times, params, method = "lsodes") {
 }
 
 ############## POST-PROCESSING
+
+# make plots without intervention  
 make_plots = function(test, params){
   
   k_report = params$k_report
@@ -158,15 +160,14 @@ make_plots = function(test, params){
            
            # get only age
            strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-  
+           )
   
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value))
-  
+
   # Flows by compartment
   a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2) %>% summarize(value = sum(value)), 
-             aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
+         aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
     scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
   
@@ -175,12 +176,12 @@ make_plots = function(test, params){
     summarize(val2 = sum(value)) %>% group_by(time) %>% mutate(Total = sum(val2),
                                                                val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
                                                                Total_obs = sum(val_obs),
-                                                               Hospital = .1*Total,
+                                                               Hospital = .17*.13*Total,
                                                                Ventilator = .05*Total)
   b = ggplot(out_cases, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
-    geom_line(aes(y = Total), col = "black") + scale_linetype(guide = F) +
+    geom_line(aes(y = Total), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                             title = "Cumulative cases by age")
+                                                           title = "Cumulative cases by age")
   b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
               aes(x = time, y = value, group = var, col = var)) + geom_line() + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -190,13 +191,13 @@ make_plots = function(test, params){
   out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2) %>%
     summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf)
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() + 
-    theme_minimal() + scale_color_discrete(name = "") + 
-    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
-  
+           theme_minimal() + scale_color_discrete(name = "") + 
+           labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+         
   
   # Observed cases by age
   d = ggplot(out_cases, aes(x = time, y = val_obs,
-                            group = strat3, col = strat3)) + geom_line() +
+                        group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total_obs), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
   
@@ -222,24 +223,158 @@ make_plots = function(test, params){
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
   
   # Check fit
-  ts = read.csv("time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = read.csv("source/time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
     mutate(time = 1:15, Total_obs = cum_cases)
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line(aes(lty = id)) +
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
   
+  return(list(a,b,c,d,e,f,g,h,b2))
+}
+
+# make plots to compare base and intervention
+make_plots_int = function(test, params, test_int, params_int){
+  
+  k_report = params$k_report
+  c = params$c
+  k_report_int = params_int$k_report
+  c_int = params_int$c
+  
+  # formatting
+  out_base = test %>%
+    gather(var, value, -time) %>% separate(var, into = c("comp", "strat", "cum"), sep = "_") %>%
+    mutate(cum = ifelse(is.na(cum), F, T),
+           
+           # reformat compartments
+           comp2 = ifelse(comp=="A", "Asymptomatic", "Symptomatic"),
+           comp2 = ifelse(comp=="E", "Exposed", comp2),
+           comp2 = ifelse(comp=="R", "Recovered", comp2),
+           comp2 = ifelse(comp=="S", "Susceptible", comp2),
+           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
+                                            "Symptomatic", "Recovered")),
+           
+           # reformat strata
+           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
+           strat2 = ifelse(strat=="2", "21-65", strat2),
+           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
+           strat2 = ifelse(strat=="3", ">65", strat2),
+           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
+           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
+                                              "21-65", "21-65 (SD)",
+                                              ">65", ">65 (SD)")),
+           
+           # get only age
+           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
+    )
+  
+  out_int = test_int %>%
+    gather(var, value, -time) %>% separate(var, into = c("comp", "strat", "cum"), sep = "_") %>%
+    mutate(cum = ifelse(is.na(cum), F, T),
+           
+           # reformat compartments
+           comp2 = ifelse(comp=="A", "Asymptomatic", "Symptomatic"),
+           comp2 = ifelse(comp=="E", "Exposed", comp2),
+           comp2 = ifelse(comp=="R", "Recovered", comp2),
+           comp2 = ifelse(comp=="S", "Susceptible", comp2),
+           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
+                                            "Symptomatic", "Recovered")),
+           
+           # reformat strata
+           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
+           strat2 = ifelse(strat=="2", "21-65", strat2),
+           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
+           strat2 = ifelse(strat=="3", ">65", strat2),
+           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
+           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
+                                              "21-65", "21-65 (SD)",
+                                              ">65", ">65 (SD)")),
+           
+           # get only age
+           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
+    )
+  
+  out = bind_rows(out_base %>% mutate(int = "Base"), out_int %>% mutate(int = "Intervention"))
+  
+  
+  # make graphs of output over time
+  out_age = out %>% group_by(comp, cum) %>% summarize(sum(value)) %>% ungroup()
+  
+  # Flows by compartment
+  a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)), 
+             aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) + theme_minimal() + 
+    scale_color_discrete(name = "") + 
+    labs(x = "Time (days)", y = "", title = "Flows by compartment") + scale_linetype(name ="")
+  
+  # Cases by age
+  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, int) %>% 
+    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2),
+                                                               val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
+                                                               Total_obs = sum(val_obs),
+                                                               Hospital = .17*.13*Total,
+                                                               Ventilator = .05*Total) %>% ungroup()
+  b = ggplot(out_cases, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Cumulative cases by age")
+  b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
+              aes(x = time, y = value, group = interaction(var, int), col = var)) + geom_line(aes(lty = int)) + 
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Cases needing advanced care")
+  
+  # Effective R
+  out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2, int) %>%
+    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
+  c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) + 
+    theme_minimal() + scale_color_discrete(name = "") + 
+    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+  
+  
+  # Observed cases by age
+  d = ggplot(out_cases, aes(x = time, y = val_obs,
+                            group = interaction(strat3,int), col = strat3)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total_obs, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
+  
+  
+  # Deaths by age
+  out_death = out %>% filter(cum == T & comp=="D") %>% group_by(time, strat3, int) %>% 
+    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2)) %>% ungroup()
+  e = ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
+  
+  
+  # Cases by symptoms
+  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2, int) %>% 
+    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
+  f = ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+  
+  # Flows by compartment
+  g = ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + geom_line(aes(lty = int)) + 
+    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
+    labs(x = "Time (days)", y = "", title = "Flows by compartment")
+  
+  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+  ts = read.csv("source/time_series_SCC.csv", as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+    mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
+  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Calibration") + 
+    scale_linetype(name = "")
   
   return(list(a,b,c,d,e,f,g,h,b2))
 }
 
 ############### RUN PARAMETER VECTOR
 
-process_params = function(params, p.adj = NA, obs.adj = NA){
+process_params = function(params, p.adj = NA){
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
-  params$obs = ifelse(is.na(obs.adj), params$obs, obs.adj)
   
   #### ADJUSTMENTS BASED ON MODEL SIMPLIFICATIONS 
   # same time to infection whether recovery or death
@@ -323,13 +458,13 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 }
 
 ############### RUN PARAMETER VECTOR
-run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
+run_param_vec = function(params, params2 = NULL, p.adj = NA,
                          days_out1 = 30, days_out2 = NULL, model_type = run_basic){
   
   
   # process parameters
-  params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)
-  if(!is_null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj)
+  params = process_params(params, p.adj = p.adj)
+  if(!is_null(params2)) params2 = process_params(params2, p.adj = p.adj)
 
   ############## SET INITIAL CONDITIONS
   
@@ -344,66 +479,56 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   start = start_kids = params$obs
   
   x = data.frame(
-    
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
     E_1 = start_kids*(1-params$s)*params$young,
     I_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
     A_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
     R_1 = 0,
-    
     S_2 = params$n*(1-params$s)*params$medium - start*params$medium*(1-params$s),
     E_2 = start*(1-params$s)*params$medium,
     I_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
     A_2 = start*(1-params$s)*params$medium*(params$alpha2),
     R_2 = 0,
-    
     S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
     E_3 = start*(1-params$s)*params$old,
     I_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
     A_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
     R_3 = 0,
-    
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
     I_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     A_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     R_1Q = 0,
-    
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
-    E_2Q = start*(params$s)*params$medium, 
+    E_2Q = start*(params$s)*params$medium,
     I_2Q = start*(params$s)*params$medium*(1-params$alpha2),
     A_2Q = start*(params$s)*params$medium*(params$alpha2),
     R_2Q = 0,
-    
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
     I_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
     A_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
-    R_3Q = 0) %>% 
-    
-mutate(I_1_cum = I_1,
-    I_2_cum = I_2,
-    I_3_cum = I_3,
-    I_1Q_cum = I_1Q,
-    I_2Q_cum = I_2Q,
-    I_3Q_cum = I_3Q,
-    
-    A_1_cum = A_1,
-    A_2_cum = A_2,
-    A_3_cum = A_3,
-    A_1Q_cum = A_1Q,
-    A_2Q_cum = A_2Q,
-    A_3Q_cum = A_3Q,
-    
-    D_1_cum = 0,
-    D_2_cum = 0,
-    D_3_cum = 0,
-    D_1Q_cum = 0,
-    D_2Q_cum = 0,
-    D_3Q_cum = 0
-    
-  )
+    R_3Q = 0) %>%
+    mutate(I_1_cum = I_1,
+           I_2_cum = I_2,
+           I_3_cum = I_3,
+           I_1Q_cum = I_1Q,
+           I_2Q_cum = I_2Q,
+           I_3Q_cum = I_3Q,
+           A_1_cum = A_1,
+           A_2_cum = A_2,
+           A_3_cum = A_3,
+           A_1Q_cum = A_1Q,
+           A_2Q_cum = A_2Q,
+           A_3Q_cum = A_3Q,
+           D_1_cum = 0,
+           D_2_cum = 0,
+           D_3_cum = 0,
+           D_1Q_cum = 0,
+           D_2Q_cum = 0,
+           D_3Q_cum = 0
+    )
   
   ############## RUN MODEL
   # run the model
