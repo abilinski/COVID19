@@ -1,7 +1,7 @@
-setwd("/Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/0 - Parameters")
-source("/Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/1 - Model/Most recent/model_3strat_18_mar_2020_detect_rate.R")
+setwd("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package/inst")
+source("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package/R/model.R")
 
-params <- read.csv("parameters_23_mar_2020.csv")
+params <- read.csv("parameters.csv")
 
 test1 <- run_param_vec(params[1,])
 
@@ -71,7 +71,5 @@ ggplot(test, aes(x=time, y=I_1_cum, group=s, color=s)) +
   geom_line()
 ggplot(test, aes(x=time, y=cum_I_1, group=s, color=s)) +
   geom_line()
-
-
 
 a <- testi1[, c(4, 32)]
