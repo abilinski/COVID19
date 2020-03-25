@@ -400,7 +400,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA,
     
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
-    UI_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    UI_1Q = start_kids*(params$s)*params$young*(1-params$alpha1),
     DI_1Q = 0,
     UA_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     DA_1Q = 0,
