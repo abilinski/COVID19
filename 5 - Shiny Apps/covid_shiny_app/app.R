@@ -12,6 +12,7 @@ library(shinyjs)
 source("source/model_3strat_18_mar_2020.R")
 source("source/manual_R0_calc_17_mar_2020.R")
 source("source/calc_p_from_R0.R")
+source("source/make_plots_int.R")
 # upload parameter names (should hardcode the names in the future)
 # fix contact matrix & obs, drop epsilon and e_ratio, and update other prameters per user's input
 df = read.csv("source/parameters_18_mar_2020.csv", as.is = T)
@@ -177,13 +178,13 @@ server <- function(input, output) {
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         # test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-        #                      days_out2 = NULL, model_type = run_basic)
+        #                     days_out2 = NULL, model_type = run_basic)
         # test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-        #                          days_out2 = input$sim_time, model_type = run_int)
-        print(old_vec)
-        print(param_vec)
-        # print(tail(test))
-        # print(tail(test_int))
+        #                         days_out2 = input$sim_time, model_type = run_int)
+        # print(old_vec)
+        # print(param_vec)
+        print(tail(test))
+        print(tail(test_int))
     })
     
 
