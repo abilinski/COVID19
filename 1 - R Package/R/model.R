@@ -1,19 +1,21 @@
 #****************************** AGE-STRATIFIED COVID19 MODEL ******************************#
 #                                                                                          #
+#                                                                                          #
+#                                                                                          #
 #******************************************************************************************#
 
 #************************************* MODEL FUNCTIONS ************************************#
 
-############## STRATIFIED MODEL
+############## STRATIFIED MODEL-------------
 model_strat <- function (t, x, parms) {
   
   # initial conditions
-  S1 = x[1]; E1 = x[2]; I1 = x[3]; A1 = x[4]; R1 = x[5]
-  S2 = x[6]; E2 = x[7]; I2 = x[8]; A2 = x[9]; R2 = x[10]
-  S3 = x[11]; E3 = x[12]; I3 = x[13]; A3 = x[14]; R3 = x[15]
-  S1Q = x[16]; E1Q = x[17]; I1Q = x[18]; A1Q = x[19]; R1Q = x[20]
-  S2Q = x[21]; E2Q = x[22]; I2Q = x[23]; A2Q = x[24]; R2Q = x[25]
-  S3Q = x[26]; E3Q = x[27]; I3Q = x[28]; A3Q = x[29]; R3Q = x[30]
+  S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
+  S2 = x[8]; E2 = x[9]; UI2 = x[10]; DI2 = x[11]; UA2 = x[12]; DA2 = x[13]; R2 = x[14]
+  S3 = x[15]; E3 = x[16]; UI3 = x[17]; DI3 = x[18]; UA3 = x[19]; DA3 = x[20]; R3 = x[21]
+  S1Q = x[22]; E1Q = x[23]; UI1Q = x[24]; DI1Q = x[25]; UA1Q = x[26]; DA1Q = x[27]; R1Q = x[28]
+  S2Q = x[29]; E2Q = x[30]; UI2Q = x[31]; DI2Q = x[32]; UA2Q = x[33]; DA2Q = x[34]; R2Q = x[35]
+  S3Q = x[36]; E3Q = x[37]; UI3Q = x[38]; DI3Q = x[39]; UA3Q = x[40]; DA3Q = x[41]; R3Q = x[42]
   
   # pull in params
   # pulled from: paste(names(params), " = parms$", names(params), sep = "", collapse = ";")
@@ -43,75 +45,101 @@ model_strat <- function (t, x, parms) {
   vA3Q3Q = parms$vA3Q3Q;N1 = parms$N1;N2 = parms$N2;N3 = parms$N3;N1Q = parms$N1Q;N2Q = parms$N2Q
   N3Q = parms$N3Q
   
+  ###time varying detection rate
+  #added 3 parameters: initial detection rate for I (det_ini), increasing rate by time step (det_inc), a multiplier <1 to represent less detection rate for A (k_det_a)
+  #for symptomatic
+  #assuming a cap detection rate of 1
+  rdetecti <- min(parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+  #for asymptomatic
+  #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
+  rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+  
+  #one more parameter q to specify 1/duration between onset of disease(beginning of I or A) to detection
+  q <- parms$q
+  
+  #multiplier representing the change in contacts when detected
+  k_det_c <- parms$k_det_c
   
   ###### Equations
   ### YOUNG
-  dS1dt = -S1*k_susp*p*(k_inf*v11*I1/N1 + vA11*A1/N1 + v21*I2/N2 + vA21*A2/N2 + v31*I3/N3 + vA31*A3/N3 + k_inf*v1Q1*I1Q/N1Q + vA1Q1*A1Q/N1Q + v2Q1*I2Q/N2Q + vA2Q1*A2Q/N2Q + v3Q1*I3Q/N3Q + vA3Q1*A3Q/N3Q)
-  dE1dt = -delta*E1+ S1*k_susp*p*(k_inf*v11*I1/N1 + vA11*A1/N1 + v21*I2/N2 + vA21*A2/N2 + v31*I3/N3 + vA31*A3/N3 + k_inf*v1Q1*I1Q/N1Q + vA1Q1*A1Q/N1Q + v2Q1*I2Q/N2Q + vA2Q1*A2Q/N2Q + v3Q1*I3Q/N3Q + vA3Q1*A3Q/N3Q)
-  dI1dt = (1-alpha1)*delta*E1- (m1*omega + (1-m1)*gamma)*I1                                       
-  dA1dt = alpha1*delta*E1 - gamma*A1                                                              
-  dR1dt = gamma*A1+ (1-m1)*gamma*I1
+  dS1dt = -S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE1dt = -delta*E1+ S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dUI1dt = (1-alpha1)*delta*E1 - (rdetecti*q + m1*omega + (1-m1)*gamma)*UI1
+  dDI1dt = rdetecti*q*UI1 - (m1*omega + (1-m1)*gamma)*DI1
+  dUA1dt = alpha1*delta*E1 - (rdetecta*q + gamma)*UA1
+  dDA1dt = rdetecta*q*UA1 - gamma*DA1
+  dR1dt = (1-m1)*gamma*(UI1+DI1) + gamma*(UA1+DA1)
   It1 = (1-alpha1)*delta*E1
   At1 = alpha1*delta*E1
-  Dt1 = m1*omega*I1
+  Dt1 = m1*omega*(UI1+DI1)
   
   ### MEDIUM
-  dS2dt = -S2*p*(k_inf*v12*I1/N1 + vA12*A1/N1 + v22*I2/N2 + vA22*A2/N2 + v32*I3/N3 + vA32*A3/N3 + k_inf*v1Q2*I1Q/N1Q + vA1Q2*A1Q/N1Q + v2Q2*I2Q/N2Q + vA2Q2*A2Q/N2Q + v3Q2*I3Q/N3Q + vA3Q2*A3Q/N3Q)
-  dE2dt = -delta*E2+ S2*p*(k_inf*v12*I1/N1 + vA12*A1/N1 + v22*I2/N2 + vA22*A2/N2 + v32*I3/N3 + vA32*A3/N3 + k_inf*v1Q2*I1Q/N1Q + vA1Q2*A1Q/N1Q + v2Q2*I2Q/N2Q + vA2Q2*A2Q/N2Q + v3Q2*I3Q/N3Q + vA3Q2*A3Q/N3Q)
-  dI2dt = (1-alpha2)*delta*E2- (m2*omega + (1-m2)*gamma)*I2
-  dA2dt = alpha2*delta*E2 - gamma*A2
-  dR2dt = gamma*A2+ (1-m2)*gamma*I2
+  dS2dt = -S2*p*(k_inf*v12*(UI1+k_det_c*DI1)/N1 + vA12*(UA1+k_det_c*DA1)/N1 + v22*(UI2+k_det_c*DI2)/N2 + vA22*(UA2+k_det_c*DA2)/N2 + v32*(UI3+k_det_c*DI3)/N3 + vA32*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE2dt = -delta*E2+ S2*p*(k_inf*v12*(UI1+k_det_c*DI1)/N1 + vA12*(UA1+k_det_c*DA1)/N1 + v22*(UI2+k_det_c*DI2)/N2 + vA22*(UA2+k_det_c*DA2)/N2 + v32*(UI3+k_det_c*DI3)/N3 + vA32*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dUI2dt = (1-alpha2)*delta*E2 - (rdetecti*q + m2*omega + (1-m2)*gamma)*UI2
+  dDI2dt = rdetecti*q*UI2 - (m2*omega + (1-m2)*gamma)*DI2
+  dUA2dt = alpha2*delta*E2 - (rdetecta*q + gamma)*UA2
+  dDA2dt = rdetecta*q*UA2 - gamma*DA2
+  dR2dt = (1-m2)*gamma*(UI2+DI2) + gamma*(UA2+DA2)
   It2 = (1-alpha2)*delta*E2
   At2 = alpha2*delta*E2
-  Dt2 = m2*omega*I2
+  Dt2 = m2*omega*(UI2+DI2)
   
   ### OLD
-  dS3dt = -S3*p*(k_inf*v13*I1/N1 + vA13*A1/N1 + v23*I2/N2 + vA23*A2/N2 + v33*I3/N3 + vA33*A3/N3 + k_inf*v1Q3*I1Q/N1Q + vA1Q3*A1Q/N1Q + v2Q3*I2Q/N2Q + vA2Q3*A2Q/N2Q + v3Q3*I3Q/N3Q + vA3Q3*A3Q/N3Q)
-  dE3dt = -delta*E3+ S3*p*(k_inf*v13*I1/N1 + vA13*A1/N1 + v23*I2/N2 + vA23*A2/N2 + v33*I3/N3 + vA33*A3/N3 + k_inf*v1Q3*I1Q/N1Q + vA1Q3*A1Q/N1Q + v2Q3*I2Q/N2Q + vA2Q3*A2Q/N2Q + v3Q3*I3Q/N3Q + vA3Q3*A3Q/N3Q)
-  dI3dt = (1-alpha3)*delta*E3- (m3*omega + (1-m3)*gamma)*I3
-  dA3dt = alpha3*delta*E3 - gamma*A3
-  dR3dt = gamma*A3+ (1-m3)*gamma*I3
+  dS3dt = -S3*p*(k_inf*v13*(UI1+k_det_c*DI1)/N1 + vA13*(UA1+k_det_c*DA1)/N1 + v23*(UI2+k_det_c*DI2)/N2 + vA23*(UA2+k_det_c*DA2)/N2 + v33*(UI3+k_det_c*DI3)/N3 + vA33*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE3dt = -delta*E3+ S3*p*(k_inf*v13*(UI1+k_det_c*DI1)/N1 + vA13*(UA1+k_det_c*DA1)/N1 + v23*(UI2+k_det_c*DI2)/N2 + vA23*(UA2+k_det_c*DA2)/N2 + v33*(UI3+k_det_c*DI3)/N3 + vA33*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dUI3dt = (1-alpha3)*delta*E3 - (rdetecti*q + m3*omega + (1-m3)*gamma)*UI3
+  dDI3dt = rdetecti*q*UI3 - (m3*omega + (1-m3)*gamma)*DI3
+  dUA3dt = alpha3*delta*E3 - (rdetecta*q + gamma)*UA3
+  dDA3dt = rdetecta*q*UA3 - gamma*DA3
+  dR3dt = (1-m3)*gamma*(UI3+DI3) + gamma*(UA3+DA3)
   It3 = (1-alpha3)*delta*E3
   At3 = alpha3*delta*E3
-  Dt3 = m3*omega*I3
+  Dt3 = m3*omega*(UI3+DI3)
   
   ### YOUNG - SOCIALLY DISTANCED
-  dS1Qdt = -S1Q*k_susp*p*(k_inf*v11Q*I1/N1 + vA11Q*A1/N1 + v21Q*I2/N2 + vA21Q*A2/N2 + v31Q*I3/N3 + vA31Q*A3/N3 + k_inf*v1Q1Q*I1Q/N1Q + vA1Q1Q*A1Q/N1Q + v2Q1Q*I2Q/N2Q + vA2Q1Q*A2Q/N2Q + v3Q1Q*I3Q/N3Q + vA3Q1Q*A3Q/N3Q)
-  dE1Qdt = -delta*E1Q+ S1Q*k_susp*p*(k_inf*v11Q*I1/N1 + vA11Q*A1/N1 + v21Q*I2/N2 + vA21Q*A2/N2 + v31Q*I3/N3 + vA31Q*A3/N3 + k_inf*v1Q1Q*I1Q/N1Q + vA1Q1Q*A1Q/N1Q + v2Q1Q*I2Q/N2Q + vA2Q1Q*A2Q/N2Q + v3Q1Q*I3Q/N3Q + vA3Q1Q*A3Q/N3Q)
-  dI1Qdt = (1-alpha1Q)*delta*E1Q- (m1Q*omega + (1-m1Q)*gamma)*I1Q
-  dA1Qdt = alpha1Q*delta*E1Q - gamma*A1Q
-  dR1Qdt = gamma*A1Q+ (1-m1Q)*gamma*I1Q
+  dS1Qdt = -S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE1Qdt = -delta*E1Q + S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dUI1Qdt = (1-alpha1Q)*delta*E1Q - (rdetecti*q + m1Q*omega + (1-m1Q)*gamma)*UI1Q
+  dDI1Qdt = rdetecti*q*UI1Q - (m1Q*omega + (1-m1Q)*gamma)*DI1Q
+  dUA1Qdt = alpha1Q*delta*E1Q - (rdetecta*q + gamma)*UA1Q
+  dDA1Qdt = rdetecta*q*UA1Q - gamma*DA1Q
+  dR1Qdt = (1-m1Q)*gamma*(UI1Q+DI1Q) + gamma*(UA1Q+DA1Q)
   It1Q = (1-alpha1Q)*delta*E1Q
   At1Q = alpha1Q*delta*E1Q
-  Dt1Q = m1Q*omega*I1Q
+  Dt1Q = m1Q*omega*(UI1Q+DI1Q)
   
   ### MEDIUM - SOCIALLY DISTANCED
-  dS2Qdt = -S2Q*p*(k_inf*v12Q*I1/N1 + vA12Q*A1/N1 + v22Q*I2/N2 + vA22Q*A2/N2 + v32Q*I3/N3 + vA32Q*A3/N3 + k_inf*v1Q2Q*I1Q/N1Q + vA1Q2Q*A1Q/N1Q + v2Q2Q*I2Q/N2Q + vA2Q2Q*A2Q/N2Q + v3Q2Q*I3Q/N3Q + vA3Q2Q*A3Q/N3Q)
-  dE2Qdt = -delta*E2Q+ S2Q*p*(k_inf*v12Q*I1/N1 + vA12Q*A1/N1 + v22Q*I2/N2 + vA22Q*A2/N2 + v32Q*I3/N3 + vA32Q*A3/N3 + k_inf*v1Q2Q*I1Q/N1Q + vA1Q2Q*A1Q/N1Q + v2Q2Q*I2Q/N2Q + vA2Q2Q*A2Q/N2Q + v3Q2Q*I3Q/N3Q + vA3Q2Q*A3Q/N3Q)
-  dI2Qdt = (1-alpha2Q)*delta*E2Q- (m2Q*omega + (1-m2Q)*gamma)*I2Q
-  dA2Qdt = alpha2Q*delta*E2Q - gamma*A2Q
-  dR2Qdt = gamma*A2Q+ (1-m2Q)*gamma*I2Q
+  dS2Qdt = -S2Q*p*(k_inf*v12Q*(UI1+k_det_c*DI1)/N1 + vA12Q*(UA1+k_det_c*DA1)/N1 + v22Q*(UI2+k_det_c*DI2)/N2 + vA22Q*(UA2+k_det_c*DA2)/N2 + v32Q*(UI3+k_det_c*DI3)/N3 + vA32Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE2Qdt = -delta*E2Q + S2Q*p*(k_inf*v12Q*(UI1+k_det_c*DI1)/N1 + vA12Q*(UA1+k_det_c*DA1)/N1 + v22Q*(UI2+k_det_c*DI2)/N2 + vA22Q*(UA2+k_det_c*DA2)/N2 + v32Q*(UI3+k_det_c*DI3)/N3 + vA32Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dUI2Qdt = (1-alpha2Q)*delta*E2Q - (rdetecti*q + m2Q*omega + (1-m2Q)*gamma)*UI2Q
+  dDI2Qdt = rdetecti*q*UI2Q - (m2Q*omega + (1-m2Q)*gamma)*DI2Q
+  dUA2Qdt = alpha2Q*delta*E2Q - (rdetecta*q + gamma)*UA2Q
+  dDA2Qdt = rdetecta*q*UA2Q - gamma*DA2Q
+  dR2Qdt = (1-m2Q)*gamma*(UI2Q+DI2Q) + gamma*(UA2Q+DA2Q)
   It2Q = (1-alpha2Q)*delta*E2Q
   At2Q = alpha2Q*delta*E2Q
-  Dt2Q = m2Q*omega*I2Q
+  Dt2Q = m2Q*omega*(UI2Q+DI2Q)
   
   ### OLD - SOCIALLY DISTANCED
-  dS3Qdt = -S3Q*p*(k_inf*v13Q*I1/N1 + vA13Q*A1/N1 + v23Q*I2/N2 + vA23Q*A2/N2 + v33Q*I3/N3 + vA33Q*A3/N3 + k_inf*v1Q3Q*I1Q/N1Q + vA1Q3Q*A1Q/N1Q + v2Q3Q*I2Q/N2Q + vA2Q3Q*A2Q/N2Q + v3Q3Q*I3Q/N3Q + vA3Q3Q*A3Q/N3Q)
-  dE3Qdt = -delta*E3Q+ S3Q*p*(k_inf*v13Q*I1/N1 + vA13Q*A1/N1 + v23Q*I2/N2 + vA23Q*A2/N2 + v33Q*I3/N3 + vA33Q*A3/N3 + k_inf*v1Q3Q*I1Q/N1Q + vA1Q3Q*A1Q/N1Q + v2Q3Q*I2Q/N2Q + vA2Q3Q*A2Q/N2Q + v3Q3Q*I3Q/N3Q + vA3Q3Q*A3Q/N3Q)
-  dI3Qdt = (1-alpha3Q)*delta*E3Q- (m3Q*omega + (1-m3Q)*gamma)*I3Q
-  dA3Qdt = alpha3Q*delta*E3Q - gamma*A3Q
-  dR3Qdt = gamma*A3Q+ (1-m3Q)*gamma*I3Q
+  dS3Qdt = -S3Q*p*(k_inf*v13Q*(UI1+k_det_c*DI1)/N1 + vA13Q*(UA1+k_det_c*DA1)/N1 + v23Q*(UI2+k_det_c*DI2)/N2 + vA23Q*(UA2+k_det_c*DA2)/N2 + v33Q*(UI3+k_det_c*DI3)/N3 + vA33Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dE3Qdt = -delta*E3Q + S3Q*p*(k_inf*v13Q*(UI1+k_det_c*DI1)/N1 + vA13Q*(UA1+k_det_c*DA1)/N1 + v23Q*(UI2+k_det_c*DI2)/N2 + vA23Q*(UA2+k_det_c*DA2)/N2 + v33Q*(UI3+k_det_c*DI3)/N3 + vA33Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3Q*(UA3Q+k_det_c*DA3Q)/N3Q)
+  dUI3Qdt = (1-alpha3Q)*delta*E3Q - (rdetecti*q + m3Q*omega + (1-m3Q)*gamma)*UI3Q
+  dDI3Qdt = rdetecti*q*UI3Q - (m3Q*omega + (1-m3Q)*gamma)*DI3Q
+  dUA3Qdt = alpha3Q*delta*E3Q - (rdetecta*q + gamma)*UA3Q
+  dDA3Qdt = rdetecta*q*UA3Q - gamma*DA3Q
+  dR3Qdt = (1-m3Q)*gamma*(UI3Q+DI3Q) + gamma*(UA3Q+DA3Q)
   It3Q = (1-alpha3Q)*delta*E3Q
   At3Q = alpha3Q*delta*E3Q
-  Dt3Q = m3Q*omega*I3Q
+  Dt3Q = m3Q*omega*(UI3Q+DI3Q)
   
   # results
-  output <- c(dS1dt, dE1dt, dI1dt, dA1dt, dR1dt, 
-              dS2dt, dE2dt, dI2dt, dA2dt, dR2dt,
-              dS3dt, dE3dt, dI3dt, dA3dt, dR3dt, 
-              dS1Qdt, dE1Qdt, dI1Qdt, dA1Qdt, dR1Qdt, 
-              dS2Qdt, dE2Qdt, dI2Qdt, dA2Qdt, dR2Qdt, 
-              dS3Qdt, dE3Qdt, dI3Qdt, dA2Qdt, dR3Qdt, 
+  output <- c(dS1dt, dE1dt, dUI1dt, dDI1dt, dUA1dt, dDA1dt, dR1dt, 
+              dS2dt, dE2dt, dUI2dt, dDI2dt, dUA2dt, dDA2dt, dR2dt, 
+              dS3dt, dE3dt, dUI3dt, dDI3dt, dUA3dt, dDA3dt, dR3dt, 
+              dS1Qdt, dE1Qdt, dUI1Qdt, dDI1Qdt, dUA1Qdt, dDA1Qdt, dR1Qdt, 
+              dS2Qdt, dE2Qdt, dUI2Qdt, dDI2Qdt, dUA2Qdt, dDA2Qdt, dR2Qdt, 
+              dS3Qdt, dE3Qdt, dUI3Qdt, dDI3Qdt, dUA3Qdt, dDA3Qdt, dR3Qdt, 
               It1, It2, It3, It1Q, It2Q, It3Q,
               At1, At2, At2, At1Q, At2Q, At3Q,
               Dt1, Dt2, Dt2, Dt1Q, Dt2Q, Dt3Q)
@@ -120,16 +148,17 @@ model_strat <- function (t, x, parms) {
   list(output)
 }
 
-############## RUN ODE
+############## RUN ODE-----------------
 run_model <- function(func, xstart, times, params, method = "lsodes") {
   return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method)))
 }
 
-############## POST-PROCESSING
+############## POST-PROCESSING-------------------
+  
 make_plots = function(test, params){
   
   k_report = params$k_report
-  c = params$c
+  c = params$c ##############I haven't found where c is used, so was not able to delete it, please check --Lin Zhu 3/19/20
   
   # formatting
   out = test %>%
@@ -156,15 +185,15 @@ make_plots = function(test, params){
            
            # get only age
            strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
+           )
   
   
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value))
-  
+
   # Flows by compartment
   a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2) %>% summarize(value = sum(value)), 
-             aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
+         aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
     scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
   
@@ -178,7 +207,7 @@ make_plots = function(test, params){
   b = ggplot(out_cases, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total), col = "black") + scale_linetype(guide = F) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                             title = "Cumulative cases by age")
+                                                           title = "Cumulative cases by age")
   b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
               aes(x = time, y = value, group = var, col = var)) + geom_line() + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -188,13 +217,13 @@ make_plots = function(test, params){
   out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2) %>%
     summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf)
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() + 
-    theme_minimal() + scale_color_discrete(name = "") + 
-    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
-  
+           theme_minimal() + scale_color_discrete(name = "") + 
+           labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+         
   
   # Observed cases by age
   d = ggplot(out_cases, aes(x = time, y = val_obs,
-                            group = strat3, col = strat3)) + geom_line() +
+                        group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total_obs), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
   
@@ -222,7 +251,7 @@ make_plots = function(test, params){
   # Check fit
   ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
     mutate(time = 1:15, Total_obs = cum_cases)
-
+  
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
   h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line(aes(lty = id)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -309,10 +338,10 @@ make_plots_int = function(test, params, test_int, params_int){
   # Cases by age
   out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, int) %>% 
     summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2),
-                                                               val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
-                                                               Total_obs = sum(val_obs),
-                                                               Hospital = .17*.13*Total,
-                                                               Ventilator = .05*Total) %>% ungroup()
+                                                                    val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
+                                                                    Total_obs = sum(val_obs),
+                                                                    Hospital = .17*.13*Total,
+                                                                    Ventilator = .05*Total) %>% ungroup()
   b = ggplot(out_cases, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -370,7 +399,7 @@ make_plots_int = function(test, params, test_int, params_int){
 }
 
 
-############### RUN PARAMETER VECTOR
+############### RUN PARAMETER VECTOR----------------------
 
 process_params = function(params, p.adj = NA, obs.adj = NA){
   # adjust if calibrating
@@ -467,7 +496,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)
   if(!is.null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj)
 
-  ############## SET INITIAL CONDITIONS
+  ############## SET INITIAL CONDITIONS--------------
   
   # assuming you don't have specific reporting rates
   # you can instead pull from obs_adults and obs_kids by 
@@ -481,67 +510,78 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   
   x = data.frame(
     
+    ###assumption: no detected in initial condition
+    
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
     E_1 = start_kids*(1-params$s)*params$young,
-    I_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
-    A_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
+    UI_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
+    DI_1 = 0,
+    UA_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
+    DA_1 = 0,
     R_1 = 0,
     
     S_2 = params$n*(1-params$s)*params$medium - start*params$medium*(1-params$s),
     E_2 = start*(1-params$s)*params$medium,
-    I_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
-    A_2 = start*(1-params$s)*params$medium*(params$alpha2),
+    UI_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
+    DI_2 = 0,
+    UA_2 = start*(1-params$s)*params$medium*(params$alpha2),
+    DA_2 = 0,
     R_2 = 0,
     
     S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
     E_3 = start*(1-params$s)*params$old,
-    I_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
-    A_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
+    UI_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
+    DI_3 = 0,
+    UA_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
+    DA_3 = 0,
     R_3 = 0,
     
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
-    I_1Q = start_kids*(params$s)*params$young*(params$alpha1),
-    A_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    UI_1Q = start_kids*(params$s)*params$young*(1-params$alpha1),
+    DI_1Q = 0,
+    UA_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    DA_1Q = 0,
     R_1Q = 0,
     
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
     E_2Q = start*(params$s)*params$medium, 
-    I_2Q = start*(params$s)*params$medium*(1-params$alpha2),
-    A_2Q = start*(params$s)*params$medium*(params$alpha2),
+    UI_2Q = start*(params$s)*params$medium*(1-params$alpha2),
+    DI_2Q = 0,
+    UA_2Q = start*(params$s)*params$medium*(params$alpha2),
+    DA_2Q = 0,
     R_2Q = 0,
     
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
-    I_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
-    A_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
-    R_3Q = 0) %>% 
+    UI_3Q = start*(params$s)*params$old*(1-params$alpha3),
+    I_3Q = 0,
+    UA_3Q = start*(params$s)*params$old*(params$alpha3),
+    A_3Q = 0,
+    R_3Q = 0)%>%
+    mutate(I_1_cum = UI_1,
+           I_2_cum = UI_2,
+           I_3_cum = UI_3,
+           I_1Q_cum = UI_1Q,
+           I_2Q_cum = UI_2Q,
+           I_3Q_cum = UI_3Q,
+           A_1_cum = UA_1,
+           A_2_cum = UA_2,
+           A_3_cum = UA_3,
+           A_1Q_cum = UA_1Q,
+           A_2Q_cum = UA_2Q,
+           A_3Q_cum = UA_3Q,
+           D_1_cum = 0,
+           D_2_cum = 0,
+           D_3_cum = 0,
+           D_1Q_cum = 0,
+           D_2Q_cum = 0,
+           D_3Q_cum = 0
+    )
     
-mutate(I_1_cum = I_1,
-    I_2_cum = I_2,
-    I_3_cum = I_3,
-    I_1Q_cum = I_1Q,
-    I_2Q_cum = I_2Q,
-    I_3Q_cum = I_3Q,
-    
-    A_1_cum = A_1,
-    A_2_cum = A_2,
-    A_3_cum = A_3,
-    A_1Q_cum = A_1Q,
-    A_2Q_cum = A_2Q,
-    A_3Q_cum = A_3Q,
-    
-    D_1_cum = 0,
-    D_2_cum = 0,
-    D_3_cum = 0,
-    D_1Q_cum = 0,
-    D_2Q_cum = 0,
-    D_3Q_cum = 0
-    
-  )
   
-  ############## RUN MODEL
+  ############## RUN MODEL----------------------
   # run the model
   test = model_type(model = model_strat, xstart = x, params = params, params2 = params2,
                     days_out1 = days_out1, days_out2 = days_out2)
@@ -549,7 +589,7 @@ mutate(I_1_cum = I_1,
 
 }
 
-##### BASIC MODEL
+##### BASIC MODEL-------------
 run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL){
   
   # run model
@@ -561,7 +601,7 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
   
 }
 
-##### WITH INTERVENTION
+##### WITH INTERVENTION----------------
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
   # run model before intervention
@@ -585,8 +625,15 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   
 }
 
+############## LIBRARIES-------------
 
-# Multiple plot function
+# libraries
+library(tidyverse)
+library(deSolve)
+library(ggthemes)
+library(tictoc)
+
+# Multiple plot function----------------
 #
 # ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
 # - cols:   Number of columns in layout
@@ -597,6 +644,7 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
 # 3 will go all the way across the bottom.
 #
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
   
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
