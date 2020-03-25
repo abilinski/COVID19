@@ -65,7 +65,7 @@ keep = data.frame()
 scen_vec = c(1:6,25:30,54:59)
 # loop over scenarios
 for(k in c(1:length(scen_vec))){
-  p_cand = seq(150, 30000, 150) #110:325
+  p_cand = seq(700, 25000, 50) #110:325
   # run initially 
   calib1 = run_calib(p_cand, df[scen_vec[k],], day_start = day_start, day_end = day_end)
   
@@ -95,7 +95,8 @@ R0_labels <-c('2.2','2.8','3.2')
 obs_inds = 379:399
 R0_inds <- cbind(c(127:252,obs_inds),c(1:126,obs_inds),c(253:378,obs_inds)) #fix this so it's automatic
 for (i in c(1:3)){
-ggplot(keep[R0_inds[,i],], aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + geom_line() + theme_minimal() + 
+ggplot() + geom_line(keep[R0_inds[,i],], mapping = aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + #geom_line() +
+    geom_point(subset(keep[obs_inds,],id>=day_start), mapping= aes(x = id, y = cases)) + theme_minimal() + 
   labs(x = "Day", y = "Cumulative detected cases", title = paste("Fit to", diff, "day(s)")) + scale_linetype(guide = F) + 
   scale_color_brewer(name = "", palette = "Set2")
 
@@ -180,15 +181,56 @@ run_ests = function(label, ind){
   
   # store output
   write.csv(out[[1]] %>% filter(comp=="I"), file = paste0("Estimates_", label, ".csv"))
-  
+  return(out[[1]] %>% filter(comp=="I"))
 
 }
 
 # run estimates
-run_ests("No_SD_R0_2.8", 1:6)
-run_ests("SD_R0_2.8", 13:18)
-run_ests("No_SD_R0_2.2", 25:30)
-run_ests("SD_R0_2.2", 37:42)
-run_ests("No_SD_R0_3.2", 49:54)
-run_ests("SD_R0_3.2", 61:66)
+no_sd_r02_8<-run_ests("No_SD_R0_2.8", 1:6)
+sd_r02_8<-run_ests("SD_R0_2.8", 13:18)
+no_sd_r02_2<-run_ests("No_SD_R0_2.2", 25:30)
+sd_r02_2<-run_ests("SD_R0_2.2", 37:42)
+no_sd_r03_2<-run_ests("No_SD_R0_3.2", 49:54)
+sd_r03_2<-run_ests("SD_R0_3.2", 61:66)
+
+diff_plots <- function(no_sd_mat,sd_mat,day,R0,SDpc){
+  
+  # This function makes a boxplot for percentage of cumulative cases averted (applies for hospitalizations too) 
+  # at a certain time (given by the input day) across a range of scenarios for a given R0
+  pdf(paste0("boxplot_R0_", R0,"_SD_",SDpc, ".pdf"),width=6.5, height=3.5)
+  tmp_diff <- 100*(-no_sd_mat[no_sd_mat$time==day,'value']+sd_mat[sd_mat$time==day,'value'])/no_sd_mat[no_sd_mat$time==day,'value']
+  boxplot(tmp_diff,main=paste0("Percent Change in Cumulative Cases, R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Percentage")
+  
+  dev.off()
+  
+}
+
+diff_plots(no_sd_r02_8,sd_r02_8,50,2.8,25)
+diff_plots(no_sd_r02_2,sd_r02_2,50,2.2,25)
+diff_plots(no_sd_r03_2,sd_r03_2,50,3.2,25)
+
+library(data.table)
+#calculate which day hospital beds exceeds 53000 count
+#calculate difference with and without SD
+hosp_days_plots <-function(no_sd_mat,sd_mat,beds,R0,SDpc){
+  #turn time series into datatables
+  setDT(no_sd_mat)
+  setDT(sd_mat)
+  #get first day that beds go over capacity for no sd and sd
+  no_sd_mat<-no_sd_mat[no_sd_mat$value*.05 >beds,.SD[which.min(time)], by = scenario]
+  sd_mat<-sd_mat[sd_mat$value*.05 >beds,.SD[which.min(time)], by = scenario]
+  #take difference in days between sd and no sd for scenarios where matrix exists for sd
+  hosp_days <-sd_mat$time -no_sd_mat[no_sd_mat$scenario %in% sd_mat$scenario,'time']
+  pdf(paste0("ExtraBedDays_R0_", R0,"_SD_",SDpc, ".pdf"),width=6.5, height=3.5)
+  boxplot(hosp_days,main=paste0("Extra Days before Exceeding Hosp Bed Capacity, R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Days")
+  dev.off()
+  
+}
+
+nyc_beds = 53000
+hosp_days_plots(no_sd_r02_8,sd_r02_8,nyc_beds,2.8,25)
+hosp_days_plots(no_sd_r02_2,sd_r02_2,nyc_beds,2.2,25)
+hosp_days_plots(no_sd_r03_2,sd_r03_2,nyc_beds,3.2,25)
+
+
 
