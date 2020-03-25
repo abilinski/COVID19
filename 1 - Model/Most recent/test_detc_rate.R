@@ -1,11 +1,22 @@
 setwd("/Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/0 - Parameters")
 source("/Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/1 - Model/Most recent/model_3strat_18_mar_2020_detect_rate.R")
 
-params <- read.csv("parameters_18_mar_2020.csv")
+params <- read.csv("parameters_23_mar_2020.csv")
 
 test1 <- run_param_vec(params[1,])
 
 test2 <- run_param_vec(params[11,])
+
+test1 <- test1[,c(1,44)]
+test1$scenario <- "base"
+
+test2 <- test2[,c(1,44)]
+test2$scenario <- "screen"
+
+test <- rbind(test1, test2)
+
+ggplot(test, aes(x=time, y=I_1_cum, group=scenario, color=scenario)) +
+  geom_line()
 
 #debugging for e not functioning
 source('~/Downloads/model_3strat_18_mar_2020 (1).R')
