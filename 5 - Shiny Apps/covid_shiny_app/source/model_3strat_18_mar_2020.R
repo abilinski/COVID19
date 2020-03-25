@@ -112,18 +112,17 @@ model_strat <- function (t, x, parms) {
               dS3dt, dE3dt, dI3dt, dA3dt, dR3dt, 
               dS1Qdt, dE1Qdt, dI1Qdt, dA1Qdt, dR1Qdt, 
               dS2Qdt, dE2Qdt, dI2Qdt, dA2Qdt, dR2Qdt, 
-              dS3Qdt, dE3Qdt, dI3Qdt, dA2Qdt, dR3Qdt, 
+              dS3Qdt, dE3Qdt, dI3Qdt, dA3Qdt, dR3Qdt, 
               It1, It2, It3, It1Q, It2Q, It3Q,
-              At1, At2, At2, At1Q, At2Q, At3Q,
-              Dt1, Dt2, Dt2, Dt1Q, Dt2Q, Dt3Q)
-  
+              At1, At2, At3, At1Q, At2Q, At3Q,
+              Dt1, Dt2, Dt3, Dt1Q, Dt2Q, Dt3Q)
   # list it!
   list(output)
 }
 
 ############## RUN ODE
-run_model <- function(func, xstart, times, params, method = "lsodes") {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method)))
+run_model <- function(func, xstart, times, params, method = "lsodes") { #"lsodes"
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10)))
 }
 
 ############## POST-PROCESSING
@@ -360,7 +359,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     R_3 = 0,
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
-    I_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    I_1Q = start_kids*(params$s)*params$young*(1-params$alpha1),
     A_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     R_1Q = 0,
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
@@ -398,17 +397,15 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   test = model_type(model = model_strat, xstart = x, params = params, params2 = params2,
                     days_out1 = days_out1, days_out2 = days_out2)
   return(test)
-
+  #return(x)
 }
 
 ##### BASIC MODEL
 run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL){
-  
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "lsodes")
+                   params = params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
-  
   return(test)
   
 }
@@ -417,7 +414,7 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
   # run model before intervention
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out1), params, method = "lsodes")
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out1), params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
   
   # run model after intervention
@@ -439,7 +436,7 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   # rerun
   # get rid of first row to avoid day duplication
   test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)),
-                    params2, method = "lsodes")[-1,]
+                    params2, method = "ode45")[-1,]
   names(test2)[2:ncol(test2)] = names(xstart)
   test2$time = c((days_out1+1):days_out2)
   
