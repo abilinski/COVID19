@@ -29,12 +29,12 @@ setwd(wd)
 day_start = 18 #21
 
 # day on which to end calibration
-day_end = 21
+day_end = 25
 
 
 ############## CALIBRATION (CUMULATIVE CASES)
 # Observed data (Santa Clara data. Cumulative number of cases)
-ts = read.csv("NYC-Cases_orig.csv", as.is = T) # These rows are for March 1st - 15th# Set a reasonable range of p
+ts = read.csv("NYC-Cases_Mar25.csv", as.is = T) # These rows are for March 1st - 15th# Set a reasonable range of p
 
 # function to run calibration
 run_calib = function(p_cand, vec, obs = ts$cum_cases, cum = T, day_start = 1, day_end = 15){
@@ -63,6 +63,9 @@ out = c()
 keep = data.frame()
 #make vector of baseline scenarios to run
 scen_vec = c(1:6,25:30,54:59)
+
+#get length of time series
+tot_days =dim(ts)[1]
 # loop over scenarios
 for(k in c(1:length(scen_vec))){
   p_cand = seq(700, 25000, 50) #110:325
@@ -74,12 +77,12 @@ for(k in c(1:length(scen_vec))){
   out[k] = calib1[[1]]
   
   # store fit
-  temp = data.frame(id = 1:21, cases = results[[2]][1:21], scenario = paste(df$Scenario[scen_vec[k]], " (R0 = ", df$R0[scen_vec[k]], ", seed=", out[k], ")", sep = ""))
+  temp = data.frame(id = 1:tot_days, cases = results[[2]][1:tot_days], scenario = paste(df$Scenario[scen_vec[k]], " (R0 = ", df$R0[scen_vec[k]], ", seed=", out[k], ")", sep = ""))
   keep = bind_rows(keep, temp)
 }
 
 # pull together results
-keep = bind_rows(keep, data.frame(id = 1:21, cases = results[[3]], scenario = "Observed")) %>% mutate(lty = ifelse(scenario == "Observed", "2", "1"))
+keep = bind_rows(keep, data.frame(id = 1:tot_days, cases = results[[3]], scenario = "Observed")) %>% mutate(lty = ifelse(scenario == "Observed", "2", "1"))
 
 diff = day_end-day_start+1
 # make plot 1
@@ -92,11 +95,12 @@ diff = day_end-day_start+1
 #make plots for each R0
 R0_labels <-c('2.2','2.8','3.2')
 #get rows of keep that correspond to each R0 (379:399 is observed for all)
-obs_inds = 379:399
-R0_inds <- cbind(c(127:252,obs_inds),c(1:126,obs_inds),c(253:378,obs_inds)) #fix this so it's automatic
+obs_inds = (18*tot_days+1):(19*tot_days)
+R0_inds <- cbind(c((1+6*tot_days):(12*tot_days),obs_inds),c(1:(6*tot_days),obs_inds),c((1+12*tot_days):(18*tot_days),obs_inds)) #fix this so it's automatic
 for (i in c(1:3)){
 ggplot() + geom_line(keep[R0_inds[,i],], mapping = aes(x = id, y = cases, group = scenario, col = scenario, lty = lty)) + #geom_line() +
-    geom_point(subset(keep[obs_inds,],id>=day_start), mapping= aes(x = id, y = cases)) + theme_minimal() + 
+    geom_point(subset(keep[obs_inds,],id>=day_start), mapping= aes(x = id, y = cases)) + 
+    theme_minimal() + 
   labs(x = "Day", y = "Cumulative detected cases", title = paste("Fit to", diff, "day(s)")) + scale_linetype(guide = F) + 
   scale_color_brewer(name = "", palette = "Set2")
 
@@ -167,10 +171,10 @@ df$obs[49:72]=rep(out[13:18],4) #R0 3.2
 run_ests = function(label, ind){
 # loop over vectors
   for(i in ind){
-  
+   
       # run intervention for another 30 days
     test_int = run_param_vec(params = df[i,], params2 = df[i+6,], days_out1 = 15,
-                             days_out2 = 76, model_type = run_int) %>% mutate(scenario = df$Scenario[i])
+                             days_out2 = 60, model_type = run_int) %>% mutate(scenario = df$Scenario[i])
     test = bind_rows(test, test_int)
     
     
@@ -187,19 +191,24 @@ run_ests = function(label, ind){
 
 # run estimates
 no_sd_r02_8<-run_ests("No_SD_R0_2.8", 1:6)
-sd_r02_8<-run_ests("SD_R0_2.8", 13:18)
 no_sd_r02_2<-run_ests("No_SD_R0_2.2", 25:30)
-sd_r02_2<-run_ests("SD_R0_2.2", 37:42)
 no_sd_r03_2<-run_ests("No_SD_R0_3.2", 49:54)
-sd_r03_2<-run_ests("SD_R0_3.2", 61:66)
+sd_r02_8<-run_ests("SD25_R0_2.8", 13:18)
+sd_r02_2<-run_ests("SD25_R0_2.2", 37:42)
+sd_r03_2<-run_ests("SD25_R0_3.2", 61:66)
+
+# use this if parameters have been changed to 50%
+sd_r02_8<-run_ests("SD50_R0_2.8", 13:18)
+sd_r02_2<-run_ests("SD50_R0_2.2", 37:42)
+sd_r03_2<-run_ests("SD50_R0_3.2", 61:66)
 
 diff_plots <- function(no_sd_mat,sd_mat,day,R0,SDpc){
   
   # This function makes a boxplot for percentage of cumulative cases averted (applies for hospitalizations too) 
   # at a certain time (given by the input day) across a range of scenarios for a given R0
-  pdf(paste0("boxplot_R0_", R0,"_SD_",SDpc, ".pdf"),width=6.5, height=3.5)
+  pdf(paste0("boxplot_R0_", R0,"_SD_",SDpc, ".pdf"),width=4.5, height=3.5)
   tmp_diff <- 100*(-no_sd_mat[no_sd_mat$time==day,'value']+sd_mat[sd_mat$time==day,'value'])/no_sd_mat[no_sd_mat$time==day,'value']
-  boxplot(tmp_diff,main=paste0("Percent Change in Cumulative Cases, R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Percentage")
+  boxplot(tmp_diff,main=paste0("% Change in Cumulative Cases\n R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Percentage",ylim=c(-100, 0))
   
   dev.off()
   
@@ -208,6 +217,11 @@ diff_plots <- function(no_sd_mat,sd_mat,day,R0,SDpc){
 diff_plots(no_sd_r02_8,sd_r02_8,50,2.8,25)
 diff_plots(no_sd_r02_2,sd_r02_2,50,2.2,25)
 diff_plots(no_sd_r03_2,sd_r03_2,50,3.2,25)
+
+# use this if parameters have been changed to 50%
+diff_plots(no_sd_r02_8,sd_r02_8,50,2.8,50)
+diff_plots(no_sd_r02_2,sd_r02_2,50,2.2,50)
+diff_plots(no_sd_r03_2,sd_r03_2,50,3.2,50)
 
 library(data.table)
 #calculate which day hospital beds exceeds 53000 count
@@ -222,15 +236,20 @@ hosp_days_plots <-function(no_sd_mat,sd_mat,beds,R0,SDpc){
   #take difference in days between sd and no sd for scenarios where matrix exists for sd
   hosp_days <-sd_mat$time -no_sd_mat[no_sd_mat$scenario %in% sd_mat$scenario,'time']
   pdf(paste0("ExtraBedDays_R0_", R0,"_SD_",SDpc, ".pdf"),width=6.5, height=3.5)
-  boxplot(hosp_days,main=paste0("Extra Days before Exceeding Hosp Bed Capacity, R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Days")
+  boxplot(hosp_days,main=paste0("Extra Days before Exceeding Hosp Bed Capacity\n R0 = ", R0, ", SD reduction = ", SDpc,"%"), ylab ="Days")
   dev.off()
+  return(as.list(no_sd_mat))
   
 }
 
-nyc_beds = 53000
+nyc_beds = 27000
 hosp_days_plots(no_sd_r02_8,sd_r02_8,nyc_beds,2.8,25)
 hosp_days_plots(no_sd_r02_2,sd_r02_2,nyc_beds,2.2,25)
 hosp_days_plots(no_sd_r03_2,sd_r03_2,nyc_beds,3.2,25)
 
+# use this if parameters have been changed to 50%
+hosp_days_plots(no_sd_r02_8,sd_r02_8,nyc_beds,2.8,50)
+hosp_days_plots(no_sd_r02_2,sd_r02_2,nyc_beds,2.2,50)
+hosp_days_plots(no_sd_r03_2,sd_r03_2,nyc_beds,3.2,50)
 
 
