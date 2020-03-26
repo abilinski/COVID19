@@ -1,0 +1,4 @@
+# Modified to export all functions which do not start with .
+# Functions that start with . can be used as package internals, not exported by 
+# the package when it is loaded with library()
+exportPattern("^[^\\.]")
