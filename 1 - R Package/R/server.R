@@ -7,12 +7,16 @@ server <- function(input, output, session) {
   param_vec = df[1,]
   param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
   param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
-  
-    ## for debugging 
-    output$renderprint<-renderPrint({
-        temp<-c(unlist(reactiveValuesToList(input)))
 
-        # input_names<-names(temp)[!names(temp) %in% c("sim_time","int_time")]
+  # Model Plots 
+  # 
+  # Use the user input to run the model for the base case and intervention.
+  # Make plots of the outcomes.
+  # Returns a list of plots
+  #
+  model_plots <- reactive({ 
+        ### update the params using inputs
+        temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
         old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
@@ -21,14 +25,34 @@ server <- function(input, output, session) {
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
-        # test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-        #                      days_out2 = NULL, model_type = run_basic)
-        # test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-        #                          days_out2 = input$sim_time, model_type = run_int)
+        
+        ### run model without intervention
+        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
+                             days_out2 = NULL, model_type = run_basic) 
+        ### run intervention halfway
+        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
+                                 days_out2 = input$sim_time, model_type = run_int)
+        ### make plots
+        g = make_plots_int(test, params = old_vec, test_int, params_int = param_vec)
+
+        return(g)
+  })
+
+  
+    ## for debugging 
+    output$renderprint<-renderPrint({
+        temp<-c(unlist(reactiveValuesToList(input)))
+
+        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
+        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
+        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
+        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
+        old_vec$Scenario<-'Base'
+        param_vec$Scenario<-'Intervention'
         print(old_vec)
         print(param_vec)
-        # print(tail(test))
-        # print(tail(test_int))
     })
     
 
@@ -62,131 +86,21 @@ server <- function(input, output, session) {
     )
     
     ## output for Fits tab
-    output$fit <- renderPlotly({
-        ### update the params using inputs
-        temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
-        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-        old_vec$Scenario<-'Base'
-        param_vec$Scenario<-'Intervention'
-        
-        ### run model without intervention
-        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
-        ### run intervention halfway
-        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
-        ### make plots
-        g = make_plots_int(test, params = old_vec, test_int, params_int = param_vec)
-        g[[8]]
-        
-    })
+    output$fit <- renderPlot({ model_plots()[[8]] })
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlotly({
-        ### update the params using inputs
-        temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
-        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-        old_vec$Scenario<-'Base'
-        param_vec$Scenario<-'Intervention'
-        
-        ### run model without intervention
-        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
-        ### run intervention halfway
-        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
-        ### make plots
-        g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        g[[7]]
-          
-    })
+    output$comp_flow<- renderPlot({ model_plots()[[7]] })
     
-    ## output for Cumulative case tab
-    output$cum_case<- renderPlotly({
-        ### update the params using inputs
-        temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
-        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-        old_vec$Scenario<-'Base'
-        param_vec$Scenario<-'Intervention'
-        
-        ### run model without intervention
-        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
-        ### run intervention halfway
-        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
-        ### make plots
-        g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        # multiplot(g[[2]], g[[4]], cols = 2)
-        subplot(g[[2]], g[[4]], nrows=1)
-    })
+    output$cumulative_infections_by_age <- renderPlot({ model_plots()[[2]] })
+    output$cumulative_diagnosed_by_age <- renderPlot({ model_plots()[[4]] })
     
     ## output for Death & New case ratio tab
-    output$death_new_case<- renderPlotly({
-        ### update the param_vec using inputs
-        temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
-        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-        old_vec$Scenario<-'Base'
-        param_vec$Scenario<-'Intervention'
-        
-        ### run model without intervention
-        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
-        ### run intervention halfway
-        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
-        ### make plots
-        g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        # multiplot(g[[5]],g[[3]],cols = 2)
-        subplot(g[[5]], g[[3]], nrows=1)
-        
-    })
+    output$deaths_by_age <- renderPlot({ model_plots()[[5]] })
+    output$effective_reproductive_number <- renderPlot({ model_plots()[[3]] })
     
     ## output for Advanced care & Symptoms ratio tab
-    output$care_symptoms<- renderPlotly({
-        ### update the param_vec using inputs
-        temp<-c(unlist(reactiveValuesToList(input)))
-        old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
-        param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-        old_vec$Scenario<-'Base'
-        param_vec$Scenario<-'Intervention'
-        
-        ### run model without intervention
-        test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
-        ### run intervention halfway
-        test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
-        ### make plots
-        g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        # multiplot(g[[9]],g[[6]],cols = 2)
-        subplot(g[[9]], g[[6]], nrows=1)
-        
-    })
+    output$cases_needing_advanced_care <- renderPlot({ model_plots()[[9]] })
+    output$cumulative_cases_by_symptoms <- renderPlot({ model_plots()[[6]] })
 
     # if the user preses the Reset All Parameters actionButton, use the
     # shinyjs::reset function to reset all parameters to their default values. 
