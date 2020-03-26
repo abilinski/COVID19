@@ -5,6 +5,9 @@
 #************************************* MODEL FUNCTIONS ************************************#
 
 ############## STRATIFIED MODEL
+#' Stratified Model
+#' 
+#' @export
 model_strat <- function (t, x, parms) {
   
   # initial conditions
@@ -119,11 +122,18 @@ model_strat <- function (t, x, parms) {
 }
 
 ############## RUN ODE
+#'  Run the Model
+#' 
+#' @export
 run_model <- function(func, xstart, times, params, method = "lsodes") {
   return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10)))
 }
 
 ############## POST-PROCESSING
+
+#' Make Plots
+#' 
+#' @export
 make_plots = function(test, params){
   
   k_report = params$k_report
@@ -231,7 +241,9 @@ make_plots = function(test, params){
   return(list(a,b,c,d,e,f,g,h,b2))
 }
 
-# make plots to compare base and intervention
+#' Make Plots Comparing Base Case and Intervention
+#' 
+#' @export
 make_plots_int = function(test, params, test_int, params_int){
   
   k_report = params$k_report
@@ -370,6 +382,10 @@ make_plots_int = function(test, params, test_int, params_int){
 
 ############### RUN PARAMETER VECTOR
 
+
+#' Process Parameters
+#' 
+#' @export
 process_params = function(params, p.adj = NA, obs.adj = NA){
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
@@ -457,6 +473,9 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 }
 
 ############### RUN PARAMETER VECTOR
+#' Run Model from Parameter Vector
+#' 
+#' @export
 run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
                          days_out1 = 30, days_out2 = NULL, model_type = run_basic){
   
@@ -547,6 +566,9 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
 }
 
 ##### BASIC MODEL
+#' Run Basic Model
+#' 
+#' @export
 run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL){
   
   # run model
@@ -559,6 +581,9 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
 }
 
 ##### WITH INTERVENTION
+#' Run Model with Intervention
+#' 
+#' @export
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
   # run model before intervention
@@ -595,16 +620,17 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
 }
 
 
-# Multiple plot function
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
+#' Multiple plot function
+#'
+#' ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+#' - cols:   Number of columns in layout
+#' - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#'
+#' If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+#' then plot 1 will go in the upper left, 2 will go in the upper right, and
+#' 3 will go all the way across the bottom.
+#'
+#' @export
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   
   # Make a list from the ... arguments and plotlist

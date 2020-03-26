@@ -1,3 +1,7 @@
+
+#' Make Equations for Model
+#' 
+#' @export 
 make_eqn_strat = function(group){
   S = paste("dS", group, "dt = -S", group,
             "*k_susp*p*(k_inf*v1", group, "*I1/N1 + vA1", group, "*A1/N1 + v2", group,

@@ -1,5 +1,7 @@
-## This function takes the input R0 and the parameter vector as inputs and calculates the
-## corresponding p
+#' This function takes the input R0 and the parameter vector as inputs and calculates the
+#' corresponding p
+#' 
+#' @export
 calc_p_from_R0<- function (R0_input,vec) {
   #convert input R0 to numeric
   R0_input= as.numeric(R0_input)
@@ -14,6 +16,8 @@ calc_p_from_R0<- function (R0_input,vec) {
   return(p_cand[which.min(abs(R0-R0_input))])
 }
 
+#' Calculate R0 from td 
+#' @export
 calc_R0_from_td <-function(td,vec){
   #calculate time of infectiousness
   t_inf = 1/vec$gamma 
