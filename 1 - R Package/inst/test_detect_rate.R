@@ -1,5 +1,7 @@
-setwd("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package/inst")
-source("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package/R/model.R")
+#cd /Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package
+setwd("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package")
+#source("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package/R/model.R")
+devtools::load_all()
 
 params <- read.csv("parameters.csv")
 
