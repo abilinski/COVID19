@@ -114,4 +114,14 @@ server <- function(input, output, session) {
                'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp'),
              shinyjs::reset)
     })
+
+    # Calculate old population fraction from young and medium
+    observeEvent(c(input$young, input$medium), {
+      updateSliderInput(session, 'old', value = 1 - (input$young + input$medium))
+    })
+    
+    # Calculate old population fraction from young and medium
+    observeEvent(c(input$young_int, input$medium_int), {
+      updateSliderInput(session, 'old_int', value = 1 - (input$young_int + input$medium_int))
+    })
 }
