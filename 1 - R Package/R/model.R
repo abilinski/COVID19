@@ -43,7 +43,6 @@ model_strat <- function (t, x, parms) {
   vA3Q3Q = parms$vA3Q3Q;N1 = parms$N1;N2 = parms$N2;N3 = parms$N3;N1Q = parms$N1Q;N2Q = parms$N2Q
   N3Q = parms$N3Q
   
-  
   ###### Equations
   ### YOUNG
   dS1dt = -S1*k_susp*p*(k_inf*v11*I1/N1 + vA11*A1/N1 + v21*I2/N2 + vA21*A2/N2 + v31*I3/N3 + vA31*A3/N3 + k_inf*v1Q1*I1Q/N1Q + vA1Q1*A1Q/N1Q + v2Q1*I2Q/N2Q + vA2Q1*A2Q/N2Q + v3Q1*I3Q/N3Q + vA3Q1*A3Q/N3Q)
@@ -111,18 +110,17 @@ model_strat <- function (t, x, parms) {
               dS3dt, dE3dt, dI3dt, dA3dt, dR3dt, 
               dS1Qdt, dE1Qdt, dI1Qdt, dA1Qdt, dR1Qdt, 
               dS2Qdt, dE2Qdt, dI2Qdt, dA2Qdt, dR2Qdt, 
-              dS3Qdt, dE3Qdt, dI3Qdt, dA2Qdt, dR3Qdt, 
+              dS3Qdt, dE3Qdt, dI3Qdt, dA3Qdt, dR3Qdt, 
               It1, It2, It3, It1Q, It2Q, It3Q,
-              At1, At2, At2, At1Q, At2Q, At3Q,
-              Dt1, Dt2, Dt2, Dt1Q, Dt2Q, Dt3Q)
-  
+              At1, At2, At3, At1Q, At2Q, At3Q,
+              Dt1, Dt2, Dt3, Dt1Q, Dt2Q, Dt3Q)
   # list it!
   list(output)
 }
 
 ############## RUN ODE
 run_model <- function(func, xstart, times, params, method = "lsodes") {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method)))
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10)))
 }
 
 ############## POST-PROCESSING
@@ -224,7 +222,7 @@ make_plots = function(test, params){
     mutate(time = 1:15, Total_obs = cum_cases)
 
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line(aes(lty = id)) +
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
@@ -480,66 +478,65 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   start = start_kids = params$obs
   
   x = data.frame(
-    
+
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
     E_1 = start_kids*(1-params$s)*params$young,
     I_1 = start_kids*(1-params$s)*params$young*(1-params$alpha1),
     A_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
     R_1 = 0,
-    
+
     S_2 = params$n*(1-params$s)*params$medium - start*params$medium*(1-params$s),
     E_2 = start*(1-params$s)*params$medium,
     I_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
     A_2 = start*(1-params$s)*params$medium*(params$alpha2),
     R_2 = 0,
-    
+
     S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
     E_3 = start*(1-params$s)*params$old,
-    I_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
-    A_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
+    I_3 = start*(1-params$s)*params$old*(1-params$alpha3),
+    A_3 = start*(1-params$s)*params$old*(params$alpha3),
     R_3 = 0,
-    
+
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
-    I_1Q = start_kids*(params$s)*params$young*(params$alpha1),
+    I_1Q = start_kids*(params$s)*params$young*(1-params$alpha1),
     A_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     R_1Q = 0,
-    
+
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
-    E_2Q = start*(params$s)*params$medium, 
+    E_2Q = start*(params$s)*params$medium,
     I_2Q = start*(params$s)*params$medium*(1-params$alpha2),
     A_2Q = start*(params$s)*params$medium*(params$alpha2),
     R_2Q = 0,
-    
+
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
-    I_3Q = start*(params$s)*params$old*(1-params$alpha3)*(params$s),
-    A_3Q = start*(params$s)*params$old*(params$alpha3)*(params$s),
-    R_3Q = 0) %>% 
-    
-mutate(I_1_cum = I_1,
-    I_2_cum = I_2,
-    I_3_cum = I_3,
-    I_1Q_cum = I_1Q,
-    I_2Q_cum = I_2Q,
-    I_3Q_cum = I_3Q,
-    
-    A_1_cum = A_1,
-    A_2_cum = A_2,
-    A_3_cum = A_3,
-    A_1Q_cum = A_1Q,
-    A_2Q_cum = A_2Q,
-    A_3Q_cum = A_3Q,
-    
-    D_1_cum = 0,
-    D_2_cum = 0,
-    D_3_cum = 0,
-    D_1Q_cum = 0,
-    D_2Q_cum = 0,
-    D_3Q_cum = 0
-    
-  )
+    I_3Q = start*(params$s)*params$old*(1-params$alpha3),
+    A_3Q = start*(params$s)*params$old*(params$alpha3),
+    R_3Q = 0) %>%
+
+    mutate(I_1_cum = I_1,
+      I_2_cum = I_2,
+      I_3_cum = I_3,
+      I_1Q_cum = I_1Q,
+      I_2Q_cum = I_2Q,
+      I_3Q_cum = I_3Q,
+
+      A_1_cum = A_1,
+      A_2_cum = A_2,
+      A_3_cum = A_3,
+      A_1Q_cum = A_1Q,
+      A_2Q_cum = A_2Q,
+      A_3Q_cum = A_3Q,
+
+      D_1_cum = 0,
+      D_2_cum = 0,
+      D_3_cum = 0,
+      D_1Q_cum = 0,
+      D_2Q_cum = 0,
+      D_3Q_cum = 0
+    )
   
   ############## RUN MODEL
   # run the model
@@ -554,7 +551,7 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "lsodes")
+                   params = params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -571,11 +568,23 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   # run model after intervention
   # pull last row to start
   x2 = tail(test, n = 1)[-1]
-  
+  x2_process<-x2
+  # set up initial conditions for continuing running intervention (for social distancing)
+  s_names<-rep(c('S', 'E', 'I', 'A', 'R'), each=3)
+  a_names<-rep(1:3, 3)
+  aq_names<-paste(a_names,'Q', sep="")
+  x2_process[paste(s_names, a_names, sep="_")]<-as.numeric((1-params2$s)*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+  x2_process[paste(s_names, aq_names, sep="_")]<-as.numeric(params2$s*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+  # fix 'p' in params2 (intervention) as 'p' in params(base)
+  params2$p<-params$p
+  #print (params)
+  #print (params2)
+  #print (x2)
+  #print (x2_process)
   # rerun
   # get rid of first row to avoid day duplication
-  test2 = run_model(model_strat, xstart = as.numeric(x2), times = c(1:(days_out2-days_out1+1)), 
-                    params2, method = "lsodes")[-1,]
+  test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)),
+                    params2, method = "ode45")[-1,]
   names(test2)[2:ncol(test2)] = names(xstart)
   test2$time = c((days_out1+1):days_out2)
   
