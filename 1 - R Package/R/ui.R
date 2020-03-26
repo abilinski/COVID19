@@ -16,7 +16,7 @@ generate_ui <- function() {
   ui <- fluidPage(
 
       # Application title
-      titlePanel("covid_epi_model"),
+      titlePanel("Interactive Projection Tool for COVID-19 Interventions"),
       shinyjs::useShinyjs(),
       tabsetPanel(
           tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
