@@ -1,5 +1,7 @@
 
 #' Generate Shiny UI Layout 
+#' 
+#' @export
 
 generate_ui <- function() { 
 

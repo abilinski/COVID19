@@ -6,6 +6,9 @@
 
 
 #### CALCULATE R0
+#' Calculate R0 from Parameters
+#' 
+#' @export
 R_0 <- function (params){
 
   n = params$n
