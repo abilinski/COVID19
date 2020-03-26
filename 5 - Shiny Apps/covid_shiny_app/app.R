@@ -9,6 +9,7 @@
 
 library(shiny)
 library(shinyjs)
+library(plotly)
 source("source/model_3strat_18_mar_2020.R")
 source("source/manual_R0_calc_17_mar_2020.R")
 source("source/calc_p_from_R0.R")
@@ -28,11 +29,11 @@ ui <- fluidPage(
     titlePanel("covid_epi_model"),
     shinyjs::useShinyjs(),
     tabsetPanel(
-        tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
-        tabPanel("Comp flows", plotOutput("comp_flow")),
-        tabPanel("Cumulative cases", plotOutput("cum_case")), 
-        tabPanel("Deaths & New case ratio", plotOutput("death_new_case")),
-        tabPanel("Advanced care & Symptoms", plotOutput("care_symptoms"))
+        tabPanel("Fits", plotlyOutput("fit"), p("*Currently only fit to data for 15 days")),
+        tabPanel("Comp flows", plotlyOutput("comp_flow")),
+        tabPanel("Cumulative cases", plotlyOutput("cum_case")), 
+        tabPanel("Deaths & New case ratio", plotlyOutput("death_new_case")),
+        tabPanel("Advanced care & Symptoms", plotlyOutput("care_symptoms"))
         #tabPanel("Intervention", plotOutput("intervention"))
         
     ),
@@ -218,7 +219,7 @@ server <- function(input, output) {
     )
     
     ## output for Fits tab
-    output$fit <- renderPlot({
+    output$fit <- renderPlotly({
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
@@ -238,13 +239,13 @@ server <- function(input, output) {
                                  days_out2 = input$sim_time, model_type = run_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int = param_vec)
-        multiplot(g[[8]],
-                      cols = 1)
+        print(ggplotly(multiplot(g[[8]],
+                      cols = 1)))
         
     })
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlot({
+    output$comp_flow<- renderPlotly({
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
@@ -264,13 +265,12 @@ server <- function(input, output) {
                                  days_out2 = input$sim_time, model_type = run_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        multiplot(g[[7]],
-                  cols = 1)
-    
+        multiplot(g[[7]], cols = 1)
+          
     })
     
     ## output for Cumulative case tab
-    output$cum_case<- renderPlot({
+    output$cum_case<- renderPlotly({
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
@@ -290,13 +290,12 @@ server <- function(input, output) {
                                  days_out2 = input$sim_time, model_type = run_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        multiplot(g[[2]], g[[4]],
-                  cols = 2)
-    
+        # multiplot(g[[2]], g[[4]], cols = 2)
+        subplot(g[[2]], g[[4]], nrows=1)
     })
     
     ## output for Death & New case ratio tab
-    output$death_new_case<- renderPlot({
+    output$death_new_case<- renderPlotly({
         ### update the param_vec using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
@@ -316,13 +315,16 @@ server <- function(input, output) {
                                  days_out2 = input$sim_time, model_type = run_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        multiplot(g[[5]],g[[3]],
-                  cols = 2)
+        # multiplot(g[[5]],g[[3]],cols = 2)
+        subplot(g[[5]], g[[3]], nrows=1)
+        # g[[5]]
+
+        # p
         
     })
     
     ## output for Advanced care & Symptoms ratio tab
-    output$care_symptoms<- renderPlot({
+    output$care_symptoms<- renderPlotly({
         ### update the param_vec using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
@@ -342,8 +344,8 @@ server <- function(input, output) {
                                  days_out2 = input$sim_time, model_type = run_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int=param_vec)
-        multiplot(g[[9]],g[[6]],
-                      cols = 2)
+        # multiplot(g[[9]],g[[6]],cols = 2)
+        subplot(g[[9]], g[[6]], nrows=1)
         
     })
 
