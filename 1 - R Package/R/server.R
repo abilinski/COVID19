@@ -1,4 +1,6 @@
-# Define server logic required to run the model and display the results
+#' Define server logic required to run the model and display the results
+#' 
+#' @export
 server <- function(input, output, session) {
 
   df <- load_parameters_table()
