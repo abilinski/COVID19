@@ -34,10 +34,13 @@ def get_parameters(controls):
     ret = get_default_parameters()
     for control, value in controls.items():
         if control in CONTROLS_TO_PARAMETERS_MAP:
-            ret[CONTROLS_TO_PARAMETERS_MAP[control]] = value
+            key = ret[CONTROLS_TO_PARAMETERS_MAP[control]]
+            #if key not in ret:
+            #    raise ValueError("Attempting to override key %s not in default parameters" % (key,))
+            ret[key] = value
         else:
             pass
-            # raise ValueError("Could not find mapping for %s" % (control,))
+            #raise ValueError("Could not find mapping for %s" % (control,))
     return ret
 
 def write_parameters_csv(tempfile, parameters):

@@ -72,8 +72,8 @@ def calculate(n_clicks_timestamp, *state):
         summary.append(f"{key.upper()}: {value}")
         summary.append(html.Br())
 
-    #  summary.append("Model output: %s" % (model_output))
-    #  summary.append(html.Br())
+    #summary.append(model_output)
+    #summary.append(html.Br())
 
     return html.Div(summary)
 
