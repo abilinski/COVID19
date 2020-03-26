@@ -642,7 +642,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
 run_basic = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL){
   
   # run model
-  test = run_model(model = model, xstart = as.numeric(xstart), times = c(1:days_out1), 
+  test = run_model(func = model, xstart = as.numeric(xstart), times = c(1:days_out1), 
                    params = params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
   
@@ -654,7 +654,7 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
   # run model before intervention
-  test = run_model(model = model, xstart = as.numeric(xstart), times = c(1:days_out1), params=params, method = "ode45")
+  test = run_model(func = model, xstart = as.numeric(xstart), times = c(1:days_out1), params=params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
   
   # run model after intervention
