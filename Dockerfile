@@ -6,7 +6,8 @@ RUN adduser --disabled-password --gecos "" myuser
 
 # Add our code
 WORKDIR /opt/webapp
-COPY assets /opt/webapp/assets
+COPY webapp/assets /opt/webapp/assets
+COPY queue_model /opt/webapp/queue_model
 COPY ["1 - Model", "/opt/webapp/1 - Model"]
 COPY ["0 - Parameters", "/opt/webapp/0 - Parameters"]
 

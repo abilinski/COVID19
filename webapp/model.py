@@ -7,13 +7,12 @@ import os
 import csv
 import tempfile
 
-R_SCRIPT = "./1 - Model/Most recent/run_model.R"
-DEFAULT_PARAMETERS = "./0 - Parameters/parameters_17_mar_2020.csv"
-DEFAULT_SCENARIO = "Base case"
+R_SCRIPT = "queue_model/queuemodel-3-23.r"
+DEFAULT_PARAMETERS = "queue_model/queueinputs1.csv"
+DEFAULT_SCENARIO = "1"
 
 # Map of controls in app to parameter names in file
 CONTROLS_TO_PARAMETERS_MAP = {
-    "parameter-cases-n" : "n"
 }
 
 ## TODO: Figure out mapping between controls:
@@ -26,7 +25,7 @@ def get_default_parameters():
     with open(DEFAULT_PARAMETERS) as f:
         csvfile = csv.DictReader(f)
         for row in csvfile:
-            if row.get('Scenario') == DEFAULT_SCENARIO:
+            if row.get('') == DEFAULT_SCENARIO:
                 return row
     raise ValueError("Could not find default scenario %s" % (DEFAULT_SCENARIO))
 
@@ -37,8 +36,8 @@ def get_parameters(controls):
         if control in CONTROLS_TO_PARAMETERS_MAP:
             ret[CONTROLS_TO_PARAMETERS_MAP[control]] = value
         else:
-            # TODO: raise ValueError("Could not find mapping for %s", control)
             pass
+            # raise ValueError("Could not find mapping for %s" % (control,))
     return ret
 
 def write_parameters_csv(tempfile, parameters):
