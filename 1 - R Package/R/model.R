@@ -64,13 +64,15 @@ model_strat <- function (t, x, parms) {
   ### YOUNG
   dS1dt = -S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE1dt = -delta*E1+ S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
-  dUI1dt = (1-alpha1)*delta*E1 - (rdetecti*q + m1*omega + (1-m1)*gamma)*UI1
-  dDI1dt = rdetecti*q*UI1 - (m1*omega + (1-m1)*gamma)*DI1
-  dUA1dt = alpha1*delta*E1 - (rdetecta*q + gamma)*UA1
-  dDA1dt = rdetecta*q*UA1 - gamma*DA1
+  dUI1dt = (1-alpha1)*delta*E1 - (k_report*rdetecti*q + m1*omega + (1-m1)*gamma)*UI1
+  dDI1dt = k_report*rdetecti*q*UI1 - (m1*omega + (1-m1)*gamma)*DI1
+  dUA1dt = alpha1*delta*E1 - (k_report*rdetecta*q + gamma)*UA1
+  dDA1dt = k_report*rdetecta*q*UA1 - gamma*DA1
   dR1dt = (1-m1)*gamma*(UI1+DI1) + gamma*(UA1+DA1)
   It1 = (1-alpha1)*delta*E1
+  DIt1 = k_report*rdetecti*q*UI1
   At1 = alpha1*delta*E1
+  DAt1 = k_report*rdetecta*q*UA1
   Dt1 = m1*omega*(UI1+DI1)
   
   ### MEDIUM
@@ -82,7 +84,9 @@ model_strat <- function (t, x, parms) {
   dDA2dt = rdetecta*q*UA2 - gamma*DA2
   dR2dt = (1-m2)*gamma*(UI2+DI2) + gamma*(UA2+DA2)
   It2 = (1-alpha2)*delta*E2
+  DIt2 = rdetecti*q*UI2
   At2 = alpha2*delta*E2
+  DAt2 = rdetecta*q*UA2
   Dt2 = m2*omega*(UI2+DI2)
   
   ### OLD
@@ -94,19 +98,23 @@ model_strat <- function (t, x, parms) {
   dDA3dt = rdetecta*q*UA3 - gamma*DA3
   dR3dt = (1-m3)*gamma*(UI3+DI3) + gamma*(UA3+DA3)
   It3 = (1-alpha3)*delta*E3
+  DIt3 = rdetecti*q*UI3
   At3 = alpha3*delta*E3
+  DAt3 = rdetecta*q*UA3
   Dt3 = m3*omega*(UI3+DI3)
   
   ### YOUNG - SOCIALLY DISTANCED
   dS1Qdt = -S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE1Qdt = -delta*E1Q + S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
-  dUI1Qdt = (1-alpha1Q)*delta*E1Q - (rdetecti*q + m1Q*omega + (1-m1Q)*gamma)*UI1Q
-  dDI1Qdt = rdetecti*q*UI1Q - (m1Q*omega + (1-m1Q)*gamma)*DI1Q
-  dUA1Qdt = alpha1Q*delta*E1Q - (rdetecta*q + gamma)*UA1Q
-  dDA1Qdt = rdetecta*q*UA1Q - gamma*DA1Q
+  dUI1Qdt = (1-alpha1Q)*delta*E1Q - (k_report*rdetecti*q + m1Q*omega + (1-m1Q)*gamma)*UI1Q
+  dDI1Qdt = k_report*rdetecti*q*UI1Q - (m1Q*omega + (1-m1Q)*gamma)*DI1Q
+  dUA1Qdt = alpha1Q*delta*E1Q - (k_report*rdetecta*q + gamma)*UA1Q
+  dDA1Qdt = k_report*rdetecta*q*UA1Q - gamma*DA1Q
   dR1Qdt = (1-m1Q)*gamma*(UI1Q+DI1Q) + gamma*(UA1Q+DA1Q)
   It1Q = (1-alpha1Q)*delta*E1Q
+  DIt1Q = k_report*rdetecti*q*UI1Q
   At1Q = alpha1Q*delta*E1Q
+  DAt1Q = k_report*rdetecta*q*UA1Q
   Dt1Q = m1Q*omega*(UI1Q+DI1Q)
   
   ### MEDIUM - SOCIALLY DISTANCED
@@ -118,7 +126,9 @@ model_strat <- function (t, x, parms) {
   dDA2Qdt = rdetecta*q*UA2Q - gamma*DA2Q
   dR2Qdt = (1-m2Q)*gamma*(UI2Q+DI2Q) + gamma*(UA2Q+DA2Q)
   It2Q = (1-alpha2Q)*delta*E2Q
+  DIt2Q = rdetecti*q*UI2Q
   At2Q = alpha2Q*delta*E2Q
+  DAt2Q = rdetecta*q*UA2Q
   Dt2Q = m2Q*omega*(UI2Q+DI2Q)
   
   ### OLD - SOCIALLY DISTANCED
@@ -130,7 +140,9 @@ model_strat <- function (t, x, parms) {
   dDA3Qdt = rdetecta*q*UA3Q - gamma*DA3Q
   dR3Qdt = (1-m3Q)*gamma*(UI3Q+DI3Q) + gamma*(UA3Q+DA3Q)
   It3Q = (1-alpha3Q)*delta*E3Q
+  DIt3Q = rdetecti*q*UI3Q
   At3Q = alpha3Q*delta*E3Q
+  DAt3Q = rdetecta*q*UA3Q
   Dt3Q = m3Q*omega*(UI3Q+DI3Q)
   
   # results
@@ -141,8 +153,10 @@ model_strat <- function (t, x, parms) {
               dS2Qdt, dE2Qdt, dUI2Qdt, dDI2Qdt, dUA2Qdt, dDA2Qdt, dR2Qdt, 
               dS3Qdt, dE3Qdt, dUI3Qdt, dDI3Qdt, dUA3Qdt, dDA3Qdt, dR3Qdt, 
               It1, It2, It3, It1Q, It2Q, It3Q,
-              At1, At2, At2, At1Q, At2Q, At3Q,
-              Dt1, Dt2, Dt2, Dt1Q, Dt2Q, Dt3Q)
+              DIt1, DIt2, DIt3, DIt1Q, DIt2Q, DIt3Q,
+              At1, At2, At3, At1Q, At2Q, At3Q,
+              DAt1, DAt2, DAt3, DAt1Q, DAt2Q, DAt3Q,
+              Dt1, Dt2, Dt3, Dt1Q, Dt2Q, Dt3Q)
   
   # list it!
   list(output)
@@ -150,28 +164,34 @@ model_strat <- function (t, x, parms) {
 
 ############## RUN ODE-----------------
 run_model <- function(func, xstart, times, params, method = "lsodes") {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method)))
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10)))
 }
 
 ############## POST-PROCESSING-------------------
   
 make_plots = function(test, params){
-  
-  k_report = params$k_report
-  c = params$c ##############I haven't found where c is used, so was not able to delete it, please check --Lin Zhu 3/19/20
-  
   # formatting
   out = test %>%
     gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
     mutate(cum = ifelse(is.na(cum), F, T),
            
            # reformat compartments
-           comp2 = ifelse(comp=="A", "Asymptomatic", "Symptomatic"),
+           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
            comp2 = ifelse(comp=="E", "Exposed", comp2),
            comp2 = ifelse(comp=="R", "Recovered", comp2),
            comp2 = ifelse(comp=="S", "Susceptible", comp2),
            comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
                                             "Symptomatic", "Recovered")),
+           
+           # compartments with U/D
+           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
+           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
+           comp3 = ifelse(comp=="E", "Exposed", comp3),
+           comp3 = ifelse(comp=="R", "Recovered", comp3),
+           comp3 = ifelse(comp=="S", "Susceptible", comp3),
+           comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
+                                            "Detected", "Undetected", "Infected",
+                                            "Recovered")),
            
            # reformat strata
            strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
@@ -191,38 +211,39 @@ make_plots = function(test, params){
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value))
 
-  # Flows by compartment
+  # Flows by compartment (SEAIR)
   a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2) %>% summarize(value = sum(value)), 
          aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() + 
     scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
   
   # Cases by age
-  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3) %>% 
-    summarize(val2 = sum(value)) %>% group_by(time) %>% mutate(Total = sum(val2),
-                                                               val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
-                                                               Total_obs = sum(val_obs),
-                                                               Hospital = .1*Total,
-                                                               Ventilator = .05*Total)
-  b = ggplot(out_cases, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
+  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3) %>% 
+    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) %>% 
+    mutate(Total = sum(Infected),
+           Total_obs = sum(Detected),
+           Hospital = .1*Total,
+           Ventilator = .05*Total)
+  
+  b = ggplot(out_cases, aes(x = time, y = Infected, group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total), col = "black") + scale_linetype(guide = F) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                            title = "Cumulative cases by age")
+  
   b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
               aes(x = time, y = value, group = var, col = var)) + geom_line() + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Cases needing advanced care")
   
   # Effective R
-  out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2) %>%
-    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf)
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% group_by(time,cum) %>% summarize(val2=sum(value)) %>% spread(cum, val2) %>% group_by(time) %>% summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf)
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() + 
            theme_minimal() + scale_color_discrete(name = "") + 
            labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
          
   
   # Observed cases by age
-  d = ggplot(out_cases, aes(x = time, y = val_obs,
+  d = ggplot(out_cases, aes(x = time, y = Detected,
                         group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total_obs), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
@@ -243,7 +264,7 @@ make_plots = function(test, params){
     geom_line(aes(y = Total), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
   
-  # Flows by compartment
+  # Flows by compartment (devided by strata and quarentine)
   g = ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = comp, col = comp2)) + geom_line() + 
     facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
@@ -253,7 +274,7 @@ make_plots = function(test, params){
     mutate(time = 1:15, Total_obs = cum_cases)
   
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id)) + geom_line(aes(lty = id)) +
+  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
@@ -264,24 +285,28 @@ make_plots = function(test, params){
 
 # make plots to compare base and intervention
 make_plots_int = function(test, params, test_int, params_int){
-  
-  k_report = params$k_report
-  c = params$c
-  k_report_int = params_int$k_report
-  c_int = params_int$c
-  
   # formatting
   out_base = test %>%
     gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
     mutate(cum = ifelse(is.na(cum), F, T),
            
            # reformat compartments
-           comp2 = ifelse(comp=="A", "Asymptomatic", "Symptomatic"),
+           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
            comp2 = ifelse(comp=="E", "Exposed", comp2),
            comp2 = ifelse(comp=="R", "Recovered", comp2),
            comp2 = ifelse(comp=="S", "Susceptible", comp2),
            comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
                                             "Symptomatic", "Recovered")),
+           
+           # compartments with U/D
+           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
+           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
+           comp3 = ifelse(comp=="E", "Exposed", comp3),
+           comp3 = ifelse(comp=="R", "Recovered", comp3),
+           comp3 = ifelse(comp=="S", "Susceptible", comp3),
+           comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
+                                            "Detected", "Undetected", "Infected",
+                                            "Recovered")),
            
            # reformat strata
            strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
@@ -302,12 +327,22 @@ make_plots_int = function(test, params, test_int, params_int){
     mutate(cum = ifelse(is.na(cum), F, T),
            
            # reformat compartments
-           comp2 = ifelse(comp=="A", "Asymptomatic", "Symptomatic"),
+           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
            comp2 = ifelse(comp=="E", "Exposed", comp2),
            comp2 = ifelse(comp=="R", "Recovered", comp2),
            comp2 = ifelse(comp=="S", "Susceptible", comp2),
            comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
                                             "Symptomatic", "Recovered")),
+           
+           # compartments with U/D
+           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
+           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
+           comp3 = ifelse(comp=="E", "Exposed", comp3),
+           comp3 = ifelse(comp=="R", "Recovered", comp3),
+           comp3 = ifelse(comp=="S", "Susceptible", comp3),
+           comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
+                                            "Detected", "Undetected", "Infected",
+                                            "Recovered")),
            
            # reformat strata
            strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
@@ -329,20 +364,21 @@ make_plots_int = function(test, params, test_int, params_int){
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value)) %>% ungroup()
   
-  # Flows by compartment
+  # Flows by compartment (SEAIR)
   a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)), 
              aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) + theme_minimal() + 
     scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment") + scale_linetype(name ="")
   
   # Cases by age
-  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, int) %>% 
-    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2),
-                                                                    val_obs = ifelse(strat3=="<20", k_report*c*val2, c*val2),
-                                                                    Total_obs = sum(val_obs),
-                                                                    Hospital = .17*.13*Total,
-                                                                    Ventilator = .05*Total) %>% ungroup()
-  b = ggplot(out_cases, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
+  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3, int) %>% 
+    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>% 
+    mutate(Total = sum(Infected),
+           Total_obs = sum(Detected),
+           Hospital = .17*.13*Total, ########this multipliers are different from the one used in no interventions
+           Ventilator = .05*Total) %>% ungroup()
+  
+  b = ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Cumulative cases by age")
@@ -352,7 +388,7 @@ make_plots_int = function(test, params, test_int, params_int){
                                                              title = "Cases needing advanced care")
   
   # Effective R
-  out_Re = out %>% filter(comp=="I") %>% spread(cum, value) %>% group_by(time, comp2, int) %>%
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
     summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) + 
     theme_minimal() + scale_color_discrete(name = "") + 
@@ -360,7 +396,7 @@ make_plots_int = function(test, params, test_int, params_int){
   
   
   # Observed cases by age
-  d = ggplot(out_cases, aes(x = time, y = val_obs,
+  d = ggplot(out_cases, aes(x = time, y = Detected,
                             group = interaction(strat3,int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total_obs, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
@@ -381,7 +417,7 @@ make_plots_int = function(test, params, test_int, params_int){
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
   
-  # Flows by compartment
+  # Flows by compartment (devided by strata and quarentine)
   g = ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + geom_line(aes(lty = int)) + 
     facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
@@ -389,7 +425,8 @@ make_plots_int = function(test, params, test_int, params_int){
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
   ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
     mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
   h = ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
@@ -531,9 +568,9 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     
     S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
     E_3 = start*(1-params$s)*params$old,
-    UI_3 = start*(1-params$s)*params$old*(1-params$alpha3)*(1-params$s),
+    UI_3 = start*(1-params$s)*params$old*(1-params$alpha3),
     DI_3 = 0,
-    UA_3 = start*(1-params$s)*params$old*(params$alpha3)*(1-params$s),
+    UA_3 = start*(1-params$s)*params$old*(params$alpha3),
     DA_3 = 0,
     R_3 = 0,
     
@@ -556,9 +593,9 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
     UI_3Q = start*(params$s)*params$old*(1-params$alpha3),
-    I_3Q = 0,
+    DI_3Q = 0,
     UA_3Q = start*(params$s)*params$old*(params$alpha3),
-    A_3Q = 0,
+    DA_3Q = 0,
     R_3Q = 0)%>%
     mutate(I_1_cum = UI_1,
            I_2_cum = UI_2,
@@ -566,12 +603,24 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
            I_1Q_cum = UI_1Q,
            I_2Q_cum = UI_2Q,
            I_3Q_cum = UI_3Q,
+           DI_1_cum = 0,
+           DI_2_cum = 0,
+           DI_3_cum = 0,
+           DI_1Q_cum = 0,
+           DI_2Q_cum = 0,
+           DI_3Q_cum = 0,
            A_1_cum = UA_1,
            A_2_cum = UA_2,
            A_3_cum = UA_3,
            A_1Q_cum = UA_1Q,
            A_2Q_cum = UA_2Q,
            A_3Q_cum = UA_3Q,
+           DA_1_cum = 0,
+           DA_2_cum = 0,
+           DA_3_cum = 0,
+           DA_1Q_cum = 0,
+           DA_2Q_cum = 0,
+           DA_3Q_cum = 0,
            D_1_cum = 0,
            D_2_cum = 0,
            D_3_cum = 0,
@@ -594,7 +643,7 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "lsodes")
+                   params = params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -605,17 +654,30 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
   # run model before intervention
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out1), params, method = "lsodes")
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out1), params, method = "ode45")
   names(test)[2:ncol(test)] = names(xstart)
   
   # run model after intervention
   # pull last row to start
   x2 = tail(test, n = 1)[-1]
+  x2_process<-x2
+  # set up initial conditions for continuing running intervention (for social distancing)
+  s_names<-rep(c('S', 'E', 'UI', "DI", 'UA', "DA",'R'), each=3)
+  a_names<-rep(1:3, 3)
+  aq_names<-paste(a_names,'Q', sep="")
+  x2_process[paste(s_names, a_names, sep="_")]<-as.numeric((1-params2$s)*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+  x2_process[paste(s_names, aq_names, sep="_")]<-as.numeric(params2$s*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+  # fix 'p' in params2 (intervention) as 'p' in params(base)
+  params2$p<-params$p
+  #print (params)
+  #print (params2)
+  #print (x2)
+  #print (x2_process)
   
   # rerun
   # get rid of first row to avoid day duplication
-  test2 = run_model(model_strat, xstart = as.numeric(x2), times = c(1:(days_out2-days_out1+1)), 
-                    params2, method = "lsodes")[-1,]
+  test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)), 
+                    params2, method = "ode45")[-1,]
   names(test2)[2:ncol(test2)] = names(xstart)
   test2$time = c((days_out1+1):days_out2)
   
