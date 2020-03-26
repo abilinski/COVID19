@@ -4,11 +4,19 @@
 #                                                                                          #
 #******************************************************************************************#
 
-#### LIBRARIES
-library(matlib)
 
 #### CALCULATE R0
-R_0 <- function (params, n, p, young, medium, old){
+#' Calculate R0 from Parameters
+#' 
+#' @export
+R_0 <- function (params){
+
+  n = params$n
+  p = params$p
+  young = params$young
+  medium = params$medium
+  old = params$old
+  e = params$old
   
   DFE <-c(young , medium, old , c(0,0,0))*n;
   
@@ -261,6 +269,6 @@ R_0 <- function (params, n, p, young, medium, old){
   
   #print(F)
   #print(V) 
-  return (eigen(F %*% inv(V))$values[1])
+  return (eigen(F %*% solve(V))$values[1])
   
 }
