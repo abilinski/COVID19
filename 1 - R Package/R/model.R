@@ -182,7 +182,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
 #' 
 #' @export
 run_model <- function(func, xstart, times, params, det_table, method = "lsodes", events=NULL, parms_int, time_int) {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-8, events=events, parms_int=parms_int, time_int=time_int)))
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, det_table=det_table, method = method, atol=1e-8, events=events, parms_int=parms_int, time_int=time_int)))
 }
 
 ############## POST-PROCESSING-------------------
@@ -477,7 +477,7 @@ load_detection_rates <- function() {
 #' Process Parameters
 #' 
 #' @export
-process_params = function(params, p.adj = NA, obs.adj = NA, det_table = NULL){
+process_params = function(params, p.adj = NA, obs.adj = NA){
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
   params$obs = ifelse(is.na(obs.adj), params$obs, obs.adj)
@@ -578,8 +578,8 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
                          det_table){
   
   # process parameters
-  params = process_params(params, p.adj = p.adj, obs.adj = obs.adj, det_table)
-  if(!is.null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj, det_table)
+  params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)
+  if(!is.null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj)
 
   ############## SET INITIAL CONDITIONS--------------
   
@@ -678,7 +678,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   ############## RUN MODEL----------------------
   # run the model
   test = model_type(model = model_strat, xstart = x, params = params, params2 = params2,
-                    days_out1 = days_out1, days_out2 = days_out2)
+                    days_out1 = days_out1, days_out2 = days_out2, det_table=det_table)
   return(test)
 
 }
