@@ -7,7 +7,9 @@
 #************************************* MODEL FUNCTIONS ************************************#
 
 ############## STRATIFIED MODEL-------------
-model_strat <- function (t, x, parms) {
+model_strat <- function (t, x, parms, det_input_method="input") {
+  #if using parameters in params to set up vary detection rate, det_input_method="calc"
+  #if using input table directly to set up detection rate for each time step, det_input_method="input"
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
@@ -46,13 +48,20 @@ model_strat <- function (t, x, parms) {
   N3Q = parms$N3Q
   
   ###time varying detection rate
-  #added 3 parameters: initial detection rate for I (det_ini), increasing rate by time step (det_inc), a multiplier <1 to represent less detection rate for A (k_det_a)
-  #for symptomatic
-  #assuming a cap detection rate of 1
-  rdetecti <- min(parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
-  #for asymptomatic
-  #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
-  rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+  if (det_input_method == "calc") {
+    #added 3 parameters: initial detection p for I (det_ini), increasing p by time step (det_inc), a multiplier <1 to represent less detection rate for A (k_det_a)
+    #for symptomatic
+    #assuming a cap detection rate of 1
+    rdetecti <- min(parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+    #for asymptomatic
+    #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
+    rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+  } else { #input directly from a table
+    det_table <- read.csv(system.file("detection_input.csv", package="covid.epi"), as.is = T)
+    rdetecti <- det_table[t, "rdetecti"]
+    rdetecta <- det_table[t, "rdetecta"]
+  }
+  
   
   #one more parameter q to specify 1/duration between onset of disease(beginning of I or A) to detection
   q <- parms$q
