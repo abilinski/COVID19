@@ -705,7 +705,7 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2, det_table=det_table){
 
   params2$p<-params$p
-  eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int){
+  eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = NULL){
     y_new<-y
     y_new[1:21]<-(1-parms_int$s)*(y[1:21]+y[22:42])
     y_new[22:42]<-parms_int$s*(y[1:21]+y[22:42])
@@ -714,8 +714,7 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   
   # run intervention model
   test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, det_table=det_table,  method = "lsodes", 
-    events=list(func = eventfun, time =days_out1), 
-    parms_int=params2, time_int=days_out1)
+    events=list(func = eventfun, time =days_out1), parms_int=params2, time_int=days_out1)
   names(test)[2:ncol(test)] = names(xstart)
   return(test)
   

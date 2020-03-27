@@ -22,6 +22,7 @@ server <- function(input, output, session) {
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
         old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
         old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
+        det_table <- load_detection_rates()
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
         param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
         param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
@@ -30,10 +31,10 @@ server <- function(input, output, session) {
         
         ### run model without intervention
         test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
+                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
         test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
+                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int = param_vec)
 
