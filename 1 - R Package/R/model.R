@@ -193,9 +193,6 @@ run_model <- function(func, xstart, times, params, method = "lsodes", events=NUL
 #' 
 #' @export
 make_plots = function(test, params){
-  
-  k_report = params$k_report
-  c = params$c
 
   # formatting
   out = test %>%
