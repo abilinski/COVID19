@@ -59,10 +59,10 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
     #added 3 parameters: initial detection p for I (det_ini), increasing p by time step (det_inc), a multiplier <1 to represent less detection rate for A (k_det_a)
     #for symptomatic
     #assuming a cap detection rate of 1
-    rdetecti <- min(parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+    rdetecti <- min(parms$det_ini * (1 + parms$det_inc*(t-1)), 1)
     #for asymptomatic
     #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
-    rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
+    rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc*(t-1)), 1)
   } else { # input directly from a table
     rdetecti <- det_table[t, "rdetecti"]
     rdetecta <- det_table[t, "rdetecta"]
