@@ -1,13 +1,16 @@
+#initial setup---------------------
 #cd /Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package
 setwd("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package")
 #source("~/Box Sync/Lin Zhu's Files/git/COVID19/1 - R Package/R/model.R")
 devtools::load_all()
 
+#testing---------------------
 params <- load_parameters_table()
+det_table <- read.csv(system.file('detection_input.csv', package='covid.epi'))
 
-test1 <- run_param_vec(params[1,])
+test1 <- run_param_vec(params[1,],det_table=det_table)
 
-test2 <- run_param_vec(params[11,])
+test2 <- run_param_vec(params[11,],det_table=det_table)
 
 test1 <- test1[,c(1,44)]
 test1$scenario <- "base"
@@ -20,7 +23,17 @@ test <- rbind(test1, test2)
 ggplot(test, aes(x=time, y=I_1_cum, group=scenario, color=scenario)) +
   geom_line()
 
-#debugging for e not functioning
+
+#debugging for slight difference between base and int even parameter is the same----------------
+param_vec <- load_parameters()
+test = run_param_vec(params = param_vec, params2=NULL, days_out1 = 30, days_out2 = NULL, model_type = run_basic)
+test_int = run_param_vec(params = param_vec, params2 = param_vec, days_out1 = 15, days_out2 = 30, model_type = run_int)
+
+make_plots_int(test, param_vec, test_int, param_vec)
+
+diff = test - test_int
+
+#debugging for e not functioning----------------
 source('~/Downloads/model_3strat_18_mar_2020 (1).R')
 
 params <- read.csv("/Users/linzhu/Box Sync/Lin Zhu's Files/git/COVID19/0 - Parameters/parameters_17_mar_2020.csv")
