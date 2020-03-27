@@ -6,7 +6,7 @@ devtools::load_all()
 
 #testing---------------------
 params <- load_parameters_table()
-det_table <- read.csv(system.file('detection_input.csv', package='covid.epi'))
+det_table <- load_detection_table()
 
 test1 <- run_param_vec(params[1,],det_table=det_table)
 
