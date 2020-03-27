@@ -11,7 +11,7 @@
 #' Stratified Model
 #' 
 #' @export
-model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='calc') {
+model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input',det_table=NULL) {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
@@ -64,10 +64,8 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='cal
     #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
     rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
   } else { # input directly from a table
-    rdetecti <- parms[paste0('rdetecti', round(t,0))]
-      # det_table[t, "rdetecti"]
-    rdetecta <- parms[paste0('rdetecta', round(t,0))]
-      # det_table[t, "rdetecta"]
+    rdetecti <- det_table[t, "rdetecti"]
+    rdetecta <- det_table[t, "rdetecta"]
   }
   
   
@@ -183,7 +181,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='cal
 #'  Run the Model
 #' 
 #' @export
-run_model <- function(func, xstart, times, params, method = "lsodes", events=NULL, parms_int, time_int) {
+run_model <- function(func, xstart, times, params, det_table, method = "lsodes", events=NULL, parms_int, time_int) {
   return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-8, events=events, parms_int=parms_int, time_int=time_int)))
 }
 
@@ -563,10 +561,10 @@ process_params = function(params, p.adj = NA, obs.adj = NA, det_table = NULL){
   params$N3Q = if_else(params$n*(params$s)*params$old == 0, 1, params$n*(params$s)*params$old)
 
   # Format and Insert Detection Rates as Parameters
-  if (! is.null(det_table)) {
-    params[paste0('rdetecti', 1:nrow(det_table))] <- det_table[['rdetecti']]
-    params[paste0('rdetecta', 1:nrow(det_table))] <- det_table[['rdetecta']]
-  }
+  # if (! is.null(det_table)) {
+  #   params[paste0('rdetecti', 1:nrow(det_table))] <- det_table[['rdetecti']]
+  #   params[paste0('rdetecta', 1:nrow(det_table))] <- det_table[['rdetecta']]
+  # }
   
   return(params)
 }
@@ -577,7 +575,7 @@ process_params = function(params, p.adj = NA, obs.adj = NA, det_table = NULL){
 #' @export
 run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
                          days_out1 = 30, days_out2 = NULL, model_type = run_basic,
-                         det_table = NULL){
+                         det_table){
   
   # process parameters
   params = process_params(params, p.adj = p.adj, obs.adj = obs.adj, det_table)
@@ -689,11 +687,11 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
 #' Run Basic Model
 #' 
 #' @export
-run_basic = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL){
+run_basic = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL, det_table=det_table){
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "lsodes", parms_int = params , time_int = 0)
+                   params = params, det_table=det_table, method = "lsodes", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -704,7 +702,7 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
 #' Run Model with Intervention
 #' 
 #' @export
-run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
+run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2, det_table=det_table){
 
   params2$p<-params$p
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int){
@@ -715,7 +713,7 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   }
   
   # run intervention model
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "lsodes", 
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, det_table=det_table,  method = "lsodes", 
     events=list(func = eventfun, time =days_out1), 
     parms_int=params2, time_int=days_out1)
   names(test)[2:ncol(test)] = names(xstart)
