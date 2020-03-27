@@ -185,7 +185,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
 #' 
 #' @export
 run_model <- function(func, xstart, times, params, method = "lsodes", events=NULL, parms_int, time_int) {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10, events=events, parms_int=parms_int, time_int=time_int)))
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-8, events=events, parms_int=parms_int, time_int=time_int)))
 }
 
 ############## POST-PROCESSING-------------------
@@ -701,13 +701,15 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   params2$p<-params$p
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int){
     y_new<-y
-    y_new[1:15]<-(1-parms_int$s)*(y[1:15]+y[16:30])
-    y_new[16:30]<-parms_int$s*(y[1:15]+y[16:30])
+    y_new[1:21]<-(1-parms_int$s)*(y[1:21]+y[22:42])
+    y_new[22:42]<-parms_int$s*(y[1:21]+y[22:42])
     return(y_new)
   }
   
   # run intervention model
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "lsoda", events=list(func = eventfun, time =days_out1), parms_int=params2, time_int=days_out1)
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "lsodes", 
+    events=list(func = eventfun, time =days_out1), 
+    parms_int=params2, time_int=days_out1)
   names(test)[2:ncol(test)] = names(xstart)
   return(test)
   
