@@ -14,27 +14,32 @@ library(stringr)
 # set working directory
 #setwd("~/Dropbox/COVID19/4 - Serosurveys")
 wd <- getwd()
-df = read.csv("parameters_18_mar_2020_NYC_SD50.csv", as.is = T)
+df = read.csv("parameters_18_mar_2020_NYC.csv", as.is = T)
 
 setwd('..')
 
 # source files
-source("./1 - Model/Most recent/model_3strat_18_mar_2020.R")
+source("./1 - R Package/R/model.R")
 
 setwd(wd)
 #### CHOOSE THESE ####
 
-# day on which to start calibration
-# we tried both 1 day and 16 day fits
-day_start = 21 #21
 
-# day on which to end calibration
-day_end = 25
 
 
 ############## CALIBRATION (CUMULATIVE CASES)
 # Observed data (Santa Clara data. Cumulative number of cases)
-ts = read.csv("NYC-Cases_Mar25.csv", as.is = T) # These rows are for March 1st - 15th# Set a reasonable range of p
+ts = read.csv("NYC-Cases_Mar26.csv", as.is = T) # These rows are for March 1st - 15th# Set a reasonable range of p
+
+#get length of time series
+tot_days =dim(ts)[1]
+
+# day on which to start calibration
+# we tried both 1 day and 16 day fits
+day_start = tot_days - 6; #21 #21
+
+# day on which to end calibration
+day_end = tot_days
 
 # function to run calibration
 run_calib = function(p_cand, vec, obs = ts$cum_cases, cum = T, day_start = 1, day_end = 15){
@@ -64,8 +69,7 @@ keep = data.frame()
 #make vector of baseline scenarios to run
 scen_vec = c(1:6,25:30,49:54)
 
-#get length of time series
-tot_days =dim(ts)[1]
+
 # loop over scenarios
 for(k in c(1:length(scen_vec))){
   p_cand = seq(100, 13000, 300) #110:325
@@ -253,4 +257,16 @@ hosp_days_plots(no_sd_r03_5,sd_r03_5,nyc_beds,3.5,50)
 hosp_days_plots(no_sd_r03_8,sd_r03_8,nyc_beds,3.8,50)
 
 
+# Default bar plot
+hosp_time_plots <- function(scen_mat,hosp_pc){
+  #input output from run_vecs
+  #get mean, min and max cases
+  cases_means<-out_cases %>%
+    +     group_by(time) %>%
+    +     summarise(mean = mean(value),min = min(value), max=max(value))
+  #calculate hospital beds
+  hosp_cases = cases_means*hosp_pc
+  ggplot(hosp_cases,aes(time,mean))+geom_bar(stat="identity")+geom_errorbar(aes(ymin=min, ymax=max))+
+    theme_minimal() + scale_color_brewer(name = "", palette = "Set1") + labs(x = "Time (days)", y = "") +theme(strip.text = element_text(size=12, face="bold"))
+}
 
