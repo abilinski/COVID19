@@ -236,7 +236,7 @@ make_plots = function(test, params){
                                                              title = "Cases needing advanced care")
   
   # Effective R
-  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% group_by(time,cum) %>% summarize(val2=sum(value)) %>% spread(cum, val2) %>% rename(existing_inf = "FALSE", cum_inf = "TRUE") %>% as.data.frame() %>% mutate(new_inf=ifelse(time==1, cum_inf, cum_inf-lag(cum_inf)), ratio = new_inf/existing_inf)
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I", "UA", "DA", "A")) %>% mutate(comp=replace(comp,comp %in% c("UI","DI","UA","DA"), "I")) %>% group_by(time,cum) %>% summarize(val2=sum(value)) %>% spread(cum, val2) %>% rename(existing_inf = "FALSE", cum_inf = "TRUE") %>% as.data.frame() %>% mutate(new_inf=ifelse(time==1, cum_inf, cum_inf-lag(cum_inf)), ratio = new_inf/existing_inf)
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() + 
            theme_minimal() + scale_color_discrete(name = "") + 
            labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
