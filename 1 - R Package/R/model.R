@@ -7,9 +7,18 @@
 #************************************* MODEL FUNCTIONS ************************************#
 
 ############## STRATIFIED MODEL-------------
-model_strat <- function (t, x, parms, det_input_method="input") {
+#' Stratified Model
+#' 
+#' @export
+model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input') {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
+
+  # decide if intervention starts
+  # ifelse(t>=time_int, parms<-parms_int, parms)
+  if (t >= time_int) {
+    parms<-parms_int
+  }
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
@@ -172,13 +181,22 @@ model_strat <- function (t, x, parms, det_input_method="input") {
 }
 
 ############## RUN ODE-----------------
-run_model <- function(func, xstart, times, params, method = "lsodes") {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10)))
+#'  Run the Model
+#' 
+#' @export
+run_model <- function(func, xstart, times, params, method = "lsodes", events=NULL, parms_int, time_int) {
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10, events=events, parms_int=parms_int, time_int=time_int)))
 }
 
 ############## POST-PROCESSING-------------------
-  
+#' Make Plots
+#' 
+#' @export
 make_plots = function(test, params){
+  
+  k_report = params$k_report
+  c = params$c
+
   # formatting
   out = test %>%
     gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
@@ -244,8 +262,13 @@ make_plots = function(test, params){
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Cases needing advanced care")
   
-  # Effective R
-  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I", "UA", "DA", "A")) %>% mutate(comp=replace(comp,comp %in% c("UI","DI","UA","DA"), "I")) %>% group_by(time,cum) %>% summarize(val2=sum(value)) %>% spread(cum, val2) %>% rename(existing_inf = "FALSE", cum_inf = "TRUE") %>% as.data.frame() %>% mutate(new_inf=ifelse(time==1, cum_inf, cum_inf-lag(cum_inf)), ratio = new_inf/existing_inf)
+  #  Ratio of Daily New Cases to Existing Cases
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I", "UA", "DA", "A")) %>% 
+    mutate(comp=replace(comp,comp %in% c("UI","DI","UA","DA"), "I")) %>% 
+    group_by(time,cum) %>% summarize(val2=sum(value)) %>% spread(cum, val2) %>% 
+    rename(existing_inf = "FALSE", cum_inf = "TRUE") %>% as.data.frame() %>% 
+    mutate(new_inf=ifelse(time==1, cum_inf, cum_inf-lag(cum_inf)), ratio = new_inf/existing_inf)
+
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() + 
            theme_minimal() + scale_color_discrete(name = "") + 
            labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
@@ -292,7 +315,9 @@ make_plots = function(test, params){
   return(list(a,b,c,d,e,f,g,h,b2))
 }
 
-# make plots to compare base and intervention
+#' Make Plots Comparing Base Case and Intervention
+#' 
+#' @export
 make_plots_int = function(test, params, test_int, params_int){
   # formatting
   out_base = test %>%
@@ -397,7 +422,8 @@ make_plots_int = function(test, params, test_int, params_int){
                                                              title = "Cases needing advanced care")
   
   # Effective R
-  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% 
+    group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
     summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
   c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) + 
     theme_minimal() + scale_color_discrete(name = "") + 
@@ -447,6 +473,10 @@ make_plots_int = function(test, params, test_int, params_int){
 
 ############### RUN PARAMETER VECTOR----------------------
 
+
+#' Process Parameters
+#' 
+#' @export
 process_params = function(params, p.adj = NA, obs.adj = NA){
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
@@ -534,6 +564,9 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 }
 
 ############### RUN PARAMETER VECTOR
+#' Run Model from Parameter Vector
+#' 
+#' @export
 run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
                          days_out1 = 30, days_out2 = NULL, model_type = run_basic){
   
@@ -555,9 +588,6 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   start = start_kids = params$obs
   
   x = data.frame(
-    
-    ###assumption: no detected in initial condition
-    
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
     E_1 = start_kids*(1-params$s)*params$young,
@@ -566,7 +596,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     UA_1 = start_kids*(1-params$s)*params$young*(params$alpha1),
     DA_1 = 0,
     R_1 = 0,
-    
+
     S_2 = params$n*(1-params$s)*params$medium - start*params$medium*(1-params$s),
     E_2 = start*(1-params$s)*params$medium,
     UI_2 = start*(1-params$s)*params$medium*(1-params$alpha2),
@@ -574,7 +604,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     UA_2 = start*(1-params$s)*params$medium*(params$alpha2),
     DA_2 = 0,
     R_2 = 0,
-    
+
     S_3 = params$n*(1-params$s)*params$old - start*params$old*(1-params$s),
     E_3 = start*(1-params$s)*params$old,
     UI_3 = start*(1-params$s)*params$old*(1-params$alpha3),
@@ -582,7 +612,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     UA_3 = start*(1-params$s)*params$old*(params$alpha3),
     DA_3 = 0,
     R_3 = 0,
-    
+
     S_1Q = params$n*(params$s)*params$young - start_kids*params$young*(params$s),
     E_1Q = start_kids*(params$s)*params$young,
     UI_1Q = start_kids*(params$s)*params$young*(1-params$alpha1),
@@ -590,7 +620,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     UA_1Q = start_kids*(params$s)*params$young*(params$alpha1),
     DA_1Q = 0,
     R_1Q = 0,
-    
+
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
     E_2Q = start*(params$s)*params$medium, 
     UI_2Q = start*(params$s)*params$medium*(1-params$alpha2),
@@ -598,7 +628,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     UA_2Q = start*(params$s)*params$medium*(params$alpha2),
     DA_2Q = 0,
     R_2Q = 0,
-    
+
     S_3Q = params$n*(params$s)*params$old - start*params$old*(params$s),
     E_3Q = start*(params$s)*params$old,
     UI_3Q = start*(params$s)*params$old*(1-params$alpha3),
@@ -648,72 +678,87 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
 }
 
 ##### BASIC MODEL-------------
+#' Run Basic Model
+#' 
+#' @export
 run_basic = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL){
   
   # run model
-  test = run_model(func = model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "ode45")
+  test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
+                   params = params, method = "lsodes", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
   
 }
 
-##### WITH INTERVENTION----------------
+#<<<<<<< HEAD
+###### WITH INTERVENTION----------------
+#run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
+
+#  # run model before intervention
+#  test = run_model(func = model, xstart = as.numeric(xstart), times = c(1:days_out1), params=params, method = "ode45")
+#  names(test)[2:ncol(test)] = names(xstart)
+  
+#  # run model after intervention
+#  # pull last row to start
+#  x2 = tail(test, n = 1)[-1]
+#  x2_process<-x2
+#  # set up initial conditions for continuing running intervention (for social distancing)
+#  s_names<-rep(c('S', 'E', 'UI', "DI", 'UA', "DA",'R'), each=3)
+#  a_names<-rep(1:3, 3)
+#  aq_names<-paste(a_names,'Q', sep="")
+#  x2_process[paste(s_names, a_names, sep="_")]<-as.numeric((1-params2$s)*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+#  x2_process[paste(s_names, aq_names, sep="_")]<-as.numeric(params2$s*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
+#  # fix 'p' in params2 (intervention) as 'p' in params(base)
+#  params2$p<-params$p
+#  #print (params)
+#  #print (params2)
+#  #print (x2)
+#  #print (x2_process)
+  
+#  # rerun
+#  # get rid of first row to avoid day duplication
+#  test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)), 
+#                    params2, method = "ode45")[-1,]
+#  names(test2)[2:ncol(test2)] = names(xstart)
+#  test2$time = c((days_out1+1):days_out2)
+#=======
+##### WITH INTERVENTION
+#' Run Model with Intervention
+#' 
+#' @export
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
-  # run model before intervention
-  test = run_model(func = model, xstart = as.numeric(xstart), times = c(1:days_out1), params=params, method = "ode45")
-  names(test)[2:ncol(test)] = names(xstart)
-  
-  # run model after intervention
-  # pull last row to start
-  x2 = tail(test, n = 1)[-1]
-  x2_process<-x2
-  # set up initial conditions for continuing running intervention (for social distancing)
-  s_names<-rep(c('S', 'E', 'UI', "DI", 'UA', "DA",'R'), each=3)
-  a_names<-rep(1:3, 3)
-  aq_names<-paste(a_names,'Q', sep="")
-  x2_process[paste(s_names, a_names, sep="_")]<-as.numeric((1-params2$s)*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
-  x2_process[paste(s_names, aq_names, sep="_")]<-as.numeric(params2$s*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
-  # fix 'p' in params2 (intervention) as 'p' in params(base)
   params2$p<-params$p
-  #print (params)
-  #print (params2)
-  #print (x2)
-  #print (x2_process)
+  eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int){
+    #y_new<-c(c((1-parms_int$s)*(y[1:15]+y[15:30])), c(parms$s*(y[1:15]+y[15:30])), c(y[31:48]))
+    y_new<-y
+    y_new[1:15]<-(1-parms_int$s)*(y[1:15]+y[16:30])
+    y_new[16:30]<-parms_int$s*(y[1:15]+y[16:30])
+    #y_new[16]<-1
+    return(y_new)
+  }
+# >>>>>>> 446b3f3f3d27a7520321ab1d3ef704068949964a
   
-  # rerun
-  # get rid of first row to avoid day duplication
-  test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)), 
-                    params2, method = "ode45")[-1,]
-  names(test2)[2:ncol(test2)] = names(xstart)
-  test2$time = c((days_out1+1):days_out2)
-  
-  # bind together
-  out = bind_rows(test, test2)
-  return(out)
+  # run intervention model
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "lsoda", events=list(func = eventfun, time =days_out1), parms_int=params2, time_int=days_out1)
+  names(test)[2:ncol(test)] = names(xstart)
+  return(test)
   
 }
 
-############## LIBRARIES-------------
-
-# libraries
-library(tidyverse)
-library(deSolve)
-library(ggthemes)
-library(tictoc)
-
-# Multiple plot function----------------
-#
-# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
-# - cols:   Number of columns in layout
-# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
-#
-# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
-# then plot 1 will go in the upper left, 2 will go in the upper right, and
-# 3 will go all the way across the bottom.
-#
+#' Multiple plot function
+#'
+#' ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+#' - cols:   Number of columns in layout
+#' - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#'
+#' If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+#' then plot 1 will go in the upper left, 2 will go in the upper right, and
+#' 3 will go all the way across the bottom.
+#'
+#' @export
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   require(grid)
   

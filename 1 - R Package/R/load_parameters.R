@@ -1,7 +1,7 @@
 #' Load parameters table
 #' 
 #' Load the parameters.csv file as a table.
-#' 
+#' @export
 load_parameters_table <- function() {
 
   # we don't need readr telling us that it parsed the CSV with the following types every 

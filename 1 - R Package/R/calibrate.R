@@ -4,7 +4,11 @@
 #                                                                                          #
 #******************************************************************************************#
 
-calibrate <- function() { 
+#' Calibration scripts
+#' 
+#' @export
+calibrate <- function(p_cand = seq(.001, .15, by = 0.005)) { 
+
   n = 1938000
 
   # these match US proportions

@@ -1,5 +1,7 @@
 
 #' Generate Shiny UI Layout 
+#' 
+#' @export
 
 generate_ui <- function() { 
 
@@ -14,19 +16,38 @@ generate_ui <- function() {
   ui <- fluidPage(
 
       # Application title
-      titlePanel("covid_epi_model"),
+      titlePanel("Interactive Projection Tool for COVID-19 Interventions"),
       shinyjs::useShinyjs(),
       tabsetPanel(
-          tabPanel("Fits", plotlyOutput("fit"), p("*Currently only fit to data for 15 days")),
-          tabPanel("Comp flows", plotlyOutput("comp_flow")),
-          tabPanel("Cumulative cases", plotlyOutput("cum_case")), 
-          tabPanel("Deaths & New case ratio", plotlyOutput("death_new_case")),
-          tabPanel("Advanced care & Symptoms", plotlyOutput("care_symptoms"))
-          #tabPanel("Intervention", plotOutput("intervention"))
+          tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
+          tabPanel("Comp flows", plotOutput("comp_flow")),
+          tabPanel("Cumulative cases", 
+            column(6, 
+              plotOutput('cumulative_infections_by_age')
+              ), 
+            column(6, 
+              plotOutput('cumulative_diagnosed_by_age')
+              )
+            ), 
+          tabPanel("Deaths & New case ratio", 
+            column(6,
+              plotOutput('deaths_by_age')
+              ),
+            column(6,
+              plotOutput('effective_reproductive_number')
+              )
+            ),
+          tabPanel("Advanced care & Symptoms", 
+            column(6,
+              plotOutput('cases_needing_advanced_care')
+              ),
+            column(6,
+              plotOutput('cumulative_cases_by_symptoms')
+              )
+          )
           
       ),
       actionButton("reset_inputs", "Reset All Parameters"),
-      #verbatimTextOutput("renderprint"),
       
       hr(),
       column(6,
@@ -75,8 +96,8 @@ generate_ui <- function() {
                                  max = 1, value = 0.24),
                      sliderInput("medium", label = "Frc adults", min = 0, 
                                  max = 1, value = 0.6),
-                     sliderInput("old", label = "Frc older adults", min = 0, 
-                                 max = 1, value = 0.15),
+                     disabled(sliderInput("old", label = "Frc older adults", min = 0, 
+                                 max = 1, value = 0.15)),
                      sliderInput("k_inf", label = "k_inf: rel infectiousness for yng", min = 0, 
                                  max = 1, value = 1),
                      sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
@@ -134,8 +155,8 @@ generate_ui <- function() {
                                         max = 1, value = 0.24),
                             sliderInput("medium_int", label = "Frc adults", min = 0, 
                                         max = 1, value = 0.6),
-                            sliderInput("old_int", label = "Frc older adults", min = 0, 
-                                        max = 1, value = 0.15),
+                            disabled(sliderInput("old_int", label = "Frc older adults", min = 0, 
+                                        max = 1, value = 0.15)),
                             sliderInput("k_inf_int", label = "k_inf: rel infectiousness for yng", min = 0, 
                                         max = 1, value = 1),
                             sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
