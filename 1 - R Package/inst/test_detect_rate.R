@@ -26,8 +26,8 @@ ggplot(test, aes(x=time, y=I_1_cum, group=scenario, color=scenario)) +
 
 #debugging for slight difference between base and int even parameter is the same----------------
 param_vec <- load_parameters()
-test = run_param_vec(params = param_vec, params2=NULL, days_out1 = 30, days_out2 = NULL, model_type = run_basic)
-test_int = run_param_vec(params = param_vec, params2 = param_vec, days_out1 = 15, days_out2 = 30, model_type = run_int)
+test = run_param_vec(params = param_vec, params2=NULL, days_out1 = 30, days_out2 = NULL, model_type = run_basic, det_table = det_table)
+test_int = run_param_vec(params = param_vec, params2 = param_vec, days_out1 = 15, days_out2 = 30, model_type = run_int, det_table = det_table)
 
 make_plots_int(test, param_vec, test_int, param_vec)
 
