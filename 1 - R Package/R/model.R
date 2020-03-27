@@ -6,19 +6,17 @@
 
 #************************************* MODEL FUNCTIONS ************************************#
 
+
 ############## STRATIFIED MODEL-------------
 #' Stratified Model
 #' 
 #' @export
-model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input') {
+model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='calc') {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
   # decide if intervention starts
-  # ifelse(t>=time_int, parms<-parms_int, parms)
-  if (t >= time_int) {
-    parms<-parms_int
-  }
+  ifelse(t>=time_int, parms<-parms_int, parms)
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
@@ -65,10 +63,11 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
     #for asymptomatic
     #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 1
     rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc)^(t-1), 1)
-  } else { #input directly from a table
-    det_table <- read.csv(system.file("detection_input.csv", package="covid.epi"), as.is = T)
-    rdetecti <- det_table[t, "rdetecti"]
-    rdetecta <- det_table[t, "rdetecta"]
+  } else { # input directly from a table
+    rdetecti <- parms[paste0('rdetecti', round(t,0))]
+      # det_table[t, "rdetecti"]
+    rdetecta <- parms[paste0('rdetecta', round(t,0))]
+      # det_table[t, "rdetecta"]
   }
   
   
@@ -471,13 +470,19 @@ make_plots_int = function(test, params, test_int, params_int){
 }
 
 
+#' Read In Detection Rates
+load_detection_rates <- function() {
+  det_table <- read.csv(system.file("detection_input.csv", package="covid.epi"), as.is = T)
+  return(det_table)
+}
+
 ############### RUN PARAMETER VECTOR----------------------
 
 
 #' Process Parameters
 #' 
 #' @export
-process_params = function(params, p.adj = NA, obs.adj = NA){
+process_params = function(params, p.adj = NA, obs.adj = NA, det_table = NULL){
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
   params$obs = ifelse(is.na(obs.adj), params$obs, obs.adj)
@@ -559,6 +564,12 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
   params$N1Q = if_else(params$n*(params$s)*params$young == 0, 1, params$n*(params$s)*params$young)
   params$N2Q = if_else(params$n*(params$s)*params$medium == 0, 1, params$n*(params$s)*params$medium)
   params$N3Q = if_else(params$n*(params$s)*params$old == 0, 1, params$n*(params$s)*params$old)
+
+  # Format and Insert Detection Rates as Parameters
+  if (! is.null(det_table)) {
+    params[paste0('rdetecti', 1:nrow(det_table))] <- det_table[['rdetecti']]
+    params[paste0('rdetecta', 1:nrow(det_table))] <- det_table[['rdetecta']]
+  }
   
   return(params)
 }
@@ -568,12 +579,12 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 #' 
 #' @export
 run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
-                         days_out1 = 30, days_out2 = NULL, model_type = run_basic){
-  
+                         days_out1 = 30, days_out2 = NULL, model_type = run_basic,
+                         det_table = NULL){
   
   # process parameters
-  params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)
-  if(!is.null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj)
+  params = process_params(params, p.adj = p.adj, obs.adj = obs.adj, det_table)
+  if(!is.null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj, det_table)
 
   ############## SET INITIAL CONDITIONS--------------
   
