@@ -8,7 +8,10 @@
 #' Stratified Model
 #' 
 #' @export
-model_strat <- function (t, x, parms) {
+model_strat <- function (t, x, parms, parms_int, time_int) {
+
+  # decide if intervention starts
+  ifelse(t>=time_int, parms<-parms_int, parms)
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; I1 = x[3]; A1 = x[4]; R1 = x[5]
@@ -125,8 +128,8 @@ model_strat <- function (t, x, parms) {
 #'  Run the Model
 #' 
 #' @export
-run_model <- function(func, xstart, times, params, method = "lsodes") {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10)))
+run_model <- function(func, xstart, times, params, method = "lsodes", events=NULL, parms_int, time_int) { #"lsodes"
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, method = method, atol=1e-10, events=events, parms_int=parms_int, time_int=time_int)))
 }
 
 ############## POST-PROCESSING
@@ -573,7 +576,7 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "ode45")
+                   params = params, method = "lsodes", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -586,36 +589,20 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
 #' @export
 run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2){
 
-  # run model before intervention
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out1), params, method = "lsodes")
-  names(test)[2:ncol(test)] = names(xstart)
-  
-  # run model after intervention
-  # pull last row to start
-  x2 = tail(test, n = 1)[-1]
-  x2_process<-x2
-  # set up initial conditions for continuing running intervention (for social distancing)
-  s_names<-rep(c('S', 'E', 'I', 'A', 'R'), each=3)
-  a_names<-rep(1:3, 3)
-  aq_names<-paste(a_names,'Q', sep="")
-  x2_process[paste(s_names, a_names, sep="_")]<-as.numeric((1-params2$s)*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
-  x2_process[paste(s_names, aq_names, sep="_")]<-as.numeric(params2$s*(x2[paste(s_names, aq_names, sep="_")]+x2[paste(s_names, a_names, sep="_")]))
-  # fix 'p' in params2 (intervention) as 'p' in params(base)
   params2$p<-params$p
-  #print (params)
-  #print (params2)
-  #print (x2)
-  #print (x2_process)
-  # rerun
-  # get rid of first row to avoid day duplication
-  test2 = run_model(model_strat, xstart = as.numeric(x2_process), times = c(1:(days_out2-days_out1+1)),
-                    params2, method = "ode45")[-1,]
-  names(test2)[2:ncol(test2)] = names(xstart)
-  test2$time = c((days_out1+1):days_out2)
+  eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int){
+    #y_new<-c(c((1-parms_int$s)*(y[1:15]+y[15:30])), c(parms$s*(y[1:15]+y[15:30])), c(y[31:48]))
+    y_new<-y
+    y_new[1:15]<-(1-parms_int$s)*(y[1:15]+y[16:30])
+    y_new[16:30]<-parms_int$s*(y[1:15]+y[16:30])
+    #y_new[16]<-1
+    return(y_new)
+  }
   
-  # bind together
-  out = bind_rows(test, test2)
-  return(out)
+  # run intervention model
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "lsoda", events=list(func = eventfun, time =days_out1), parms_int=params2, time_int=days_out1)
+  names(test)[2:ncol(test)] = names(xstart)
+  return(test)
   
 }
 
