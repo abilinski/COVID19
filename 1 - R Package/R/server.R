@@ -111,7 +111,11 @@ server <- function(input, output, session) {
     observeEvent(input$reset_inputs, { 
       sapply(c('days_out1', 'days_out2', 'R0', 'delta', 'gamma', 'n', 's', 'e',
                'p', 'kappa', 'alpha1', 'alpha2', 'alpha3', 'c', 'm1', 'm2',
-               'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp'),
+               'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp',
+               'days_out1_int', 'days_out2_int', 'R0_int', 'delta_int', 'gamma_int', 'n_int', 's_int', 'e_int',
+               'p_int', 'kappa_int', 'alpha1_int', 'alpha2_int', 'alpha3_int', 'c_int', 'm1_int', 'm2_int',
+               'm3_int', 'young_int', 'medium_int', 'old_int', 'k_report_int', 'k_inf_int', 'k_susp_int'
+               ),
              shinyjs::reset)
     })
 
