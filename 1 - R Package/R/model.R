@@ -11,7 +11,7 @@
 #' Stratified Model
 #' 
 #' @export
-model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='calc',det_table=NULL) {
+model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input',det_table=NULL) {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
@@ -64,8 +64,8 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='cal
     #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 0.2
     rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc*(t-1)), 0.2)
   } else { # input directly from a table
-    rdetecti <- det_table[round(t,0), "rdetecti"]
-    rdetecta <- det_table[round(t,0), "rdetecta"]
+    rdetecti <- det_table[t,'rdetecti']
+    rdetecta <- det_table[t,'rdetecta']
   }
   
   #multiplier representing the change in contacts when detected
@@ -687,7 +687,7 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, det_table=det_table, method = "ode45", parms_int = params , time_int = 0)
+                   params = params, det_table=det_table, method = "lsoda", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -698,7 +698,8 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
 #' Run Model with Intervention
 #' 
 #' @export
-run_int = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2, det_table=det_table){
+run_int = function(model = model_strat, xstart, params = params, 
+  params2 = NULL, days_out1, days_out2, det_table=det_table){
 
   params2$p<-params$p
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
@@ -711,9 +712,13 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   }
   
   # run intervention model
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, det_table=det_table,  method = "ode45", 
-    events=list(func = eventfun, time =days_out1), parms_int=params2, time_int=days_out1)
+  test = run_model(model_strat, xstart = as.numeric(xstart), 
+    times = c(1:days_out2), params, det_table=det_table,  method = "lsoda",
+    events=list(func = eventfun, time =days_out1), parms_int=params2,
+    time_int=days_out1)
+
   names(test)[2:ncol(test)] = names(xstart)
+
   return(test)
   
 }

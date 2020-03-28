@@ -27,11 +27,11 @@ server <- function(input, output, session) {
 
         det_table <- data.frame(
           time = 1:(input$sim_time),
-          redetecti = rep(input$rdetecti, input$sim_time),
+          rdetecti = rep(input$rdetecti, input$sim_time),
           rdetecta = rep(input$rdetecta, input$sim_time))
 
-        print(det_table)
-        print(input$rdetecti)
+        # print(det_table)
+        # print(input$rdetecti)
         
         ### run model without intervention
         test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
