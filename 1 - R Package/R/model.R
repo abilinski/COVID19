@@ -701,12 +701,18 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
 run_int = function(model = model_strat, xstart, params = params, 
   params2 = NULL, days_out1, days_out2, det_table=det_table){
 
+  compartment_names <- names(xstart)
+  not_socially_distanced <- which( (! grepl("Q", compartment_names) & (! grepl("_cum", compartment_names))) )
+  socially_distanced <- which( grepl("Q", compartment_names) & (! grepl("_cum", compartment_names)) )
+
+
   params2$p<-params$p
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
     y_new<-y
+
     if (parms_int$p != parms$p) { 
-      y_new[1:21]<-(1-parms_int$s)*(y[1:21]+y[22:42])
-      y_new[22:42]<-parms_int$s*(y[1:21]+y[22:42])
+      y_new[socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
+      y_new[not_socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
     }
     return(y_new)
   }
