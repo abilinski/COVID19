@@ -20,5 +20,5 @@ test_that("base case run as run_basic or run_int works the same", {
   test_int = run_param_vec(params = param_vec, params2 = param_vec, 
     days_out1 = 10, days_out2 = 30, model_type = run_int, det_table = det_table)
 
-  expect_lt(max(test - test_int), .0001)
+  expect_lt(max(test - test_int), .01)
 })
