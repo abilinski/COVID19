@@ -64,8 +64,8 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='cal
     #assuming detection rate will continue to grow in asymptomatic after symptomatic reached 0.2
     rdetecta <- min(parms$k_det_a * parms$det_ini * (1 + parms$det_inc*(t-1)), 0.2)
   } else { # input directly from a table
-    rdetecti <- det_table[t, "rdetecti"]
-    rdetecta <- det_table[t, "rdetecta"]
+    rdetecti <- det_table[round(t,0), "rdetecti"]
+    rdetecta <- det_table[round(t,0), "rdetecta"]
   }
   
   #multiplier representing the change in contacts when detected
@@ -474,6 +474,12 @@ load_detection_rates <- function() {
 #' 
 #' @export
 process_params = function(params, p.adj = NA, obs.adj = NA){
+
+  # we take the approach of defining R0 and per-contact transmission
+  # probability p based on the doubling time parameter td
+  params['R0'] = calc_R0_from_td(td=params['td'],vec=params)
+  params['p']= calc_p_from_R0(R0_input=params['R0'],vec=params) 
+
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
   params$obs = ifelse(is.na(obs.adj), params$obs, obs.adj)
@@ -556,12 +562,6 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
   params$N2Q = if_else(params$n*(params$s)*params$medium == 0, 1, params$n*(params$s)*params$medium)
   params$N3Q = if_else(params$n*(params$s)*params$old == 0, 1, params$n*(params$s)*params$old)
 
-  # Format and Insert Detection Rates as Parameters
-  # if (! is.null(det_table)) {
-  #   params[paste0('rdetecti', 1:nrow(det_table))] <- det_table[['rdetecti']]
-  #   params[paste0('rdetecta', 1:nrow(det_table))] <- det_table[['rdetecta']]
-  # }
-  
   return(params)
 }
 
@@ -687,7 +687,7 @@ run_basic = function(model = model_strat, xstart, params = params, params2 = NUL
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, det_table=det_table, method = "lsodes", parms_int = params , time_int = 0)
+                   params = params, det_table=det_table, method = "ode45", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -703,13 +703,15 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   params2$p<-params$p
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
     y_new<-y
-    y_new[1:21]<-(1-parms_int$s)*(y[1:21]+y[22:42])
-    y_new[22:42]<-parms_int$s*(y[1:21]+y[22:42])
+    if (parms_int$p != parms$p) { 
+      y_new[1:21]<-(1-parms_int$s)*(y[1:21]+y[22:42])
+      y_new[22:42]<-parms_int$s*(y[1:21]+y[22:42])
+    }
     return(y_new)
   }
   
   # run intervention model
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, det_table=det_table,  method = "lsodes", 
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, det_table=det_table,  method = "ode45", 
     events=list(func = eventfun, time =days_out1), parms_int=params2, time_int=days_out1)
   names(test)[2:ncol(test)] = names(xstart)
   return(test)
