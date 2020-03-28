@@ -20,11 +20,11 @@ server <- function(input, output, session) {
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
+        # old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
+        # old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
+        # param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
+        # param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
         
