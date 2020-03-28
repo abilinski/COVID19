@@ -11,7 +11,7 @@
 #' Stratified Model
 #' 
 #' @export
-model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='calc',det_table=NULL) {
+model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input',det_table=NULL) {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
