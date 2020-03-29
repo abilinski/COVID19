@@ -72,10 +72,10 @@ server <- function(input, output, session) {
 
   param_names_base <- c(social_distancing_params, "s", "e", "p", "kappa",
     "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2", "m3","c",
-    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n")
+    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n",
+    "rdetecti", "rdetecta")
 
   param_names_int <- paste0(param_names_base, "_int")
-
 
   # Model Plots 
   # 
