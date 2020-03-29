@@ -134,7 +134,7 @@ generate_ui <- function() {
               downloadButton("download", "Download parameters")
             ),
           tabPanel(
-            title = "contact mx",
+            title = "contact matrix",
             contact_matrix_ui_for_base_case(param_vec)
           )
           )
@@ -148,7 +148,7 @@ generate_ui <- function() {
         fluidRow(
           tabsetPanel(
             tabPanel(
-              title = "transmission params",
+              title = "transmission parameters",
               column(4,
                 numericInput("int_time", label="intervention starts at", value=15),
                 # we want to show r0 and td from calculation later
