@@ -125,8 +125,12 @@ generate_ui <- function() {
                             numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                             numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
                             numericInput("obs_int", label="obs cases at day1", value=100),
-                            numericInput("n_int", label="n: total population", value=1938000)
+                            numericInput("n_int", label="n: total population", value=1938000),
                             #maybe put matrix here
+                            sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
+                              min = 0, max = 1, value = 0.1),
+                            sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
+                              min = 0, max = 1, value = 0.01)
                      ),
                      column(4,
                             sliderInput("s_int", label = "s: Frc socially distanced", min = 0, 
