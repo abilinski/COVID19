@@ -45,7 +45,7 @@
 #'   - Show the users imputed parameters, like R0 and p are determined
 #'     based off the doubling time parameter td
 #' 
-#'   - Parameter Validation, making sure frc young + medium + old == 1
+#'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 #' 
 #' @seealso generate_ui runApp 
 #' 
@@ -133,6 +133,13 @@ server <- function(input, output, session) {
             rep(input$rdetecti_int, (input$sim_time - input$int_time))),
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+        
+        ### give warning if population doesn't add up to 1
+        validate(
+          need(input$young<=1, 'total population = 1!!'),
+          need(input$medium<=1, 'total population = 1!!'),
+          need(input$young+input$medium<=1, 'total population = 1!!')
+        )
 
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
