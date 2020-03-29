@@ -30,6 +30,7 @@
 #'   - More Comprehensive User Downloads: 
 #'     - Parameters Downloads
 #'     - Download an Rmarkdown Generated Report 
+#'     - Downloadable Version of In-App Report Generated
 #' 
 #'   - A "Run Model" button will prevent the model from lagging
 #'     when the user updates a bunch of parameters really quickly,
