@@ -116,8 +116,6 @@ server <- function(input, output, session) {
     param_vec_int <- param_vec_int_reactive()
     R0 = as.numeric(calc_R0_from_td(td=param_vec['td'],vec=param_vec))
     p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
-    print (R0)
-    print(p)
     return (c(R0, p))
   })
   
