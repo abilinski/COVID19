@@ -23,13 +23,14 @@
 #' 
 #' Future directions in progress include: 
 #' 
-#'   - Adding documentation 
+#'   - Adding documentation [started on branch shiny_documentation_page]
 #' 
 #'   - Adding Calibration to User-Uploaded Case Series
 #' 
 #'   - More Comprehensive User Downloads: 
 #'     - Parameters Downloads
 #'     - Download an Rmarkdown Generated Report 
+#'     - Downloadable Version of In-App Report Generated
 #' 
 #'   - A "Run Model" button will prevent the model from lagging
 #'     when the user updates a bunch of parameters really quickly,
@@ -40,6 +41,11 @@
 #'     outcomes from when s is in (0,1).  We would expect e = 1 implies 
 #'     socially distanced contact matrix == not socially distanced contact matrix,
 #'     so varying s should have no effect on simulation outcomes.
+#' 
+#'   - Show the users imputed parameters, like R0 and p are determined
+#'     based off the doubling time parameter td
+#' 
+#'   - Parameter Validation, making sure frc young + medium + old == 1
 #' 
 #' @seealso generate_ui runApp 
 #' 
@@ -74,7 +80,8 @@ server <- function(input, output, session) {
 
   param_names_base <- c(social_distancing_params, "s", "e", "p", "kappa",
     "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2", "m3","c",
-    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n")
+    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n",
+    "rdetecti", "rdetecta")
 
   param_names_int <- paste0(param_names_base, "_int")
 
@@ -114,10 +121,6 @@ server <- function(input, output, session) {
         user_inputs<-c(unlist(reactiveValuesToList(input)))
         param_vec <- param_vec_reactive()
         param_vec_int <- param_vec_int_reactive()
-        # param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
-        # param_vec_int[param_names_base]<-as.numeric(user_inputs[param_names_int])
-        # param_vec$Scenario<-'Base'
-        # param_vec_int$Scenario<-'Intervention'
 
         det_table <- data.frame(
           time = 1:(input$sim_time),
@@ -150,8 +153,6 @@ server <- function(input, output, session) {
             paste("parameters_base_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
-            # temp<-c(unlist(reactiveValuesToList(input)))
-            # old_vec[param_names_base]<-as.numeric(temp[param_names_base])
             old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
             old_vec$Scenario<-'Base'
             write.csv(old_vec, file, row.names = FALSE)
@@ -164,8 +165,6 @@ server <- function(input, output, session) {
             paste("parameters_int_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
-            # temp<-c(unlist(reactiveValuesToList(input)))
-            # param_vec[param_names_base]<-as.numeric(temp[param_names_int])
           param_vec_int <- param_vec_int_reactive()
             param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
             param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
@@ -196,14 +195,6 @@ server <- function(input, output, session) {
     # 
     # right now this includes the interventions, is that the behavior we want?
     observeEvent(input$reset_inputs, { sapply(c(param_names_base, param_names_int), 
-        # c('days_out1', 'days_out2', 'R0',
-        #   'delta', 'gamma', 'n', 's', 'e', 'p', 'kappa', 'alpha1', 'alpha2',
-        #   'alpha3', 'c', 'm1', 'm2', 'm3', 'young', 'medium', 'old',
-        #   'k_report', 'k_inf', 'k_susp', 'days_out1_int', 'days_out2_int',
-        #   'R0_int', 'delta_int', 'gamma_int', 'n_int', 's_int', 'e_int',
-        #   'p_int', 'kappa_int', 'alpha1_int', 'alpha2_int', 'alpha3_int',
-        #   'c_int', 'm1_int', 'm2_int', 'm3_int', 'young_int', 'medium_int',
-        #   'old_int', 'k_report_int', 'k_inf_int', 'k_susp_int'),
         shinyjs::reset)
     })
 
