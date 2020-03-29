@@ -68,7 +68,9 @@ generate_ui <- function() {
         )
       ),
       tabPanel("Documentation",
-        uiOutput('documentation_page')
+        fluidPage(
+          uiOutput('documentation_page')
+          )
         )
       ),
 

@@ -1,14 +1,34 @@
 ---
 title: "Documentation for the Interactive Projection Tool for COVID-19 Interventions"
 author: "C-SPEC"
+output: html_fragment
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE)
+# These set the global options
+knitr::opts_chunk$set(echo=FALSE, out.width='60%', fig.align='center')
+
+# Chunk specific options can still be set in each R code chunks' header
+# e.g. ```{r example_code_block, echo=TRUE, out.width='100%', fig.aling='right'}
+ 
+devtools::load_all()
 ```
 
 ```{r include_model_diagram}
-knitr::include_graphics(system.file('documentation/model_diagram/model_diagram.png',
-    package='covid.epi'))
+model_diagram_path <- system.file('documentation/model_diagram/model_diagram.png',
+    package='covid.epi')
+
+knitr::include_graphics(model_diagram_path)
 ```
 
+<!-- Comments are formatted as per this example comment --> 
+
+<!-- $Math equations$ can be wrapped in single dollar-signs for inline math text --> 
+
+<!-- $$Math equations$$ can be wrapped in double dollar-signs for math equations that get 
+     centered on their own line--> 
+
+<!-- Rmarkdown is based on markdown, so use markdown syntax to do 
+     simple text formatting if needed --> 
+
+<!-- Good guide on how to use markdown: https://guides.github.com/features/mastering-markdown/ --> 
