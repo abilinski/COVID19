@@ -81,9 +81,12 @@ generate_ui <- function() {
         fluidRow(
         tabsetPanel(
           tabPanel(
-            title = "1",
+            title = "transmission params",
               column(4,
                 numericInput("sim_time", label="simulation time (days)", value=30),
+                # we want to show r0 and td from calculation later
+                # disabled(numericInput("R0", label="R0", value=1.0)), 
+                # disabled(numericInput("p", lable="p: Pr(transmission/contact)", value=0.05)),
                 numericInput("td", label="Doubling Time", value=2.5),
                 numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -131,7 +134,7 @@ generate_ui <- function() {
               downloadButton("download", "Download parameters")
             ),
           tabPanel(
-            title = "2",
+            title = "contact mx",
             contact_matrix_ui_for_base_case(param_vec)
           )
           )
@@ -145,10 +148,13 @@ generate_ui <- function() {
         fluidRow(
           tabsetPanel(
             tabPanel(
-              title = "1",
+              title = "transmission params",
               column(4,
                 numericInput("int_time", label="intervention starts at", value=15),
-                # numericInput("R0_int", label="R0", value=2.2),
+                # we want to show r0 and td from calculation later
+                # disabled(numericInput("R0_int", label="R0", value=1.0)),
+                # disabled(numericInput("p_int", lable="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
                 numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
                 numericInput("obs_int", label="obs cases at day1", value=100),
@@ -195,7 +201,7 @@ generate_ui <- function() {
               downloadButton("download_int", "Download parameters")
             ),
           tabPanel(
-            title = "2",
+            title = "contact mx",
             contact_matrix_ui_for_intervention(param_vec)
           )
           )
