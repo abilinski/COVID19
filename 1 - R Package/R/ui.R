@@ -85,8 +85,8 @@ generate_ui <- function() {
               column(4,
                 numericInput("sim_time", label="simulation time (days)", value=30),
                 # we want to show r0 and td from calculation later
-                # disabled(numericInput("R0", label="R0", value=1.0)), 
-                # disabled(numericInput("p", lable="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("R0", label="R0", value=1.0)),
+                disabled(numericInput("p", label="p: Pr(transmission/contact)", value=0.05)),
                 numericInput("td", label="Doubling Time", value=2.5),
                 numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -134,7 +134,7 @@ generate_ui <- function() {
               downloadButton("download", "Download parameters")
             ),
           tabPanel(
-            title = "contact mx",
+            title = "contact matrix",
             contact_matrix_ui_for_base_case(param_vec)
           )
           )
@@ -148,12 +148,12 @@ generate_ui <- function() {
         fluidRow(
           tabsetPanel(
             tabPanel(
-              title = "transmission params",
+              title = "transmission parameters",
               column(4,
                 numericInput("int_time", label="intervention starts at", value=15),
                 # we want to show r0 and td from calculation later
-                # disabled(numericInput("R0_int", label="R0", value=1.0)),
-                # disabled(numericInput("p_int", lable="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("R0_int", label="R0", value=1.0)),
+                disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
                 disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
                 numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -166,9 +166,9 @@ generate_ui <- function() {
                 ),
               column(4,
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = 0.01, step=0.01),
-                # sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
-                #   max = 1, value = 0),
+                  max = .999, value = 0.01, step=0.001),
+                disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
+                  max = 1, value = 0)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                   max = 1, value = 0.375),
                 sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
