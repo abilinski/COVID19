@@ -16,7 +16,7 @@ R_0 <- function (params){
   young = params$young
   medium = params$medium
   old = params$old
-  e = params$old
+  e = params$e
   
   DFE <-c(young , medium, old , c(0,0,0))*n;
   

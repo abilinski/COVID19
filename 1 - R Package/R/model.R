@@ -239,7 +239,7 @@ make_plots = function(test, params){
     summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) %>% 
     mutate(Total = sum(Infected),
            Total_obs = sum(Detected),
-           Hospital = .1*Total,
+           Hospital = .17*Total,
            Ventilator = .05*Total)
   
   b = ggplot(out_cases, aes(x = time, y = Infected, group = strat3, col = strat3)) + geom_line() +
@@ -399,7 +399,7 @@ make_plots_int = function(test, params, test_int, params_int){
     summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>% 
     mutate(Total = sum(Infected),
            Total_obs = sum(Detected),
-           Hospital = .17*.13*Total, ########this multipliers are different from the one used in no interventions
+           Hospital = .17*Total, ########this multipliers are different from the one used in no interventions
            Ventilator = .05*Total) %>% ungroup()
   
   b = ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
