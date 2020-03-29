@@ -35,6 +35,11 @@
 #'     when the user updates a bunch of parameters really quickly,
 #'     when they likely wouldn't have wanted the model to run 
 #'     in between each parameter update anyway. 
+#'
+#'   - Fix issue where when e = 1, s = 0 or s = 1  have different simulation 
+#'     outcomes from when s is in (0,1).  We would expect e = 1 implies 
+#'     socially distanced contact matrix == not socially distanced contact matrix,
+#'     so varying s should have no effect on simulation outcomes.
 #' 
 #' @seealso generate_ui runApp 
 #' 
@@ -125,9 +130,6 @@ server <- function(input, output, session) {
             rep(input$rdetecti_int, (input$sim_time - input$int_time))),
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
-
-        print(param_vec)
-        print(param_vec_int)
 
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
