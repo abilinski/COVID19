@@ -10,6 +10,7 @@ server <- function(input, output, session) {
   param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
   param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
 
+
   # Model Plots 
   # 
   # Use the user input to run the model for the base case and intervention.
@@ -20,20 +21,29 @@ server <- function(input, output, session) {
         ### update the params using inputs
         temp<-c(unlist(reactiveValuesToList(input)))
         old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-        old_vec['R0'] = calc_R0_from_td(td=old_vec['td'],vec=old_vec)
-        old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
         param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-        param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-        param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
         old_vec$Scenario<-'Base'
         param_vec$Scenario<-'Intervention'
+
+        det_table <- data.frame(
+          time = 1:(input$sim_time),
+          rdetecti = rep(input$rdetecti, input$sim_time),
+          rdetecta = rep(input$rdetecta, input$sim_time))
+
+        det_table_int <- data.frame(
+          time = 1:(input$sim_time),
+          rdetecti = c(rep(input$rdetecti, input$int_time), rep(input$rdetecti_int, (input$sim_time - input$int_time))),
+          rdetecta = c(rep(input$rdetecta, input$int_time), rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
+        # print(det_table)
+        # print(input$rdetecti)
         
         ### run model without intervention
         test = run_param_vec(params = old_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic) 
+                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
         test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int)
+                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int = param_vec)
 
@@ -111,7 +121,21 @@ server <- function(input, output, session) {
     observeEvent(input$reset_inputs, { 
       sapply(c('days_out1', 'days_out2', 'R0', 'delta', 'gamma', 'n', 's', 'e',
                'p', 'kappa', 'alpha1', 'alpha2', 'alpha3', 'c', 'm1', 'm2',
-               'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp'),
+               'm3', 'young', 'medium', 'old', 'k_report', 'k_inf', 'k_susp',
+               'days_out1_int', 'days_out2_int', 'R0_int', 'delta_int', 'gamma_int', 'n_int', 's_int', 'e_int',
+               'p_int', 'kappa_int', 'alpha1_int', 'alpha2_int', 'alpha3_int', 'c_int', 'm1_int', 'm2_int',
+               'm3_int', 'young_int', 'medium_int', 'old_int', 'k_report_int', 'k_inf_int', 'k_susp_int'
+               ),
              shinyjs::reset)
+    })
+
+    # Calculate old population fraction from young and medium
+    observeEvent(c(input$young, input$medium), {
+      updateSliderInput(session, 'old', value = 1 - (input$young + input$medium))
+    })
+    
+    # Calculate old population fraction from young and medium
+    observeEvent(c(input$young_int, input$medium_int), {
+      updateSliderInput(session, 'old_int', value = 1 - (input$young_int + input$medium_int))
     })
 }

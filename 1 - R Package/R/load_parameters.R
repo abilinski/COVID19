@@ -40,3 +40,8 @@ load_parameters <- function (scenario = 1) {
   return(parameters_table[scenario, 2:ncol(parameters_table)])
 
 }
+
+load_detection_table <- function () {
+  det_table <- read.csv(system.file('detection_input.csv', package='covid.epi'))
+  return(det_table)
+}
