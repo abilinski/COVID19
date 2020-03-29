@@ -219,16 +219,50 @@ plot_fit_to_observed_data_int <- function(out_cases) {
     scale_linetype(name = "")
 }
 
-#' Format Model Outcomes for 
+#' Format Model Outcomes for Plotting
+format_simulation_outcomes_for_plotting <- function(sim_outcomes) {
+  sim_outcomes %>%
+    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
+    mutate(cum = ifelse(is.na(cum), F, T),
 
-############## POST-PROCESSING-------------------
-#' Make Plots
-#' 
-#' @export
-make_plots = function(test, params){
+      # reformat compartments
+      comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
+      comp2 = ifelse(comp=="E", "Exposed", comp2),
+      comp2 = ifelse(comp=="R", "Recovered", comp2),
+      comp2 = ifelse(comp=="S", "Susceptible", comp2),
+      comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
+          "Symptomatic", "Recovered")),
 
-  # formatting
-  out = test %>%
+      # compartments with U/D
+      comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
+      comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
+      comp3 = ifelse(comp=="E", "Exposed", comp3),
+      comp3 = ifelse(comp=="R", "Recovered", comp3),
+      comp3 = ifelse(comp=="S", "Susceptible", comp3),
+      comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
+          "Detected", "Undetected", "Infected",
+          "Recovered")),
+
+      # reformat strata
+      strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
+      strat2 = ifelse(strat=="2", "21-65", strat2),
+      strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
+      strat2 = ifelse(strat=="3", ">65", strat2),
+      strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
+      strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
+          "21-65", "21-65 (SD)",
+          ">65", ">65 (SD)")),
+
+      # get only age
+      strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
+    )
+}
+
+
+#' Format Model Outcomes for Plotting - Intervention
+format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcomes_int) {
+
+  out_base = sim_outcomes %>%
     gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
     mutate(cum = ifelse(is.na(cum), F, T),
            
@@ -262,8 +296,56 @@ make_plots = function(test, params){
            
            # get only age
            strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-           )
+    )
   
+  out_int = sim_outcomes_int %>%
+    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
+    mutate(cum = ifelse(is.na(cum), F, T),
+           
+           # reformat compartments
+           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
+           comp2 = ifelse(comp=="E", "Exposed", comp2),
+           comp2 = ifelse(comp=="R", "Recovered", comp2),
+           comp2 = ifelse(comp=="S", "Susceptible", comp2),
+           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
+                                            "Symptomatic", "Recovered")),
+           
+           # compartments with U/D
+           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
+           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
+           comp3 = ifelse(comp=="E", "Exposed", comp3),
+           comp3 = ifelse(comp=="R", "Recovered", comp3),
+           comp3 = ifelse(comp=="S", "Susceptible", comp3),
+           comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
+                                            "Detected", "Undetected", "Infected",
+                                            "Recovered")),
+           
+           # reformat strata
+           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
+           strat2 = ifelse(strat=="2", "21-65", strat2),
+           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
+           strat2 = ifelse(strat=="3", ">65", strat2),
+           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
+           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
+                                              "21-65", "21-65 (SD)",
+                                              ">65", ">65 (SD)")),
+           
+           # get only age
+           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
+    )
+  
+  out = bind_rows(out_base %>% mutate(int = "Base"), out_int %>% mutate(int = "Intervention"))
+  return(out)
+}
+
+############## POST-PROCESSING-------------------
+#' Make Plots
+#' 
+#' @export
+make_plots = function(test, params){
+
+  # formatting
+  out = format_simulation_outcomes_for_plotting(test)
   
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value))
@@ -304,80 +386,7 @@ make_plots = function(test, params){
 #' @export
 make_plots_int = function(test, params, test_int, params_int){
   # formatting
-  out_base = test %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-           
-           # reformat compartments
-           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-           comp2 = ifelse(comp=="E", "Exposed", comp2),
-           comp2 = ifelse(comp=="R", "Recovered", comp2),
-           comp2 = ifelse(comp=="S", "Susceptible", comp2),
-           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-                                            "Symptomatic", "Recovered")),
-           
-           # compartments with U/D
-           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-           comp3 = ifelse(comp=="E", "Exposed", comp3),
-           comp3 = ifelse(comp=="R", "Recovered", comp3),
-           comp3 = ifelse(comp=="S", "Susceptible", comp3),
-           comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
-                                            "Detected", "Undetected", "Infected",
-                                            "Recovered")),
-           
-           # reformat strata
-           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-           strat2 = ifelse(strat=="2", "21-65", strat2),
-           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-           strat2 = ifelse(strat=="3", ">65", strat2),
-           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-                                              "21-65", "21-65 (SD)",
-                                              ">65", ">65 (SD)")),
-           
-           # get only age
-           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-  
-  out_int = test_int %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-           
-           # reformat compartments
-           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-           comp2 = ifelse(comp=="E", "Exposed", comp2),
-           comp2 = ifelse(comp=="R", "Recovered", comp2),
-           comp2 = ifelse(comp=="S", "Susceptible", comp2),
-           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-                                            "Symptomatic", "Recovered")),
-           
-           # compartments with U/D
-           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-           comp3 = ifelse(comp=="E", "Exposed", comp3),
-           comp3 = ifelse(comp=="R", "Recovered", comp3),
-           comp3 = ifelse(comp=="S", "Susceptible", comp3),
-           comp3 = factor(comp3, levels = c("Susceptible", "Exposed", 
-                                            "Detected", "Undetected", "Infected",
-                                            "Recovered")),
-           
-           # reformat strata
-           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-           strat2 = ifelse(strat=="2", "21-65", strat2),
-           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-           strat2 = ifelse(strat=="3", ">65", strat2),
-           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-                                              "21-65", "21-65 (SD)",
-                                              ">65", ">65 (SD)")),
-           
-           # get only age
-           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-  
-  out = bind_rows(out_base %>% mutate(int = "Base"), out_int %>% mutate(int = "Intervention"))
-  
+  out <- format_simulation_outcomes_for_plotting_int(test, test_int)
   
   # make graphs of output over time
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value)) %>% ungroup()
