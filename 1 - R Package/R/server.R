@@ -210,10 +210,45 @@ server <- function(input, output, session) {
       updateSliderInput(session, 'old', value = 1 - (input$young + input$medium))
     })
     
-    # Calculate old population fraction from young and medium
-    observeEvent(c(input$young_int, input$medium_int), {
-      updateSliderInput(session, 'old_int', value = 1 - (input$young_int + input$medium_int))
+    # Make the age distribution of population in intervention same as base scenario
+    observeEvent(c(input$young), {
+      updateSliderInput(session, 'young_int', value = input$young)
     })
+    observeEvent(c(input$medium), {
+      updateSliderInput(session, 'medium_int', value = input$medium)
+    })
+    observeEvent(c(input$old), {
+      updateSliderInput(session, 'old_int', value = input$old)
+    })
+    
+    # Make the td, R0, p in intervention same as base scenario in UI
+    observeEvent(c(input$td), {
+      updateSliderInput(session, 'td_int', value = input$td)
+    })
+    
+    # Make the alphas, obs, n in intervention same as base scenario in UI
+    observeEvent(c(input$alpha1), {
+      updateSliderInput(session, 'alpha1_int', value = input$alpha1)
+    })
+    
+    observeEvent(c(input$alpha2), {
+      updateSliderInput(session, 'alpha2_int', value = input$alpha2)
+    })
+    
+    observeEvent(c(input$alpha3), {
+      updateSliderInput(session, 'alpha3_int', value = input$alpha3)
+    })
+    
+    observeEvent(c(input$obs), {
+      updateSliderInput(session, 'obs_int', value = input$obs)
+    })
+    
+    observeEvent(c(input$n), {
+      updateSliderInput(session, 'n_int', value = input$n)
+    })
+    
+    
+    
 
     callModule(contact_matrix_server_module, id = NULL)
 
