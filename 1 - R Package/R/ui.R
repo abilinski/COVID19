@@ -150,7 +150,8 @@ generate_ui <- function() {
             tabPanel(
               title = "transmission parameters",
               column(4,
-                numericInput("int_time", label="intervention starts at", value=15),
+                numericInput("int_time", label="intervention starts at", value=5),
+                numericInput("int_stop_time", label="intervention stops at", value=30),
                 # we want to show r0 and td from calculation later
                 # disabled(numericInput("R0_int", label="R0", value=1.0)),
                 # disabled(numericInput("p_int", lable="p: Pr(transmission/contact)", value=0.05)),

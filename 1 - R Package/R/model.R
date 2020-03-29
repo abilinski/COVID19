@@ -11,12 +11,12 @@
 #' Stratified Model
 #' 
 #' @export
-model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input',det_table=NULL) {
+model_strat <- function (t, x, parms, parms_int, int_start_time, int_stop_time, det_input_method='input',det_table=NULL) {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
   # decide if intervention starts
-  ifelse(t>=time_int, parms<-parms_int, parms)
+  if (t>=int_start_time & t <= t_stop_time) { parms<-parms_int }
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
@@ -178,7 +178,9 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
 #' 
 #' @export
 run_model <- function(func, xstart, times, params, det_table, method = "lsodes", events=NULL, parms_int, time_int) {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, det_table=det_table, method = method, atol=1e-8, events=events, parms_int=parms_int, time_int=time_int)))
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms =
+        params, det_table=det_table, method = method, atol=1e-8, events=events,
+      parms_int=parms_int, time_int=time_int)))
 }
 
 
