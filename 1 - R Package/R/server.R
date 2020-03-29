@@ -89,7 +89,7 @@ server <- function(input, output, session) {
     for (param_name in param_names_base) {
       param_name_int <- paste0(param_name, "_int")
       if (! is.na(user_inputs[param_name_int])) { 
-        param_vec_int[param_name]<-as.numeric(user_inputs[param_name])
+        param_vec_int[param_name]<-as.numeric(user_inputs[param_name_int])
       }
     }
 
@@ -125,6 +125,9 @@ server <- function(input, output, session) {
             rep(input$rdetecti_int, (input$sim_time - input$int_time))),
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
+        print(param_vec)
+        print(param_vec_int)
 
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
