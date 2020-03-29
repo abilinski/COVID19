@@ -39,6 +39,8 @@
 #'   - Show the users imputed parameters, like R0 and p are determined
 #'     based off the doubling time parameter td
 #' 
+#'   - Parameter Validation, making sure frc young + medium + old == 1
+#' 
 #' @seealso generate_ui runApp 
 #' 
 #' @export
