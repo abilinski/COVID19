@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo=FALSE, out.width='60%', fig.align='center')
 devtools::load_all()
 ```
 
+<!-- For anybody that needs an introduction to Rmarkdown: 
+     https://rmarkdown.rstudio.com/articles_intro.html -->
 
 <!-- Comments are formatted as per this example comment --> 
 
