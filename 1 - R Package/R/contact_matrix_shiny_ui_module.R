@@ -4,7 +4,7 @@ contact_matrix_ui_for_base_case <- function(param_vec) {
     column(12,
       h4("Contact Rates (not-socially-distanced)"),
       column(4,
-        numericInput("v11", "[0,20) [20,65)", param_vec[['v11']], min=0),
+        numericInput("v11", "[0,20) [0,20)", param_vec[['v11']], min=0),
         numericInput("v12", "[0,20) [20,65)", param_vec[['v12']], min=0),
         numericInput("v13", "[0,20) 65+", param_vec[['v13']], min=0)
         ),
@@ -22,7 +22,7 @@ contact_matrix_ui_for_base_case <- function(param_vec) {
     column(12,
       h4("Contact Rates (socially-distanced)"),
       column(4,
-        disabled(numericInput("v11Q", "[0,20) [20,65)", 0, min=0)),
+        disabled(numericInput("v11Q", "[0,20) [0,20)", 0, min=0)),
         disabled(numericInput("v12Q", "[0,20) [20,65)", 0, min=0)),
         disabled(numericInput("v13Q", "[0,20) 65+", 0, min=0))
         ),
@@ -46,7 +46,7 @@ contact_matrix_ui_for_intervention <- function(param_vec) {
             column(12,
               h4("Contact Rates (not-socially-distanced)"),
               column(4,
-                numericInput("v11_int", "[0,20) [20,65)", param_vec[['v11']], min=0),
+                numericInput("v11_int", "[0,20) [0,20)", param_vec[['v11']], min=0),
                 numericInput("v12_int", "[0,20) [20,65)", param_vec[['v12']], min=0),
                 numericInput("v13_int", "[0,20) 65+", param_vec[['v13']], min=0)
                 ),
@@ -64,7 +64,7 @@ contact_matrix_ui_for_intervention <- function(param_vec) {
             column(12,
               h4("Contact Rates (socially-distanced)"),
               column(4,
-                disabled(numericInput("v11Q_int", "[0,20) [20,65)", 0, min=0)),
+                disabled(numericInput("v11Q_int", "[0,20) [0,20)", 0, min=0)),
                 disabled(numericInput("v12Q_int", "[0,20) [20,65)", 0, min=0)),
                 disabled(numericInput("v13Q_int", "[0,20) 65+", 0, min=0))
                 ),
