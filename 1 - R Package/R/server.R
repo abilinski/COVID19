@@ -73,6 +73,30 @@ server <- function(input, output, session) {
 
   param_names_int <- paste0(param_names_base, "_int")
 
+  param_vec_reactive <- reactive({
+    ### update the params using inputs
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec <- load_parameters()
+    param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
+    param_vec$Scenario<-'Base'
+    return(param_vec)
+  })
+
+  param_vec_int_reactive <- reactive({
+    ### update the params using inputs
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec_int <- load_parameters()
+    for (param_name in param_names_base) {
+      param_name_int <- paste0(param_name, "_int")
+      if (! is.na(user_inputs[param_name_int])) { 
+        param_vec_int[param_name]<-as.numeric(user_inputs[param_name])
+      }
+    }
+
+    param_vec_int$Scenario<-'Intervention'
+    return(param_vec_int)
+  })
+
 
   # Model Plots 
   # 
@@ -83,11 +107,12 @@ server <- function(input, output, session) {
   model_plots <- reactive({ 
         ### update the params using inputs
         user_inputs<-c(unlist(reactiveValuesToList(input)))
-        param_vec_int <- param_vec <- default_param_vec
-        param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
-        param_vec_int[param_names_base]<-as.numeric(user_inputs[param_names_int])
-        param_vec$Scenario<-'Base'
-        param_vec_int$Scenario<-'Intervention'
+        param_vec <- param_vec_reactive()
+        param_vec_int <- param_vec_int_reactive()
+        # param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
+        # param_vec_int[param_names_base]<-as.numeric(user_inputs[param_names_int])
+        # param_vec$Scenario<-'Base'
+        # param_vec_int$Scenario<-'Intervention'
 
         det_table <- data.frame(
           time = 1:(input$sim_time),
@@ -120,9 +145,9 @@ server <- function(input, output, session) {
             paste("parameters_base_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
-            temp<-c(unlist(reactiveValuesToList(input)))
-            old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-            old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
+            # temp<-c(unlist(reactiveValuesToList(input)))
+            # old_vec[param_names_base]<-as.numeric(temp[param_names_base])
+            old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
             old_vec$Scenario<-'Base'
             write.csv(old_vec, file, row.names = FALSE)
         }
@@ -134,12 +159,13 @@ server <- function(input, output, session) {
             paste("parameters_int_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
-            temp<-c(unlist(reactiveValuesToList(input)))
-            param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-            param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-            param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-            param_vec$Scenario<-'Intervention'
-            write.csv(param_vec, file, row.names = FALSE)
+            # temp<-c(unlist(reactiveValuesToList(input)))
+            # param_vec[param_names_base]<-as.numeric(temp[param_names_int])
+          param_vec_int <- param_vec_int_reactive()
+            param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
+            param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
+            param_vec_int$Scenario<-'Intervention'
+            write.csv(param_vec_int, file, row.names = FALSE)
         }
     )
     
