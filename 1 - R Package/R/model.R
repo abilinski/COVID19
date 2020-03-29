@@ -407,7 +407,6 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
 run_basic = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL, det_table=det_table){
   
   # run model
-  # params$p <- 0.04
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
                    params = params, det_table=det_table, method = "lsoda", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
@@ -428,7 +427,6 @@ run_int = function(model = model_strat, xstart, params = params,
   socially_distanced <- which( grepl("Q", compartment_names) & (! grepl("_cum", compartment_names)) )
 
 
-  params2$p<-params$p #<- 0.04
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
     y_new<-y
     if (parms_int$s != parms$s) { 
