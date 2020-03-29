@@ -20,47 +20,38 @@
 
 contact_matrix_server_module <- function(input, output, session) {
   observeEvent(input$v11, {
-    updateNumericInput(session, "v11_int", value = input$v11)
       updateNumericInput(session, "v11Q", value = input$v11 * input$e)
       updateNumericInput(session, "v11Q_int", value = input$v11 * input$e)
     })
   observeEvent(input$v12, {
-      updateNumericInput(session, "v12_int", value = input$v12)
       updateNumericInput(session, "v12Q", value = input$v12 * input$e)
       updateNumericInput(session, "v12Q_int", value = input$v12 * input$e)
     })
   observeEvent(input$v13, {
-      updateNumericInput(session, "v13_int", value = input$v13)
       updateNumericInput(session, "v13Q", value = input$v13 * input$e)
       updateNumericInput(session, "v13Q_int", value = input$v13 * input$e)
     })
   observeEvent(input$v21, {
-      updateNumericInput(session, "v21_int", value = input$v21)
       updateNumericInput(session, "v21Q", value = input$v21 * input$e)
       updateNumericInput(session, "v21Q_int", value = input$v21 * input$e)
     })
   observeEvent(input$v22, {
-      updateNumericInput(session, "v22_int", value = input$v22)
       updateNumericInput(session, "v22Q", value = input$v22 * input$e)
       updateNumericInput(session, "v22Q_int", value = input$v22 * input$e)
     })
   observeEvent(input$v23, {
-      updateNumericInput(session, "v23_int", value = input$v23)
       updateNumericInput(session, "v23Q", value = input$v23 * input$e)
       updateNumericInput(session, "v23Q_int", value = input$v23 * input$e)
     })
   observeEvent(input$v31, {
-      updateNumericInput(session, "v31_int", value = input$v31)
       updateNumericInput(session, "v31Q", value = input$v31 * input$e)
       updateNumericInput(session, "v31Q_int", value = input$v31 * input$e)
     })
   observeEvent(input$v32, {
-      updateNumericInput(session, "v32_int", value = input$v32)
       updateNumericInput(session, "v32Q", value = input$v32 * input$e)
       updateNumericInput(session, "v32Q_int", value = input$v32 * input$e)
     })
   observeEvent(input$v33, {
-      updateNumericInput(session, "v33_int", value = input$v33)
       updateNumericInput(session, "v33Q", value = input$v33 * input$e)
       updateNumericInput(session, "v33Q_int", value = input$v33 * input$e)
     })

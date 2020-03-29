@@ -45,7 +45,7 @@
 #'   - Show the users imputed parameters, like R0 and p are determined
 #'     based off the doubling time parameter td
 #' 
-#'   - Parameter Validation, making sure frc young + medium + old == 1
+#'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 #' 
 #' @seealso generate_ui runApp 
 #' 
@@ -81,7 +81,7 @@ server <- function(input, output, session) {
   param_names_base <- c(social_distancing_params, "s", "e", "p", "kappa",
     "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2", "m3","c",
     "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n",
-    "rdetecti", "rdetecta")
+    "rdetecti", "rdetecta","td")
 
   param_names_int <- paste0(param_names_base, "_int")
 
@@ -133,7 +133,13 @@ server <- function(input, output, session) {
             rep(input$rdetecti_int, (input$sim_time - input$int_time))),
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
-
+        
+        ### give warning if population doesn't add up to 1
+        validate(
+          need(input$young<=1, 'total population = 1!!'),
+          need(input$medium<=1, 'total population = 1!!'),
+          need(input$young+input$medium<=1, 'total population = 1!!')
+        )
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
                              days_out2 = NULL, model_type = run_basic, det_table = det_table) 
@@ -153,6 +159,7 @@ server <- function(input, output, session) {
             paste("parameters_base_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
+            old_vec['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
             old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
             old_vec$Scenario<-'Base'
             write.csv(old_vec, file, row.names = FALSE)
@@ -209,4 +216,17 @@ server <- function(input, output, session) {
     })
 
     callModule(contact_matrix_server_module, id = NULL)
+
+    lapply(param_names_base, function(param_name) {
+      observeEvent(input[[param_name]], {
+        param_name_int <- paste0(param_name, "_int")
+
+        if (param_name_int %in% names(input)) { 
+          updateNumericInput(inputId = param_name_int,
+            value = input[[param_name]],
+            session = session)
+        }
+        })
+    })
+
 }
