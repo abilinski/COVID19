@@ -187,4 +187,10 @@ server <- function(input, output, session) {
     })
 
     callModule(contact_matrix_server_module, id = NULL)
+
+    output$documentation_page <- renderUI({
+      shiny::withMathJax(HTML(markdown::markdownToHTML(knitr::knit(
+            system.file('documentation/app/app_documentation.Rmd', package='covid.epi'),
+            quiet=TRUE))))
+    })
 }

@@ -1,0 +1,14 @@
+---
+title: "Documentation for the Interactive Projection Tool for COVID-19 Interventions"
+author: "C-SPEC"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+```{r include_model_diagram}
+knitr::include_graphics(system.file('documentation/model_diagram/model_diagram.png',
+    package='covid.epi'))
+```
+

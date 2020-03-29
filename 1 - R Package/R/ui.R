@@ -66,8 +66,10 @@ generate_ui <- function() {
         column(6,
           plotOutput('cumulative_cases_by_symptoms')
         )
-      )
-
+      ),
+      tabPanel("Documentation",
+        uiOutput('documentation_page')
+        )
       ),
 
     # reset_inputs triggers an observeEvent in the server which takes 
