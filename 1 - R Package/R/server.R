@@ -47,6 +47,9 @@
 #' 
 #'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 #' 
+#'   - Someday we should think about caching plots: 
+#'     https://shiny.rstudio.com/articles/plot-caching.html 
+#' 
 #' @seealso generate_ui runApp 
 #' 
 #' @export
@@ -54,6 +57,20 @@ server <- function(input, output, session) {
 
   # Get the default parameter vector for the model
   default_param_vec = load_parameters() 
+ 
+  # Observed data reactive values list
+  observed_data <- reactiveValues(cases = load_SCC_time_series())
+
+  # Render santa clara county data with RHandsontable to make it editable
+  output$table <- renderRHandsontable({ 
+    rhandsontable(observed_data$cases)
+  })
+
+  # Update cases definition when user edits Rhandsontable
+  observe({
+    if (!is.null(input$table))
+      observed_data$cases <- hot_to_r(input$table)
+    })
 
   # TODO: I (Christian) think we should make sure the parameters.csv that gets 
   # loaded in *only* has parameters that we actually take as inputs. 

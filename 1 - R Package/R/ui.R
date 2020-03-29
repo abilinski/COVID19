@@ -35,6 +35,12 @@ generate_ui <- function() {
     # Plot Outcomes
 
     tabsetPanel(
+      tabPanel("Case Series Input",
+        column(12,
+          h4("Specify case series to calibrate to."),
+            rHandsontableOutput('table')
+          )
+        ),
       tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
 
       tabPanel("Comp flows", plotOutput("comp_flow")),
@@ -69,10 +75,6 @@ generate_ui <- function() {
       )
 
       ),
-
-    # reset_inputs triggers an observeEvent in the server which takes 
-    # all of the user inputs and resets them to their default values
-    actionButton("reset_inputs", "Reset All Parameters"),
 
     hr(),
     column(6,
@@ -133,7 +135,11 @@ generate_ui <- function() {
                 sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
                   max = 1, value = 1)
                 ),
-              downloadButton("download", "Download parameters")
+              downloadButton("download", "Download parameters"),
+
+              # reset_inputs triggers an observeEvent in the server which takes 
+              # all of the user inputs and resets them to their default values
+              actionButton("reset_inputs", "Reset All Parameters"),
               )
             ),
           tabPanel(

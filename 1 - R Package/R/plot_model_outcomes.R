@@ -187,8 +187,12 @@ plot_flows_by_compartment2_int <- function(out) {
 }
 
 #' Plot Fit to Observed Data
-plot_fit_to_observed_data <- function(out) {
-  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+plot_fit_to_observed_data <- function(out, 
+  observed_data = 
+    read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)) 
+{
+
+  ts = observed_data[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
     mutate(time = 1:15, Total_obs = cum_cases)
   
   out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
