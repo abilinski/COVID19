@@ -9,6 +9,14 @@ plot_flows_by_compartment <- function(out) {
   labs(x = "Time (days)", y = "", title = "Flows by compartment")
 }
 
+#' Plot Flows by Compartment for Interventions
+plot_flows_by_compartment_int <- function(out) {
+  ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)), 
+               aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) + theme_minimal() + 
+      scale_color_discrete(name = "") + 
+      labs(x = "Time (days)", y = "", title = "Flows by compartment") + scale_linetype(name ="")
+}
+
 
 #' Compute Cases from Simulation Outcomes
 compute_cases <- function(out) {
@@ -20,21 +28,49 @@ compute_cases <- function(out) {
            Ventilator = .05*Total)
 }
 
+#' Compute Cases from Simulation Outcomes - Intervention
+compute_cases_intervention <- function(out) {
+  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3, int) %>% 
+    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>% 
+    mutate(Total = sum(Infected),
+           Total_obs = sum(Detected),
+           Hospital = .17*.13*Total, ########this multipliers are different from the one used in no interventions
+           Ventilator = .05*Total) %>% ungroup()
+}
 
-#' Plot Cumulative Cases by Age and Cases Needing Advanced Care
+
+#' Plot Cumulative Cases by Age
 plot_cumulative_cases_by_age <- function(out_cases) {
   
-  plot1 <- ggplot(out_cases, aes(x = time, y = Infected, group = strat3, col = strat3)) + geom_line() +
+  ggplot(out_cases, aes(x = time, y = Infected, group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total), col = "black") + scale_linetype(guide = F) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                            title = "Cumulative cases by age")
+}
 
-  plot2 <- ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
+
+#' Plot Cumulative Cases by Age - Intervention
+plot_cumulative_cases_by_age_int <- function(out_cases) {
+  ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Cumulative cases by age")
+}
+
+#' Plot Cases Needing Advanced Care
+plot_cases_needing_advanced_care <- function(out_cases) { 
+  ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
               aes(x = time, y = value, group = var, col = var)) + geom_line() + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Cases needing advanced care")
+}
 
-  return(c(plot1, plot2))
+#' Plot Cases Needing Advanced Care - Intervention
+plot_cases_needing_advanced_care_int <- function(out_cases) {
+  ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
+              aes(x = time, y = value, group = interaction(var, int), col = var)) + geom_line(aes(lty = int)) + 
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Cases needing advanced care")
 }
 
 
@@ -52,15 +88,38 @@ plot_ratio_of_new_to_existing_cases <- function(out) {
            labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
 }
 
+ 
+#' Plot Ratio of New To Exisitng Cases - Intervention
+plot_ratio_of_new_to_existing_cases_int <- function(out) {
 
-#' Plot Cumulative Cases by Age
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% 
+    group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
+    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
+
+  ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) + 
+    theme_minimal() + scale_color_discrete(name = "") + 
+    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+}
+
+
+#' Plot Diagnosed Cumulative Cases by Age
 #' Note that these are "observed" meaning diagnosed
-plot_diagnosed_cumulative_cases_by_age <- function() {
+plot_diagnosed_cumulative_cases_by_age <- function(out_cases) {
   ggplot(out_cases, aes(x = time, y = Detected,
                           group = strat3, col = strat3)) + geom_line() +
       geom_line(aes(y = Total_obs), col = "black") +
       theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
         title = "Observed cumulative cases by age")
+}
+
+
+#' Plot Diagnosed Cumulative Cases by Age
+#' Note that these are "observed" meaning diagnosed
+plot_diagnosed_cumulative_cases_by_age_int <- function(out_cases) {
+  ggplot(out_cases, aes(x = time, y = Detected,
+                            group = interaction(strat3,int), col = strat3)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total_obs, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
 }
 
 #' Plot Deaths by Age
@@ -74,6 +133,16 @@ plot_deaths_by_age <- function(out) {
   
 }
 
+
+#' Plot Deaths by Age - Intervention
+plot_deaths_by_age_int <- function(out) {
+  out_death = out %>% filter(cum == T & comp=="D") %>% group_by(time, strat3, int) %>% 
+    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2)) %>% ungroup()
+  ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
+}
+
 #' Plot cases by symptom status
 plot_cases_by_symptom_status <- function(out) {
   out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2) %>% 
@@ -84,12 +153,35 @@ plot_cases_by_symptom_status <- function(out) {
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
 }
 
+
+#' Plot cases by symptom status - Intervention
+plot_cases_by_symptom_status_int <- function(out) {
+
+  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2, int) %>% 
+    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
+
+  ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+}
+
 #' Plot Flows by Compartment Version 2
 #' 
 #' Not sure what the difference between this and plot_flows_by_compartment is
 #' 
 plot_flows_by_compartment2 <- function(out) {
   ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = comp, col = comp2)) + geom_line() + 
+    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
+    labs(x = "Time (days)", y = "", title = "Flows by compartment")
+}
+
+
+#' Plot Flows by Compartment Version 2 - Intervention
+#' 
+#' Not sure what the difference between this and plot_flows_by_compartment is
+#' 
+plot_flows_by_compartment2_int <- function(out) {
+  ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + geom_line(aes(lty = int)) + 
     facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
     labs(x = "Time (days)", y = "", title = "Flows by compartment")
 }
@@ -106,6 +198,28 @@ plot_fit_to_observed_data <- function(out) {
                                                              title = "Calibration") + 
     scale_linetype(name = "")
 }
+
+
+#' Plot Fit to Observed Data - Intervention 
+plot_fit_to_observed_data_int <- function(out_cases) {
+
+  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
+    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+
+  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
+  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+
+  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
+  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
+
+  ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
+                                                             title = "Calibration") + 
+    scale_linetype(name = "")
+}
+
+#' Format Model Outcomes for 
 
 ############## POST-PROCESSING-------------------
 #' Make Plots
@@ -161,9 +275,8 @@ make_plots = function(test, params){
   out_cases <- compute_cases(out)
 
   # Cases by age
-  cases_and_those_needing_advanced_care_plots <- plot_cumulative_cases_by_age(out_cases)
-  b <- cases_and_those_needing_advanced_care_plots[[1]]
-  b2 <- cases_and_those_needing_advanced_care_plots[[2]]
+  b <- plot_cumulative_cases_by_age(out_cases)
+  b2 <- plot_cases_needing_advanced_care(out_cases)
   
   #  Ratio of Daily New Cases to Existing Cases
   c <- plot_ratio_of_new_to_existing_cases(out)
@@ -181,7 +294,7 @@ make_plots = function(test, params){
   g <- plot_flows_by_compartment2(out)
   
   # Check fit
-  h <- plot_fit_to_observed_data(out)
+  h <- plot_fit_to_observed_data(out_cases)
   
   return(list(a,b,c,d,e,f,g,h,b2))
 }
@@ -270,73 +383,30 @@ make_plots_int = function(test, params, test_int, params_int){
   out_age = out %>% group_by(comp, cum) %>% summarize(sum(value)) %>% ungroup()
   
   # Flows by compartment (SEAIR)
-  a = ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)), 
-             aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) + theme_minimal() + 
-    scale_color_discrete(name = "") + 
-    labs(x = "Time (days)", y = "", title = "Flows by compartment") + scale_linetype(name ="")
+  a = plot_flows_by_compartment_int(out)
   
   # Cases by age
-  out_cases = out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3, int) %>% 
-    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>% 
-    mutate(Total = sum(Infected),
-           Total_obs = sum(Detected),
-           Hospital = .17*.13*Total, ########this multipliers are different from the one used in no interventions
-           Ventilator = .05*Total) %>% ungroup()
+  out_cases <- compute_cases_intervention(out)
+  b <- plot_cumulative_cases_by_age_int(out_cases)
+  b2 <- plot_cases_needing_advanced_care_int(out_cases)
   
-  b = ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                             title = "Cumulative cases by age")
-  b2 = ggplot(out_cases %>% gather(var, value, Hospital, Ventilator), 
-              aes(x = time, y = value, group = interaction(var, int), col = var)) + geom_line(aes(lty = int)) + 
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                             title = "Cases needing advanced care")
-  
-  # Effective R
-  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>% 
-    group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
-    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
-  c = ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) + 
-    theme_minimal() + scale_color_discrete(name = "") + 
-    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
-  
+  # Ratio of New cases to existing cases
+  c <- plot_ratio_of_new_to_existing_cases_int(out)
   
   # Observed cases by age
-  d = ggplot(out_cases, aes(x = time, y = Detected,
-                            group = interaction(strat3,int), col = strat3)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total_obs, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
-  
+  d <- plot_diagnosed_cumulative_cases_by_age_int(out_cases)
   
   # Deaths by age
-  out_death = out %>% filter(cum == T & comp=="D") %>% group_by(time, strat3, int) %>% 
-    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2)) %>% ungroup()
-  e = ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
-  
+  e <- plot_deaths_by_age_int(out)
   
   # Cases by symptoms
-  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2, int) %>% 
-    summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
-  f = ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+  f <- plot_cases_by_symptom_status_int(out)
   
   # Flows by compartment (devided by strata and quarentine)
-  g = ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + geom_line(aes(lty = int)) + 
-    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") + 
-    labs(x = "Time (days)", y = "", title = "Flows by compartment")
-  
-  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
-    mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
-  h = ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
-                                                             title = "Calibration") + 
-    scale_linetype(name = "")
+  g <- plot_flows_by_compartment2_int(out)
+
+  # Check fit 
+  h <- plot_fit_to_observed_data_int(out_cases)
   
   return(list(a,b,c,d,e,f,g,h,b2))
 }
