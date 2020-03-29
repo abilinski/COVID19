@@ -30,6 +30,11 @@ server <- function(input, output, session) {
           rdetecti = rep(input$rdetecti, input$sim_time),
           rdetecta = rep(input$rdetecta, input$sim_time))
 
+        det_table_int <- data.frame(
+          time = 1:(input$sim_time),
+          rdetecti = c(rep(input$rdetecti, input$int_time), rep(input$rdetecti_int, (input$sim_time - input$int_time))),
+          rdetecta = c(rep(input$rdetecta, input$int_time), rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
         # print(det_table)
         # print(input$rdetecti)
         
@@ -38,7 +43,7 @@ server <- function(input, output, session) {
                              days_out2 = NULL, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
         test_int = run_param_vec(params = old_vec, params2 = param_vec, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table)
+                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
         ### make plots
         g = make_plots_int(test, params = old_vec, test_int, params_int = param_vec)
 
