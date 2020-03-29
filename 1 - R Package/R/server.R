@@ -43,7 +43,7 @@
 #'     so varying s should have no effect on simulation outcomes.
 #' 
 #'   - Show the users imputed parameters, like R0 and p are determined
-#'     based off the doubling time parameter td
+#'     based off the doubling time parameter td [done!]
 #' 
 #'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 #' 
@@ -108,8 +108,19 @@ server <- function(input, output, session) {
     param_vec_int$Scenario<-'Intervention'
     return(param_vec_int)
   })
-
-
+  
+  ### calculate R0 and p
+  R0_p_value <- reactive({
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
+    R0 = as.numeric(calc_R0_from_td(td=param_vec['td'],vec=param_vec))
+    p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
+    print (R0)
+    print(p)
+    return (c(R0, p))
+  })
+  
   # Model Plots 
   # 
   # Use the user input to run the model for the base case and intervention.
@@ -223,7 +234,7 @@ server <- function(input, output, session) {
     
     # Make the td, R0, p in intervention same as base scenario in UI
     observeEvent(c(input$td), {
-      updateSliderInput(session, 'td_int', value = input$td)
+      updateNumericInput(session, 'td_int', value = input$td)
     })
     
     # Make the alphas, obs, n in intervention same as base scenario in UI
@@ -240,15 +251,33 @@ server <- function(input, output, session) {
     })
     
     observeEvent(c(input$obs), {
-      updateSliderInput(session, 'obs_int', value = input$obs)
+      updateNumericInput(session, 'obs_int', value = input$obs)
     })
     
     observeEvent(c(input$n), {
-      updateSliderInput(session, 'n_int', value = input$n)
+      updateNumericInput(session, 'n_int', value = input$n)
     })
     
+    # show the corresponding p and R0 when entering td
+    observeEvent(c(input$td), {
+      R0 = R0_p_value()[1]
+      updateNumericInput(session, 'R0', value = R0)
+    })
     
+    observeEvent(c(input$td), {
+      p = R0_p_value()[2]
+      updateNumericInput(session, 'p', value = p)
+    })
     
+    observeEvent(c(input$td), {
+      R0 = R0_p_value()[1]
+      updateNumericInput(session, 'R0_int', value = R0)
+    })
+    
+    observeEvent(c(input$td), {
+      R0 = R0_p_value()[2]
+      updateNumericInput(session, 'p_int', value = R0)
+    })
 
     callModule(contact_matrix_server_module, id = NULL)
 
