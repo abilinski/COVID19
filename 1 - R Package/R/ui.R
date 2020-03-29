@@ -81,7 +81,9 @@ generate_ui <- function() {
         fluidRow(
         tabsetPanel(
           tabPanel(
-            title = "transmission params",
+            title = "transmission parameters",
+            tags$div(
+              style = 'padding-top:12pt',
               column(4,
                 numericInput("sim_time", label="simulation time (days)", value=30),
                 # we want to show r0 and td from calculation later
@@ -132,10 +134,14 @@ generate_ui <- function() {
                   max = 1, value = 1)
                 ),
               downloadButton("download", "Download parameters")
+              )
             ),
           tabPanel(
             title = "contact matrix",
-            contact_matrix_ui_for_base_case(param_vec)
+            tags$div(
+              style = 'padding-top:12pt',
+              contact_matrix_ui_for_base_case(param_vec)
+            )
           )
           )
         )
@@ -149,6 +155,8 @@ generate_ui <- function() {
           tabsetPanel(
             tabPanel(
               title = "transmission parameters",
+              tags$div(
+                style = 'padding-top:12pt',
               column(4,
                 numericInput("int_time", label="intervention starts at", value=15),
                 # we want to show r0 and td from calculation later
@@ -197,12 +205,16 @@ generate_ui <- function() {
                   max = 1, value = 1),
                 sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
                   max = 1, value = 1)
-                ),
+                )
+              ),
               downloadButton("download_int", "Download parameters")
             ),
           tabPanel(
-            title = "contact mx",
-            contact_matrix_ui_for_intervention(param_vec)
+            title = "contact matrix",
+              tags$div(
+                style = 'padding-top:12pt',
+                contact_matrix_ui_for_intervention(param_vec)
+              )
           )
           )
         )
