@@ -711,8 +711,8 @@ run_int = function(model = model_strat, xstart, params = params,
     y_new<-y
 
     if (parms_int$s != parms$s) { 
-      y_new[socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
-      y_new[not_socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
+      y_new[not_socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
+      y_new[socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
     }
     return(y_new)
   }
