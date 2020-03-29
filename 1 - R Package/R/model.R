@@ -582,7 +582,7 @@ run_basic = function(model, xstart, params = params, params2 = NULL, days_out1, 
   
   # run model
   test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, method = "ode45", parms_int = params , time_int = 0)
+                   params = params, method = "lsoda", parms_int = params , time_int = 0)
   names(test)[2:ncol(test)] = names(xstart)
   
   return(test)
@@ -598,7 +598,7 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   params2$p<-params$p
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int){
     y_new<-y
-    if (parms_int$p != parms$p) { 
+    if (parms_int$s != parms$s) { 
       y_new[1:15]<-(1-parms_int$s)*(y[1:15]+y[16:30])
       y_new[16:30]<-parms_int$s*(y[1:15]+y[16:30])
     }
@@ -606,7 +606,7 @@ run_int = function(model = model_strat, xstart, params = params, params2 = NULL,
   }
   
   # run intervention model
-  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "ode45", events=list(func = NULL, time =days_out1), parms_int=params2, time_int=days_out1)
+  test = run_model(model_strat, xstart = as.numeric(xstart), times = c(1:days_out2), params, method = "lsoda", events=list(func = NULL, time =days_out1), parms_int=params2, time_int=days_out1)
   names(test)[2:ncol(test)] = names(xstart)
   return(test)
   
