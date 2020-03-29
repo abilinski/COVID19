@@ -710,7 +710,7 @@ run_int = function(model = model_strat, xstart, params = params,
   eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
     y_new<-y
 
-    if (parms_int$p != parms$p) { 
+    if (parms_int$s != parms$s) { 
       y_new[socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
       y_new[not_socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
     }
