@@ -23,7 +23,7 @@
 #' 
 #' Future directions in progress include: 
 #' 
-#'   - Adding documentation 
+#'   - Adding documentation [started on branch shiny_documentation_page]
 #' 
 #'   - Adding Calibration to User-Uploaded Case Series
 #' 
@@ -35,6 +35,9 @@
 #'     when the user updates a bunch of parameters really quickly,
 #'     when they likely wouldn't have wanted the model to run 
 #'     in between each parameter update anyway. 
+#' 
+#'   - Show the users imputed parameters, like R0 and p are determined
+#'     based off the doubling time parameter td
 #' 
 #' @seealso generate_ui runApp 
 #' 
