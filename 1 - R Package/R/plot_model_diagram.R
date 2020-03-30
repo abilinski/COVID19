@@ -5,7 +5,7 @@
 #' 
 #' @importFrom DiagrammeR grViz
 #' @export
-render_model_diagram <- function() {
+plot_model_diagram <- function() {
 
   grViz("
     digraph {
@@ -33,8 +33,8 @@ render_model_diagram <- function() {
     UI->R [label = '(1-m)γ']
     DA->R [label = 'γ']
     DI->R [label = '(1-m)γ']
-    UI->D [label = 'μω']
-    DI->D [label = 'μω']
+    UI->D [label = 'mω']
+    DI->D [label = 'mω']
 
     }
     ")
