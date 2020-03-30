@@ -195,7 +195,7 @@ server <- function(input, output, session) {
     popsizes_filtered <- popsizes %>% filter(state == state_names[[input$state_selected]])
 
     updateNumericInput(session, 'n', 
-      value = popsizes_filtered[['popsize']][[1]])
+      value = popsizes_filtered[[2]][[1]])
 
   })
   
@@ -271,18 +271,18 @@ server <- function(input, output, session) {
     }) 
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlot({ model_plots()[[7]] })
+    output$comp_flow<- renderPlotly({ model_plots()[[7]] })
     
     output$cumulative_infections_by_age <- renderPlotly({ model_plots()[[2]] })
-    output$cumulative_diagnosed_by_age <- renderPlot({ model_plots()[[4]] })
+    output$cumulative_diagnosed_by_age <- renderPlotly({ model_plots()[[4]] })
     
     ## output for Death & New case ratio tab
-    output$deaths_by_age <- renderPlot({ model_plots()[[5]] })
-    output$effective_reproductive_number <- renderPlot({ model_plots()[[3]] })
+    output$deaths_by_age <- renderPlotly({ model_plots()[[5]] })
+    output$effective_reproductive_number <- renderPlotly({ model_plots()[[3]] })
     
     ## output for Advanced care & Symptoms ratio tab
-    output$cases_needing_advanced_care <- renderPlot({ model_plots()[[9]] })
-    output$cumulative_cases_by_symptoms <- renderPlot({ model_plots()[[6]] })
+    output$cases_needing_advanced_care <- renderPlotly({ model_plots()[[9]] })
+    output$cumulative_cases_by_symptoms <- renderPlotly({ model_plots()[[6]] })
 
     # if the user preses the Reset All Parameters actionButton, use the
     # shinyjs::reset function to reset all parameters to their default values. 
