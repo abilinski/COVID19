@@ -63,14 +63,19 @@ server <- function(input, output, session) {
 
   # Render santa clara county data with RHandsontable to make it editable
   output$table <- renderRHandsontable({ 
-    rhandsontable(observed_data$cases)
+    observed_data$cases %>% 
+      mutate(day = 1:nrow(.)) %>% 
+    rhandsontable() %>% 
+      hot_col(col = "day", readOnly = TRUE)
   })
 
   # Update cases definition when user edits Rhandsontable
   observe({
-    if (!is.null(input$table))
+    if (!is.null(input$table)) { 
       observed_data$cases <- hot_to_r(input$table)
+    }
     })
+
 
   # TODO: I (Christian) think we should make sure the parameters.csv that gets 
   # loaded in *only* has parameters that we actually take as inputs. 
@@ -103,6 +108,14 @@ server <- function(input, output, session) {
   param_names_int <- paste0(param_names_base, "_int")
 
   param_vec_reactive <- reactive({
+
+    ### give warning if population doesn't add up to 1
+    validate(
+      need(input$young<=1, 'young + medium + old must be equal to 1'),
+      need(input$medium<=1, 'young + medium + old must be equal to 1'),
+      need(input$young+input$medium<=1, 'young + medium + old must be equal to 1')
+    )
+
     ### update the params using inputs
     user_inputs<-c(unlist(reactiveValuesToList(input)))
     param_vec <- load_parameters()
@@ -135,6 +148,37 @@ server <- function(input, output, session) {
     p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
     return (c(R0, p))
   })
+
+  format_model_sims <- reactive({
+
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
+
+    det_table <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = rep(input$rdetecti, input$sim_time),
+      rdetecta = rep(input$rdetecta, input$sim_time))
+
+    det_table_int <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = c(rep(input$rdetecti, input$int_time), 
+        rep(input$rdetecti_int, (input$sim_time - input$int_time))),
+      rdetecta = c(rep(input$rdetecta, input$int_time), 
+        rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
+        ### run model without intervention
+        simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
+                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
+        ### run intervention halfway
+        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
+                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
+
+    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
+  })
+
+  format_model_sims_with_cases <- reactive({
+    compute_cases_intervention(format_model_sims())
+  })
   
   # Model Plots 
   # 
@@ -160,12 +204,6 @@ server <- function(input, output, session) {
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
         
-        ### give warning if population doesn't add up to 1
-        validate(
-          need(input$young<=1, 'total population = 1!!'),
-          need(input$medium<=1, 'total population = 1!!'),
-          need(input$young+input$medium<=1, 'total population = 1!!')
-        )
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
                              days_out2 = NULL, model_type = run_basic, det_table = det_table) 
@@ -207,7 +245,14 @@ server <- function(input, output, session) {
     )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ model_plots()[[8]] })
+    output$fit <- renderPlot({ 
+
+      print(hot_to_r(input$table))
+
+      plot_fit_to_observed_data_int(
+        format_model_sims_with_cases(),
+        observed_data = hot_to_r(input$table)) 
+    }) # model_plots()[[8]] })
     
     ## output for Comp flows tab
     output$comp_flow<- renderPlot({ model_plots()[[7]] })

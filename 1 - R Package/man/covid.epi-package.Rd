@@ -9,6 +9,21 @@
 What the package does (one paragraph).
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com}
+\strong{Maintainer}: Alyssa Bilinski \email{abilinski@g.harvard.edu}
+
+Authors:
+\itemize{
+  \item Christian Testa \email{ctesta@hsph.harvard.edu}
+  \item Yu-Han Kao \email{yu-han.kao@yale.edu}
+  \item Lin Zhu \email{linzhu1@stanford.edu}
+  \item Kayoko Shioda \email{kayoko.shioda@yale.edu}
+  \item Ruthie Bierger \email{ruthie.birger@yale.edu}
+}
+
+Other contributors:
+\itemize{
+  \item Joshua Salomon \email{salomon1@stanford.edu} [correspondent]
+  \item Meagan Fitzpatrick \email{meagan.fitzpatrick@som.umaryland.edu} [correspondent]
+}
 
 }
