@@ -53,3 +53,11 @@ plot_model_diagram <- function() {
 export_model_diagram_to_pdf <- function(output_file) {
   plot_model_diagram() %>% export_svg %>% charToRaw %>% rsvg_pdf(output_file)
 }
+
+
+#' Render the model diagram to a PNG file we can give users
+#' @import DiagrammeRsvg rsvg
+export_model_diagram_to_png <- function(output_file) {
+  plot_model_diagram() %>% export_svg %>% charToRaw %>% rsvg_png(output_file)
+}
+

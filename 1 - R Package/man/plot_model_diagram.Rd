@@ -7,5 +7,15 @@
 plot_model_diagram()
 }
 \description{
-Function that renders a model diagram
+grViz from DiagrammeR returns an SVG diagram based on the user input provided.
+}
+\details{
+It also provides a clean syntax to make sure that we will be able to update the 
+model diagram easily in the future if needed.
+
+This is useful for rendering in our Shiny app too, as an SVG is lighter than an 
+image file and will never have compression artifacts.
+
+Documentation for grViz here: 
+http://rich-iannone.github.io/DiagrammeR/graphviz_and_mermaid.html
 }
