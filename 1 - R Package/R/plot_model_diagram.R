@@ -1,10 +1,18 @@
 
 #' Function that renders a model diagram
 #'
+#' grViz from DiagrammeR returns an SVG diagram based on the user input provided.
 #' 
+#' It also provides a clean syntax to make sure that we will be able to update the 
+#' model diagram easily in the future if needed. 
+#' 
+#' This is useful for rendering in our Shiny app too, as an SVG is lighter than an 
+#' image file and will never have compression artifacts.
+#' 
+#' Documentation for grViz here: 
+#' http://rich-iannone.github.io/DiagrammeR/graphviz_and_mermaid.html
 #' 
 #' @importFrom DiagrammeR grViz
-#' @export
 plot_model_diagram <- function() {
 
   grViz("
@@ -40,4 +48,8 @@ plot_model_diagram <- function() {
     ")
 }
 
-
+#' Render the model diagram to a PDF file we can give users
+#' @import DiagrammeRsvg rsvg
+export_model_diagram_to_pdf <- function(output_file) {
+  plot_model_diagram() %>% export_svg %>% charToRaw %>% rsvg_pdf(output_file)
+}
