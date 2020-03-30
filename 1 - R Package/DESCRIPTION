@@ -26,7 +26,8 @@ Imports:
   rhandsontable,
   shiny,
   shinyjs,
-  tidyr
+  tidyr,
+  XML
 RoxygenNote: 6.1.1
 Suggests: 
     testthat
