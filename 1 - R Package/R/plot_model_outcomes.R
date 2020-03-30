@@ -214,7 +214,7 @@ plot_fit_to_observed_data_int <- function(out_cases,
   ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>% 
     rename(time = day)
 
-  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+5) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
+  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
