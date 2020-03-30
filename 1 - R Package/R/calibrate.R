@@ -41,7 +41,9 @@ model_loss_function <- function(params, observed_data) {
 
   sse <- sum(
     # weight towards most recent data points most
-    1:nrow(merge_df)/nrow(merge_df) * (merge_df$observed_cumulative_cases - merge_df$model_diagnosed_cumulative_cases)^2
+    1:nrow(merge_df)/nrow(merge_df) * 
+      # squared error
+      (merge_df$observed_cumulative_cases - merge_df$model_diagnosed_cumulative_cases)^2
     )
 
   return(sse)
@@ -61,7 +63,7 @@ fit_model <- function(params, observed_data) {
 
   loss_function <- make_loss_function(params, observed_data)
 
-  variables <- c(td = .1, obs = 100)
+  variables <- c(td = 2.5, obs = 100)
 
   optim(par = variables, fn = loss_function, method = 'L-BFGS-B',
     lower = c(0, 0), upper = c(1, Inf))

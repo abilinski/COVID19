@@ -25,7 +25,7 @@
 #' 
 #'   - Adding documentation [started on branch shiny_documentation_page]
 #' 
-#'   - Adding Calibration to User-Uploaded Case Series
+#'   - Improve Calibration to User-Uploaded Case Series
 #' 
 #'   - More Comprehensive User Downloads: 
 #'     - Parameters Downloads
@@ -41,11 +41,6 @@
 #'     outcomes from when s is in (0,1).  We would expect e = 1 implies 
 #'     socially distanced contact matrix == not socially distanced contact matrix,
 #'     so varying s should have no effect on simulation outcomes.
-#' 
-#'   - Show the users imputed parameters, like R0 and p are determined
-#'     based off the doubling time parameter td [done!]
-#' 
-#'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 #' 
 #'   - Someday we should think about caching plots: 
 #'     https://shiny.rstudio.com/articles/plot-caching.html 
