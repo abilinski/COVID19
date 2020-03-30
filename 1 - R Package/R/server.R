@@ -187,8 +187,16 @@ server <- function(input, output, session) {
     compute_cases_intervention(format_model_sims())
   })
 
+  popsizes <- load_population_sizes() 
+
   observeEvent(input$state_selected, {
     observed_data$cases <- filter_states_data(input$state_selected)
+
+    popsizes_filtered <- popsizes %>% filter(state == state_names[[input$state_selected]])
+
+    updateNumericInput(session, 'n', 
+      value = popsizes_filtered[['popsize']][[1]])
+
   })
   
   # Model Plots 
