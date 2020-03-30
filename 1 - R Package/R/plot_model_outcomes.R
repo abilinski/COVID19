@@ -74,7 +74,7 @@ plot_cases_needing_advanced_care_int <- function(out_cases) {
 }
 
 
-#' Plot Ratio of New To Exisitng Cases
+#' Plot Ratio of New To Existing Cases
 plot_ratio_of_new_to_existing_cases <- function(out) {
 
   out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I", "UA", "DA", "A")) %>% 
@@ -341,6 +341,63 @@ format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcom
   return(out)
 }
 
+# Plot hospital bed needs over time along with capacity
+hosp_time_plots <- function(out_cases,beds,num_scens=6,hosp_time=10,hosp_pc=.05, R0, SDpc){
+  #input output from run_vecs
+  out_cases= out_cases %>% filter(comp=="I") #data.frame(out_cases)
+  # print(hosp_time)
+  # print(num_scens)
+  #names(out_cases)[1]<-"time_col"
+  #head(out_cases)
+  out_cases$hosp_beds = out_cases$value
+  out_cases$hosp_beds[out_cases$time>hosp_time]=diff(out_cases$value,num_scens*hosp_time)
+  #calculate hospital beds
+  out_cases$hosp_beds = hosp_pc*out_cases$hosp_beds
+  #get mean, min and max cases
+  hosp_cases<-out_cases %>% group_by(time) %>% summarize(mean = mean(hosp_beds),min = min(hosp_beds), max=max(hosp_beds))
+  # get color values for  max > beds, mean > beds, min >beds
+  hosp_cases$Capacity <-"Not Exceeded"
+  hosp_cases$Capacity[hosp_cases$max>beds]<-"Possibly Exceeded"
+  hosp_cases$Capacity[hosp_cases$mean>beds]<-"Likely Exceeded"
+  hosp_cases$Capacity[hosp_cases$min>beds]<-"Definitely Exceeded"
+  hosp_cases$Capacity<-as.factor(hosp_cases$Capacity)
+  pal <- c("red", "orange", "forestgreen", "yellow"  )
+  #hosp_cases = cases_means*hosp_pc
+  print(ggplot(hosp_cases,aes(time,mean, fill=Capacity))+geom_bar(stat="identity")+geom_errorbar(aes(ymin=min, ymax=max))+
+          theme_minimal() + scale_fill_manual(values = pal) + geom_hline(yintercept =beds)  + 
+          labs(x = "Time (days)", y = "") +
+          theme(strip.text = element_text(size=12, face="bold")) +
+          geom_text(aes(7,beds,label = "Available\n Hospital Beds", vjust = -.1)) +
+          ggtitle("Projected Hospital Bed Requirements"))
+  ggsave(paste0("hosp_fig.pdf"),width=6.5, height=3.5)
+  
+}
+
+library(data.table)
+#calculate which day hospital beds exceeds count
+#calculate difference with and without SD
+#takes as inputs the outputs of run_vecs for scenarios with and without social distancing
+hosp_days_plots <-function(no_sd_mat,sd_mat,beds,num_scens=6,hosp_time=10,hosp_pc=.05){
+  #turn time series into datatables
+  setDT(no_sd_mat)
+  setDT(sd_mat)
+  #Calculate cumulative cases with 10 day lag to account for discharges
+  no_sd_mat$hosp_beds = no_sd_mat$value
+  no_sd_mat$hosp_beds[no_sd_mat$time>hosp_time]=diff(no_sd_mat$value,num_scens*hosp_time)
+  no_sd_mat$hosp_beds = hosp_pc*no_sd_mat$hosp_beds
+  sd_mat$hosp_beds = sd_mat$value
+  sd_mat$hosp_beds[sd_mat$time>hosp_time]=diff(sd_mat$value,num_scens*hosp_time)
+  sd_mat$hosp_beds = hosp_pc*sd_mat$hosp_beds
+  #get first day that beds go over capacity for no sd and sd
+  
+  no_sd_mat<-no_sd_mat[no_sd_mat$hosp_beds >beds,.SD[which.min(time)], by = scenario]
+  sd_mat<-sd_mat[sd_mat$hosp_beds >beds,.SD[which.min(time)], by = scenario]
+  #take difference in days between sd and no sd for scenarios where matrix exists for sd
+  hosp_days <-sd_mat$time -no_sd_mat[no_sd_mat$scenario %in% sd_mat$scenario,'time']
+  pdf(paste0("ExtraBedDays.pdf"),width=6.5, height=3.5)
+  boxplot(hosp_days,main="Extra Days before Exceeding Hospital Bed Capacity", ylab ="Days")
+  dev.off()
+}
 ############## POST-PROCESSING-------------------
 #' Make Plots
 #' 
