@@ -43,7 +43,7 @@ generate_ui <- function() {
           actionButton('calibrateButton', "Calibrate to Observed Data")
           )
         ),
-      tabPanel("Fits", plotlyOutput("fit"), p("*Currently only fit to data for 15 days")),
+      tabPanel("Fits", plotlyOutput("fit")),
 
       tabPanel("Comp flows", plotlyOutput("comp_flow")),
 
