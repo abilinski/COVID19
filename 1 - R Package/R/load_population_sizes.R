@@ -1,4 +1,5 @@
 
+#' @importFrom XML readHTMLTable
 load_population_sizes <- function() {
 
   data_source <- system.file(
