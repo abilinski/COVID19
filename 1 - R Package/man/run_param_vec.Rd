@@ -5,7 +5,8 @@
 \title{Run Model from Parameter Vector}
 \usage{
 run_param_vec(params, params2 = NULL, p.adj = NA, obs.adj = NA,
-  days_out1 = 30, days_out2 = NULL, model_type = run_basic)
+  days_out1 = 30, days_out2 = NULL, model_type = run_basic,
+  det_table)
 }
 \description{
 Run Model from Parameter Vector

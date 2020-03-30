@@ -4,7 +4,8 @@
 \alias{model_strat}
 \title{Stratified Model}
 \usage{
-model_strat(t, x, parms)
+model_strat(t, x, parms, parms_int, time_int, det_input_method = "input",
+  det_table = NULL)
 }
 \description{
 Stratified Model

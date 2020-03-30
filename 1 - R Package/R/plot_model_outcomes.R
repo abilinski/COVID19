@@ -187,13 +187,17 @@ plot_flows_by_compartment2_int <- function(out) {
 }
 
 #' Plot Fit to Observed Data
-plot_fit_to_observed_data <- function(out) {
-  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
-    mutate(time = 1:15, Total_obs = cum_cases)
+plot_fit_to_observed_data <- function(out, 
+  observed_data = 
+    load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)) 
+{
+  ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
   
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
   
-  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
+  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + 
+    geom_line() +
+    geom_point(data = filter(out_fit, id = 'Observed')) + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
@@ -201,17 +205,16 @@ plot_fit_to_observed_data <- function(out) {
 
 
 #' Plot Fit to Observed Data - Intervention 
-plot_fit_to_observed_data_int <- function(out_cases) {
+plot_fit_to_observed_data_int <- function(out_cases,
+  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+  ) {
 
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
-    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+  # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>% 
+    rename(time = day)
 
-  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
-
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
-  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
+  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 

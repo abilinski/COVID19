@@ -7,5 +7,56 @@
 server(input, output, session)
 }
 \description{
-Define server logic required to run the model and display the results
+This shiny server allows users to interact with a deterministic
+compartmental model of covid-19 transmission fit to observed case data.
+}
+\details{
+Parameters are exposed so that users may edit the base case and additionally
+define an intervention starting at a given time with different parameters.
+In particular, users can define interventions that simulate the effects of
+social distancing measures among others.
+
+Learn more about Shiny here: https://shiny.rstudio.com/
+
+To run this application, after installing/loading this package, call the
+covid.epi::runApp() function.
+
+Two critical technologies we make use of here (outside of the underlying model, 
+specifically in our shiny app) are shinyjs and shiny modules.
+
+Read more about them here: 
+https://github.com/daattali/shinyjs
+https://shiny.rstudio.com/articles/modules.html
+
+Future directions in progress include:
+
+- Adding documentation [started on branch shiny_documentation_page]
+
+- Adding Calibration to User-Uploaded Case Series
+
+- More Comprehensive User Downloads: 
+    - Parameters Downloads
+    - Download an Rmarkdown Generated Report 
+    - Downloadable Version of In-App Report Generated
+
+- A "Run Model" button will prevent the model from lagging
+    when the user updates a bunch of parameters really quickly,
+    when they likely wouldn't have wanted the model to run 
+    in between each parameter update anyway.
+
+- Fix issue where when e = 1, s = 0 or s = 1  have different simulation 
+    outcomes from when s is in (0,1).  We would expect e = 1 implies 
+    socially distanced contact matrix == not socially distanced contact matrix,
+    so varying s should have no effect on simulation outcomes.
+
+- Show the users imputed parameters, like R0 and p are determined
+    based off the doubling time parameter td [done!]
+
+- Parameter Validation, making sure frc young + medium + old == 1 [done!]
+
+- Someday we should think about caching plots: 
+    https://shiny.rstudio.com/articles/plot-caching.html
+}
+\seealso{
+generate_ui runApp
 }

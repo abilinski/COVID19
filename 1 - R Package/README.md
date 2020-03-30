@@ -39,9 +39,17 @@ run `runApp()` (or to be extra specific, `covid.epi::runApp()`) and this will
 launch the Shiny app we have been building that allows users to simulate 
 intervention scenarios for the COVID19 epidemic.
 
+# Documentation and Tests
+Read our R packages documentation by running `?covid.epi` in your R console. 
+
+We have a series of tests which can be run to confirm model diagnostics are 
+working properly. These tests are available to run by using `devtools::test()`,
+making use of the `testthat` package. 
+
 # Read More (for Developers)
 
-Learn more about how to use R packages to their maximum potential here: http://r-pkgs.had.co.nz/
+Learn more about how to use R packages to their maximum potential here:
+http://r-pkgs.had.co.nz/
 
 Learn more about Shiny here: https://shiny.rstudio.com/
 
