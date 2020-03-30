@@ -4,8 +4,8 @@
 \alias{run_basic}
 \title{Run Basic Model}
 \usage{
-run_basic(model, xstart, params = params, params2 = NULL, days_out1,
-  days_out2 = NULL)
+run_basic(model = model_strat, xstart, params = params,
+  params2 = NULL, days_out1, days_out2 = NULL, det_table = det_table)
 }
 \description{
 Run Basic Model

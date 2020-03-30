@@ -23,18 +23,27 @@
 #' 
 #' Future directions in progress include: 
 #' 
-#'   - Adding documentation 
+#'   - Adding documentation [started on branch shiny_documentation_page]
 #' 
-#'   - Adding Calibration to User-Uploaded Case Series
+#'   - Improve Calibration to User-Uploaded Case Series
 #' 
 #'   - More Comprehensive User Downloads: 
 #'     - Parameters Downloads
 #'     - Download an Rmarkdown Generated Report 
+#'     - Downloadable Version of In-App Report Generated
 #' 
 #'   - A "Run Model" button will prevent the model from lagging
 #'     when the user updates a bunch of parameters really quickly,
 #'     when they likely wouldn't have wanted the model to run 
 #'     in between each parameter update anyway. 
+#'
+#'   - Fix issue where when e = 1, s = 0 or s = 1  have different simulation 
+#'     outcomes from when s is in (0,1).  We would expect e = 1 implies 
+#'     socially distanced contact matrix == not socially distanced contact matrix,
+#'     so varying s should have no effect on simulation outcomes.
+#' 
+#'   - Someday we should think about caching plots: 
+#'     https://shiny.rstudio.com/articles/plot-caching.html 
 #' 
 #' @seealso generate_ui runApp 
 #' 
@@ -43,6 +52,34 @@ server <- function(input, output, session) {
 
   # Get the default parameter vector for the model
   default_param_vec = load_parameters() 
+ 
+  # Observed data reactive values list
+  observed_data <- reactiveValues(cases = load_SCC_time_series())
+
+  # Render santa clara county data with RHandsontable to make it editable
+  output$table <- renderRHandsontable({ 
+    observed_data$cases %>% 
+      mutate(day = 1:nrow(.)) %>% 
+    rhandsontable() %>% 
+      hot_col(col = "day", readOnly = TRUE)
+  })
+
+  # Update cases definition when user edits Rhandsontable
+  observe({
+    if (!is.null(input$table)) { 
+      observed_data$cases <- hot_to_r(input$table)
+    }
+    })
+
+  fit_param_vec <- reactiveValues()
+
+  observeEvent(input$calibrateButton, {
+      withProgress(message = 'Optimizing Model Fit', {
+        fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
+        updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
+        updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
+      })
+    })
 
   # TODO: I (Christian) think we should make sure the parameters.csv that gets 
   # loaded in *only* has parameters that we actually take as inputs. 
@@ -69,11 +106,96 @@ server <- function(input, output, session) {
 
   param_names_base <- c(social_distancing_params, "s", "e", "p", "kappa",
     "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2", "m3","c",
-    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n")
+    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n",
+    "rdetecti", "rdetecta","td")
 
   param_names_int <- paste0(param_names_base, "_int")
 
+  param_vec_reactive <- reactive({
 
+    ### give warning if population doesn't add up to 1
+    validate(
+      need(input$young<=1, 'young + medium + old must be equal to 1'),
+      need(input$medium<=1, 'young + medium + old must be equal to 1'),
+      need(input$young+input$medium<=1, 'young + medium + old must be equal to 1')
+    )
+
+    ### update the params using inputs
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec <- load_parameters()
+    param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
+    param_vec$Scenario<-'Base'
+    return(param_vec)
+  })
+
+  param_vec_int_reactive <- reactive({
+    ### update the params using inputs
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec_int <- load_parameters()
+    for (param_name in param_names_base) {
+      param_name_int <- paste0(param_name, "_int")
+      if (! is.na(user_inputs[param_name_int])) { 
+        param_vec_int[param_name]<-as.numeric(user_inputs[param_name_int])
+      }
+    }
+
+    param_vec_int$Scenario<-'Intervention'
+    return(param_vec_int)
+  })
+  
+  ### calculate R0 and p
+  R0_p_value <- reactive({
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
+    R0 = as.numeric(calc_R0_from_td(td=param_vec['td'],vec=param_vec))
+    p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
+    return (c(R0, p))
+  })
+
+  format_model_sims <- reactive({
+
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
+
+    det_table <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = rep(input$rdetecti, input$sim_time),
+      rdetecta = rep(input$rdetecta, input$sim_time))
+
+    det_table_int <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = c(rep(input$rdetecti, input$int_time), 
+        rep(input$rdetecti_int, (input$sim_time - input$int_time))),
+      rdetecta = c(rep(input$rdetecta, input$int_time), 
+        rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
+        ### run model without intervention
+        simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
+                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
+        ### run intervention halfway
+        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
+                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
+
+    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
+  })
+
+  format_model_sims_with_cases <- reactive({
+    compute_cases_intervention(format_model_sims())
+  })
+
+  popsizes <- load_population_sizes() 
+
+  observeEvent(input$state_selected, {
+    observed_data$cases <- filter_states_data(input$state_selected)
+
+    popsizes_filtered <- popsizes %>% filter(state == state_names()[[input$state_selected]])
+
+    updateNumericInput(session = session, inputId = 'n', 
+      value = popsizes_filtered[['popsize']]
+     )
+  })
+  
   # Model Plots 
   # 
   # Use the user input to run the model for the base case and intervention.
@@ -83,11 +205,8 @@ server <- function(input, output, session) {
   model_plots <- reactive({ 
         ### update the params using inputs
         user_inputs<-c(unlist(reactiveValuesToList(input)))
-        param_vec_int <- param_vec <- default_param_vec
-        param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
-        param_vec_int[param_names_base]<-as.numeric(user_inputs[param_names_int])
-        param_vec$Scenario<-'Base'
-        param_vec_int$Scenario<-'Intervention'
+        param_vec <- param_vec_reactive()
+        param_vec_int <- param_vec_int_reactive()
 
         det_table <- data.frame(
           time = 1:(input$sim_time),
@@ -100,7 +219,7 @@ server <- function(input, output, session) {
             rep(input$rdetecti_int, (input$sim_time - input$int_time))),
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
-
+        
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
                              days_out2 = NULL, model_type = run_basic, det_table = det_table) 
@@ -120,9 +239,8 @@ server <- function(input, output, session) {
             paste("parameters_base_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
-            temp<-c(unlist(reactiveValuesToList(input)))
-            old_vec[param_names_base]<-as.numeric(temp[param_names_base])
-            old_vec['p']= calc_p_from_R0(R0_input=old_vec['R0'],vec=old_vec) 
+            old_vec['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
+            old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
             old_vec$Scenario<-'Base'
             write.csv(old_vec, file, row.names = FALSE)
         }
@@ -134,17 +252,20 @@ server <- function(input, output, session) {
             paste("parameters_int_",Sys.Date(),".csv", sep = "")
         },
         content = function(file) {
-            temp<-c(unlist(reactiveValuesToList(input)))
-            param_vec[param_names_base]<-as.numeric(temp[param_names_int])
-            param_vec['R0'] = calc_R0_from_td(td=param_vec['td'],vec=param_vec)
-            param_vec['p']= calc_p_from_R0(R0_input=param_vec['R0'],vec=param_vec) 
-            param_vec$Scenario<-'Intervention'
-            write.csv(param_vec, file, row.names = FALSE)
+          param_vec_int <- param_vec_int_reactive()
+            param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
+            param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
+            param_vec_int$Scenario<-'Intervention'
+            write.csv(param_vec_int, file, row.names = FALSE)
         }
     )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ model_plots()[[8]] })
+    output$fit <- renderPlot({ 
+      plot_fit_to_observed_data_int(
+        format_model_sims_with_cases(),
+        observed_data = hot_to_r(input$table)) 
+    }) 
     
     ## output for Comp flows tab
     output$comp_flow<- renderPlot({ model_plots()[[7]] })
@@ -165,14 +286,6 @@ server <- function(input, output, session) {
     # 
     # right now this includes the interventions, is that the behavior we want?
     observeEvent(input$reset_inputs, { sapply(c(param_names_base, param_names_int), 
-        # c('days_out1', 'days_out2', 'R0',
-        #   'delta', 'gamma', 'n', 's', 'e', 'p', 'kappa', 'alpha1', 'alpha2',
-        #   'alpha3', 'c', 'm1', 'm2', 'm3', 'young', 'medium', 'old',
-        #   'k_report', 'k_inf', 'k_susp', 'days_out1_int', 'days_out2_int',
-        #   'R0_int', 'delta_int', 'gamma_int', 'n_int', 's_int', 'e_int',
-        #   'p_int', 'kappa_int', 'alpha1_int', 'alpha2_int', 'alpha3_int',
-        #   'c_int', 'm1_int', 'm2_int', 'm3_int', 'young_int', 'medium_int',
-        #   'old_int', 'k_report_int', 'k_inf_int', 'k_susp_int'),
         shinyjs::reset)
     })
 
@@ -181,9 +294,62 @@ server <- function(input, output, session) {
       updateSliderInput(session, 'old', value = 1 - (input$young + input$medium))
     })
     
-    # Calculate old population fraction from young and medium
-    observeEvent(c(input$young_int, input$medium_int), {
-      updateSliderInput(session, 'old_int', value = 1 - (input$young_int + input$medium_int))
+    # Make the age distribution of population in intervention same as base scenario
+    observeEvent(c(input$young), {
+      updateSliderInput(session, 'young_int', value = input$young)
+    })
+    observeEvent(c(input$medium), {
+      updateSliderInput(session, 'medium_int', value = input$medium)
+    })
+    observeEvent(c(input$old), {
+      updateSliderInput(session, 'old_int', value = input$old)
+    })
+    
+    # Make the td, R0, p in intervention same as base scenario in UI
+    observeEvent(c(input$td), {
+      updateNumericInput(session, 'td_int', value = input$td)
+    })
+    
+    # Make the alphas, obs, n in intervention same as base scenario in UI
+    observeEvent(c(input$alpha1), {
+      updateSliderInput(session, 'alpha1_int', value = input$alpha1)
+    })
+    
+    observeEvent(c(input$alpha2), {
+      updateSliderInput(session, 'alpha2_int', value = input$alpha2)
+    })
+    
+    observeEvent(c(input$alpha3), {
+      updateSliderInput(session, 'alpha3_int', value = input$alpha3)
+    })
+    
+    observeEvent(c(input$obs), {
+      updateNumericInput(session, 'obs_int', value = input$obs)
+    })
+    
+    observeEvent(c(input$n), {
+      updateNumericInput(session, 'n_int', value = input$n)
+    })
+    
+    # show the corresponding p and R0 when entering td
+    observeEvent(c(input$td), {
+      R0 = R0_p_value()[1]
+      updateNumericInput(session, 'R0', value = R0)
+    })
+    
+    observeEvent(c(input$td), {
+      p = R0_p_value()[2]
+      updateNumericInput(session, 'p', value = p)
+    })
+    
+    observeEvent(c(input$td), {
+      R0 = R0_p_value()[1]
+      updateNumericInput(session, 'R0_int', value = R0)
+    })
+    
+    observeEvent(c(input$td), {
+      R0 = R0_p_value()[2]
+      updateNumericInput(session, 'p_int', value = R0)
     })
 
     callModule(contact_matrix_server_module, id = NULL)
@@ -205,4 +371,17 @@ server <- function(input, output, session) {
             ))
       )
     })
+
+    lapply(param_names_base, function(param_name) {
+      observeEvent(input[[param_name]], {
+        param_name_int <- paste0(param_name, "_int")
+
+        if (param_name_int %in% names(input)) { 
+          updateNumericInput(inputId = param_name_int,
+            value = input[[param_name]],
+            session = session)
+        }
+        })
+    })
+
 }

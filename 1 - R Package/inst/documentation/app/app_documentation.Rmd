@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo=FALSE, out.width='60%', fig.align='center')
 devtools::load_all()
 ```
 
+
 <!-- For anybody that needs an introduction to Rmarkdown: 
      https://rmarkdown.rstudio.com/articles_intro.html -->
 
@@ -34,10 +35,17 @@ devtools::load_all()
 ## Model Structure
 
 ```{r include_model_diagram}
-model_diagram_path <- system.file('documentation/model_diagram/model_diagram.png',
-    package='covid.epi')
+# model_diagram_path <- system.file('documentation/model_diagram/model_diagram.png',
+#     package='covid.epi')
 
-knitr::include_graphics(model_diagram_path)
+# knitr::include_graphics(model_diagram_path)
+```
+
+```{r render_model_diagram, cache=TRUE, out.width='90%'}
+# Plot model diagram from DiagrammeR
+model_diagram_file <- file.path(tempdir(), 'diagram.png')
+export_model_diagram_to_png(model_diagram_file)
+knitr::include_graphics(model_diagram_file)
 ```
 
 

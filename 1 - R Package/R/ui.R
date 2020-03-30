@@ -31,11 +31,20 @@ generate_ui <- function() {
     # doubling time)
 
     shinyjs::useShinyjs(),
+    tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
 
     # Plot Outcomes
 
     tabsetPanel(
-      tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
+      tabPanel("Case Series Input",
+        column(12,
+          h4("Specify case series to calibrate to."),
+          selectInput(inputId = "state_selected", label = "Select a state", choices = setNames(state.abb, state.name)),
+            rHandsontableOutput('table'),
+          actionButton('calibrateButton', "Calibrate to Observed Data")
+          )
+        ),
+      tabPanel("Fits", plotOutput("fit")),
 
       tabPanel("Comp flows", plotOutput("comp_flow")),
 
@@ -74,10 +83,6 @@ generate_ui <- function() {
         )
       ),
 
-    # reset_inputs triggers an observeEvent in the server which takes 
-    # all of the user inputs and resets them to their default values
-    actionButton("reset_inputs", "Reset All Parameters"),
-
     hr(),
     column(6,
       h3("Base case parameters"),
@@ -85,9 +90,14 @@ generate_ui <- function() {
         fluidRow(
         tabsetPanel(
           tabPanel(
-            title = "1",
+            title = "transmission parameters",
+            tags$div(
+              style = 'padding-top:12pt',
               column(4,
                 numericInput("sim_time", label="simulation time (days)", value=30),
+                # we want to show r0 and td from calculation later
+                disabled(numericInput("R0", label="R0", value=1.0)),
+                disabled(numericInput("p", label="p: Pr(transmission/contact)", value=0.05)),
                 numericInput("td", label="Doubling Time", value=2.5),
                 numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -99,8 +109,8 @@ generate_ui <- function() {
                   min = 0, max = 1, value = 0.01)
                 ),
               column(4,
-                sliderInput("s", label = "s: Frc socially distanced", min = 0, 
-                  max = 1, value = 0),
+                sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
+                  max = .999, value = .01, step=0.001),
                 sliderInput("e", label = "e: Social distance multiplier", min = 0, 
                   max = 1, value = 0),
                 sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
@@ -121,8 +131,6 @@ generate_ui <- function() {
                   max = 1, value = 0.3),
                 sliderInput("alpha3", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
                   max = 1, value = 0.3),
-                sliderInput("c", label = "c: Reporting rate", min = 0, 
-                  max = 1, value = 0.13),
                 sliderInput("young", label = "Frc youth", min = 0, 
                   max = 1, value = 0.24),
                 sliderInput("medium", label = "Frc adults", min = 0, 
@@ -134,11 +142,19 @@ generate_ui <- function() {
                 sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
                   max = 1, value = 1)
                 ),
-              downloadButton("download", "Download parameters")
+              downloadButton("download", "Download parameters"),
+
+              # reset_inputs triggers an observeEvent in the server which takes 
+              # all of the user inputs and resets them to their default values
+              actionButton("reset_inputs", "Reset All Parameters"),
+              )
             ),
           tabPanel(
-            title = "2",
-            contact_matrix_ui_for_base_case(param_vec)
+            title = "contact matrix",
+            tags$div(
+              style = 'padding-top:12pt',
+              contact_matrix_ui_for_base_case(param_vec)
+            )
           )
           )
         )
@@ -151,24 +167,29 @@ generate_ui <- function() {
         fluidRow(
           tabsetPanel(
             tabPanel(
-              title = "1",
+              title = "transmission parameters",
+              tags$div(
+                style = 'padding-top:12pt',
               column(4,
                 numericInput("int_time", label="intervention starts at", value=15),
-                # numericInput("R0_int", label="R0", value=2.2),
+                # we want to show r0 and td from calculation later
+                disabled(numericInput("R0_int", label="R0", value=1.0)),
+                disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
                 numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
-                numericInput("obs_int", label="obs cases at day1", value=100),
-                numericInput("n_int", label="n: total population", value=1938000),
+                disabled(numericInput("obs_int", label="obs cases at day1", value=100)),
+                disabled(numericInput("n_int", label="n: total population", value=1938000)),
                 sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
                   min = 0, max = 1, value = 0.1),
                 sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
                   min = 0, max = 1, value = 0.01)
                 ),
               column(4,
-                sliderInput("s_int", label = "s: Frc socially distanced", min = 0, 
-                  max = 1, value = 0),
-                sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
-                  max = 1, value = 0),
+                sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
+                  max = .999, value = 0.01, step=0.001),
+                disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
+                  max = 1, value = 0)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                   max = 1, value = 0.375),
                 sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
@@ -181,30 +202,32 @@ generate_ui <- function() {
                   max = 1, value = 1)
                 ),
               column(4,
-                sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
-                  max = 1, value = 0.75),
-                sliderInput("alpha2_int", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
-                  max = 1, value = 0.3),
-                sliderInput("alpha3_int", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
-                  max = 1, value = 0.3),
-                sliderInput("c_int", label = "c: Reporting rate", min = 0, 
-                  max = 1, value = 0.13),
-                sliderInput("young_int", label = "Frc youth", min = 0, 
-                  max = 1, value = 0.24),
-                sliderInput("medium_int", label = "Frc adults", min = 0, 
-                  max = 1, value = 0.6),
+                disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
+                  max = 1, value = 0.75)),
+                disabled(sliderInput("alpha2_int", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
+                  max = 1, value = 0.3)),
+                  disabled(sliderInput("alpha3_int", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
+                  max = 1, value = 0.3)),
+                disabled(sliderInput("young_int", label = "Frc youth", min = 0, 
+                                     max = 1, value = 0.24)),
+                disabled(sliderInput("medium_int", label = "Frc adults", min = 0, 
+                                     max = 1, value = 0.6)),
                 disabled(sliderInput("old_int", label = "Frc older adults", min = 0, 
-                    max = 1, value = 0.15)),
+                                     max = 1, value = 0.15)),
                 sliderInput("k_inf_int", label = "k_inf: rel infectiousness for yng", min = 0, 
                   max = 1, value = 1),
                 sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
                   max = 1, value = 1)
-                ),
+                )
+              ),
               downloadButton("download_int", "Download parameters")
             ),
           tabPanel(
-            title = "2",
-            contact_matrix_ui_for_intervention(param_vec)
+            title = "contact matrix",
+              tags$div(
+                style = 'padding-top:12pt',
+                contact_matrix_ui_for_intervention(param_vec)
+              )
           )
           )
         )

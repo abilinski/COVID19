@@ -4,6 +4,72 @@
 #                                                                                          #
 #******************************************************************************************#
 
+#' Our model penalty function is calculated as the sum of squared errors for the 
+#' case series data provided
+model_loss_function <- function(params, observed_data) {
+
+  # setup for model simulation
+  det_table <- data.frame(
+    time = 1:nrow(observed_data),
+    rdetecti = rep(params$rdetecti, nrow(observed_data)),
+    rdetecta = rep(params$rdetecta, nrow(observed_data)))
+
+  # run model
+  model_simulation <- run_param_vec(params = params, params2 = NULL, days_out1 = ceiling(nrow(observed_data)*2),
+    days_out2 = nrow(observed_data), model_type = run_basic, det_table = det_table) 
+
+  # get cumulative diagnosed cases from model simulation
+  
+  # cumulative diagnosed infections column names
+  # this code gives all the combinations of DI_1_cum, DI_2Q_cum, etc
+  diagnosed_cumulative_colnames <- 
+    apply(expand.grid("DI_", 1:3, c("", "Q"), "_cum"), 1, paste0, collapse='')
+
+  # get diagnosed cumulative infections
+  diagnosed_cumulative_cases <- rowSums(model_simulation[,diagnosed_cumulative_colnames])
+
+  # reformat as data frame
+  diagnosed_cumulative_cases <- 
+    data.frame(day = 1:length(diagnosed_cumulative_cases), 
+      model_diagnosed_cumulative_cases = diagnosed_cumulative_cases) 
+
+  # rename for clarity
+  observed_data %<>% rename(observed_cumulative_cases = cumulative_cases)
+
+  # merge
+  merge_df <- merge(observed_data, diagnosed_cumulative_cases, by = 'day')
+
+  sse <- sum(
+    # weight towards most recent data points most
+    1:nrow(merge_df)/nrow(merge_df) * 
+      # squared error
+      (merge_df$observed_cumulative_cases - merge_df$model_diagnosed_cumulative_cases)^2
+    )
+
+  return(sse)
+}
+
+#' Make a Loss Function
+make_loss_function <- function(params, observed_data) {
+  loss_function_for_p <- function(optim_vec) { 
+    params$td <- optim_vec[[1]]
+    params$obs <- optim_vec[[2]]
+    model_loss_function(params, observed_data)
+  }
+}
+
+#' Fit the Model
+fit_model <- function(params, observed_data) { 
+
+  loss_function <- make_loss_function(params, observed_data)
+
+  variables <- c(td = 2.5, obs = 100)
+
+  optim(par = variables, fn = loss_function, method = 'L-BFGS-B',
+    lower = c(0, 0), upper = c(1, Inf))
+}
+
+
 #' Calibration scripts
 #' 
 #' @export
