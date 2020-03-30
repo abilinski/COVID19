@@ -44,36 +44,36 @@ generate_ui <- function() {
           actionButton('calibrateButton', "Calibrate to Observed Data")
           )
         ),
-      tabPanel("Fits", plotlyOutput("fit"), p("*Currently only fit to data for 15 days")),
+      tabPanel("Fits", plotlyOutput("fit")),
 
       tabPanel("Comp flows", plotlyOutput("comp_flow")),
 
       tabPanel("Cumulative cases", 
         # Side by side layout for cumulative infections and diagnosed cases by age
         column(6, 
-          plotOutput('cumulative_infections_by_age')
+          plotlyOutput('cumulative_infections_by_age')
           ), 
         column(6, 
-          plotOutput('cumulative_diagnosed_by_age')
+          plotlyOutput('cumulative_diagnosed_by_age')
         )
         ), 
       tabPanel("Deaths & New case ratio", 
         # side by side layout for deaths by age and new cases / existing cases
         column(6,
-          plotOutput('deaths_by_age')
+          plotlyOutput('deaths_by_age')
           ),
         column(6,
-          plotOutput('effective_reproductive_number')
+          plotlyOutput('effective_reproductive_number')
         )
         ),
       tabPanel("Advanced care & Symptoms", 
         # side by side layout for those needing advanced care and cumulative
         # cases by symptom status
         column(6,
-          plotOutput('cases_needing_advanced_care')
+          plotlyOutput('cases_needing_advanced_care')
           ),
         column(6,
-          plotOutput('cumulative_cases_by_symptoms')
+          plotlyOutput('cumulative_cases_by_symptoms')
         )
       )
 

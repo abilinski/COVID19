@@ -1,2 +1,2 @@
 
-state_names <- setNames(state.name, state.abb)
+state_names <- function() { setNames(state.name, state.abb) }
