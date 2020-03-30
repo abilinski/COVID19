@@ -79,7 +79,7 @@ server <- function(input, output, session) {
   fit_param_vec <- reactiveValues()
 
   observeEvent(input$calibrateButton, {
-      withProgress(message = 'Optimizing Model', {
+      withProgress(message = 'Optimizing Model Fit', {
         fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
         updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
         updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
