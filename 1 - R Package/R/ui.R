@@ -38,12 +38,14 @@ generate_ui <- function() {
       tabPanel("Case Series Input",
         column(12,
           h4("Specify case series to calibrate to."),
-            rHandsontableOutput('table')
+          selectInput(inputId = "state_selected", label = "Select a state", choices = setNames(state.abb, state.name)),
+            rHandsontableOutput('table'),
+          actionButton('calibrateButton', "Calibrate to Observed Data")
           )
         ),
-      tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
+      tabPanel("Fits", plotlyOutput("fit"), p("*Currently only fit to data for 15 days")),
 
-      tabPanel("Comp flows", plotOutput("comp_flow")),
+      tabPanel("Comp flows", plotlyOutput("comp_flow")),
 
       tabPanel("Cumulative cases", 
         # Side by side layout for cumulative infections and diagnosed cases by age

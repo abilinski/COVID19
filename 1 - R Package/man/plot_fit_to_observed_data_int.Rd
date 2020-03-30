@@ -5,8 +5,7 @@
 \title{Plot Fit to Observed Data - Intervention}
 \usage{
 plot_fit_to_observed_data_int(out_cases,
-  observed_data = read.csv(system.file("time_series/time_series_SCC.csv",
-  package = "covid.epi"), as.is = T))
+  observed_data = load_SCC_time_series())
 }
 \description{
 Plot Fit to Observed Data - Intervention

@@ -4,9 +4,7 @@
 \alias{plot_fit_to_observed_data}
 \title{Plot Fit to Observed Data}
 \usage{
-plot_fit_to_observed_data(out,
-  observed_data = read.csv(system.file("time_series/time_series_SCC.csv",
-  package = "covid.epi"), as.is = T))
+plot_fit_to_observed_data(out, observed_data = load_SCC_time_series())
 }
 \description{
 Plot Fit to Observed Data

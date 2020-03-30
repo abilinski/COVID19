@@ -193,9 +193,11 @@ plot_fit_to_observed_data <- function(out,
 {
   ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
   
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
   
-  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
+  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + 
+    geom_line() +
+    geom_point(data = filter(out_fit, id = 'Observed')) + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
@@ -212,7 +214,7 @@ plot_fit_to_observed_data_int <- function(out_cases,
   ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>% 
     rename(time = day)
 
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
+  out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 

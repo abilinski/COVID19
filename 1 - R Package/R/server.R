@@ -76,6 +76,13 @@ server <- function(input, output, session) {
     }
     })
 
+  fit_param_vec <- reactiveValues()
+
+  observeEvent(input$calibrateButton, {
+    fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
+    updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
+    updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
+    })
 
   # TODO: I (Christian) think we should make sure the parameters.csv that gets 
   # loaded in *only* has parameters that we actually take as inputs. 
@@ -179,6 +186,10 @@ server <- function(input, output, session) {
   format_model_sims_with_cases <- reactive({
     compute_cases_intervention(format_model_sims())
   })
+
+  observeEvent(input$state_selected, {
+    observed_data$cases <- filter_states_data(input$state_selected)
+  })
   
   # Model Plots 
   # 
@@ -245,19 +256,16 @@ server <- function(input, output, session) {
     )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ 
-
-      print(hot_to_r(input$table))
-
+    output$fit <- renderPlotly({ 
       plot_fit_to_observed_data_int(
         format_model_sims_with_cases(),
         observed_data = hot_to_r(input$table)) 
-    }) # model_plots()[[8]] })
+    }) 
     
     ## output for Comp flows tab
     output$comp_flow<- renderPlot({ model_plots()[[7]] })
     
-    output$cumulative_infections_by_age <- renderPlot({ model_plots()[[2]] })
+    output$cumulative_infections_by_age <- renderPlotly({ model_plots()[[2]] })
     output$cumulative_diagnosed_by_age <- renderPlot({ model_plots()[[4]] })
     
     ## output for Death & New case ratio tab
