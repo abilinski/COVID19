@@ -192,11 +192,11 @@ server <- function(input, output, session) {
   observeEvent(input$state_selected, {
     observed_data$cases <- filter_states_data(input$state_selected)
 
-    popsizes_filtered <- popsizes %>% filter(state == state_names[[input$state_selected]])
+    popsizes_filtered <- popsizes %>% filter(state == state_names()[[input$state_selected]])
 
-    updateNumericInput(session, 'n', 
-      value = popsizes_filtered[['popsize']][[1]])
-
+    updateNumericInput(session = session, inputId = 'n', 
+      value = popsizes_filtered[['popsize']]
+     )
   })
   
   # Model Plots 
