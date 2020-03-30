@@ -1,4 +1,9 @@
-#' @import DiagrammR
+
+#' Function that renders a model diagram
+#'
+#' 
+#' 
+#' @importFrom DiagrammeR grViz
 #' @export
 render_model_diagram <- function() {
 
@@ -11,7 +16,7 @@ render_model_diagram <- function() {
 
     S [label = 'Susceptible'];
     E [label = 'Exposed'];
-    UA [label = 'Undetected\nAsymptomatic'];
+    'UA' [label = 'Undetected\nAsymptomatic'];
     UI [label = 'Undetected\nSymptomatic'];
     {rank = same; UI; UA;}
     DA [label = 'Detected\nAsymptomatic'];
@@ -19,9 +24,17 @@ render_model_diagram <- function() {
     R [label = 'Recovered'];
     D [label = 'Dead'];
 
-    S->E E->UA E->UI UA->UI UA->DA UI->DI 
-    UA->R UI->R DA->R DI->R UA->D UI->D
-    DA->D DI->D
+    S->E [label = 'λ'] 
+    E->UA [label = 'δα']
+    E->UI [label = 'δ(1-α)']
+    UA->'DA' [label = 'd@_{a}']
+    UI->'DI' [label = 'd@_{i}']
+    UA->R [label = 'γ']
+    UI->R [label = '(1-m)γ']
+    DA->R [label = 'γ']
+    DI->R [label = '(1-m)γ']
+    UI->D [label = 'μω']
+    DI->D [label = 'μω']
 
     }
     ")
