@@ -79,9 +79,11 @@ server <- function(input, output, session) {
   fit_param_vec <- reactiveValues()
 
   observeEvent(input$calibrateButton, {
-    fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
-    updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
-    updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
+      withProgress(message = 'Optimizing Model', {
+        fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
+        updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
+        updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
+      })
     })
 
   # TODO: I (Christian) think we should make sure the parameters.csv that gets 
