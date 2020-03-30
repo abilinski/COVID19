@@ -31,6 +31,7 @@ generate_ui <- function() {
     # doubling time)
 
     shinyjs::useShinyjs(),
+    tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
 
     # Plot Outcomes
 

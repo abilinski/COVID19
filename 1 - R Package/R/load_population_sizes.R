@@ -15,7 +15,7 @@ load_population_sizes <- function() {
     state = V3,
     popsize = V4) %>% 
   select(state, popsize) %>% 
-  mutate(popsize = as.numeric(gsub(",", "", popsize)))
+  mutate(state = gsub("^[^[:alpha:]]+", "", as.character(state)), popsize = as.numeric(gsub(",", "", popsize)))
 
   return(df)
 }
