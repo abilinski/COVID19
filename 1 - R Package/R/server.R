@@ -25,7 +25,7 @@
 #' 
 #'   - Adding documentation [started on branch shiny_documentation_page]
 #' 
-#'   - Adding Calibration to User-Uploaded Case Series
+#'   - Improve Calibration to User-Uploaded Case Series
 #' 
 #'   - More Comprehensive User Downloads: 
 #'     - Parameters Downloads
@@ -47,6 +47,9 @@
 #' 
 #'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 #' 
+#'   - Someday we should think about caching plots: 
+#'     https://shiny.rstudio.com/articles/plot-caching.html 
+#' 
 #' @seealso generate_ui runApp 
 #' 
 #' @export
@@ -54,6 +57,35 @@ server <- function(input, output, session) {
 
   # Get the default parameter vector for the model
   default_param_vec = load_parameters() 
+ 
+  # Observed data reactive values list
+  observed_data <- reactiveValues(cases = load_SCC_time_series())
+
+  # Render santa clara county data with RHandsontable to make it editable
+  output$table <- renderRHandsontable({ 
+    observed_data$cases %>% 
+      mutate(day = 1:nrow(.)) %>% 
+    rhandsontable() %>% 
+      hot_col(col = "day", readOnly = TRUE)
+  })
+
+  # Update cases definition when user edits Rhandsontable
+  observe({
+    if (!is.null(input$table)) { 
+      observed_data$cases <- hot_to_r(input$table)
+    }
+    })
+
+  fit_param_vec <- reactiveValues()
+
+  observeEvent(input$calibrateButton, {
+      withProgress(message = 'Optimizing Model Fit', {
+        fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
+        updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
+        # print(fit_param_vec$optim$par[[1]])
+        updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
+      })
+    })
 
   # TODO: I (Christian) think we should make sure the parameters.csv that gets 
   # loaded in *only* has parameters that we actually take as inputs. 
@@ -86,6 +118,14 @@ server <- function(input, output, session) {
   param_names_int <- paste0(param_names_base, "_int")
 
   param_vec_reactive <- reactive({
+
+    ### give warning if population doesn't add up to 1
+    validate(
+      need(input$young<=1, 'young + medium + old must be equal to 1'),
+      need(input$medium<=1, 'young + medium + old must be equal to 1'),
+      need(input$young+input$medium<=1, 'young + medium + old must be equal to 1')
+    )
+
     ### update the params using inputs
     user_inputs<-c(unlist(reactiveValuesToList(input)))
     param_vec <- load_parameters()
@@ -108,8 +148,60 @@ server <- function(input, output, session) {
     param_vec_int$Scenario<-'Intervention'
     return(param_vec_int)
   })
+  
+  ### calculate R0 and p
+  R0_p_value <- reactive({
+    user_inputs<-c(unlist(reactiveValuesToList(input)))
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
+    R0 = as.numeric(calc_R0_from_td(td=param_vec['td'],vec=param_vec))
+    p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
+    return (c(R0, p))
+  })
 
+  format_model_sims <- reactive({
 
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
+
+    det_table <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = rep(input$rdetecti, input$sim_time),
+      rdetecta = rep(input$rdetecta, input$sim_time))
+
+    det_table_int <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = c(rep(input$rdetecti, input$int_time), 
+        rep(input$rdetecti_int, (input$sim_time - input$int_time))),
+      rdetecta = c(rep(input$rdetecta, input$int_time), 
+        rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
+        ### run model without intervention
+        simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
+                             days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
+        ### run intervention halfway
+        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
+                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, model_type = run_int, det_table = det_table_int)
+
+    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
+  })
+
+  format_model_sims_with_cases <- reactive({
+    compute_cases_intervention(format_model_sims())
+  })
+
+  popsizes <- load_population_sizes() 
+
+  observeEvent(input$state_selected, {
+    observed_data$cases <- filter_states_data(input$state_selected)
+
+    popsizes_filtered <- popsizes %>% filter(state == state_names()[[input$state_selected]])
+
+    updateNumericInput(session = session, inputId = 'n', 
+      value = popsizes_filtered[['popsize']]
+     )
+  })
+  
   # Model Plots 
   # 
   # Use the user input to run the model for the base case and intervention.
@@ -224,7 +316,7 @@ server <- function(input, output, session) {
     
     # Make the td, R0, p in intervention same as base scenario in UI
     observeEvent(c(input$td), {
-      updateSliderInput(session, 'td_int', value = input$td)
+      updateNumericInput(session, 'td_int', value = input$td)
     })
     
     # Make the alphas, obs, n in intervention same as base scenario in UI
@@ -249,8 +341,21 @@ server <- function(input, output, session) {
     })
     
     
-    
+    # show the corresponding p and R0 when entering td
+    observeEvent(input$td, {
+      R0_and_p <- R0_p_value()
 
+      R0 = R0_and_p[1]
+      p = R0_and_p[2]
+
+      updateNumericInput(session, 'R0', value = R0)
+      updateNumericInput(session, 'R0_int', value = R0)
+
+      updateNumericInput(session, 'p', value = p)
+      updateNumericInput(session, 'p_int', value = R0)
+    })
+    
+    
     callModule(contact_matrix_server_module, id = NULL)
 
     lapply(param_names_base, function(param_name) {
