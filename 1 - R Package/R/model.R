@@ -16,7 +16,9 @@ model_strat <- function (t, x, parms, parms_int, int_start_time, int_stop_time, 
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
   # decide if intervention starts
-  if (t>=int_start_time & t <= int_stop_time) { parms<-parms_int }
+  if (( ! is.null(int_start_time) ) & (! is.null(int_stop_time) )) { 
+    if (t>=int_start_time & t <= int_stop_time) { parms<-parms_int }
+  }
   
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
@@ -447,7 +449,7 @@ run_int = function(model = model_strat, xstart, params = params,
   not_socially_distanced <- which( (! grepl("Q", compartment_names) & (! grepl("_cum", compartment_names))) )
   socially_distanced <- which( grepl("Q", compartment_names) & (! grepl("_cum", compartment_names)) )
 
-  # event function for intervention start
+  # event function for intervention start and stop
   eventfun <- function(t, y, parms, parms_int = parms_int, int_start_time,
     int_stop_time, det_table = det_table){
     y_new<-y
@@ -465,16 +467,6 @@ run_int = function(model = model_strat, xstart, params = params,
     return(y_new)
   }
 
-  # event function for intervention stop
-  # eventfun_stop <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
-  #   y_new<-y
-  #   if (parms_int$s != parms$s) { 
-  #     y_new[not_socially_distanced]<-(1-parms$s)*(y[socially_distanced]+y[not_socially_distanced])
-  #     y_new[socially_distanced]<-parms$s*(y[socially_distanced]+y[not_socially_distanced])
-  #   }
-  #   return(y_new)
-  # }
-  
   # run intervention model
   test = run_model(
     model_strat, 

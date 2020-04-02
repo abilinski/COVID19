@@ -5,8 +5,24 @@
 \title{Run Model from Parameter Vector}
 \usage{
 run_param_vec(params, params2 = NULL, p.adj = NA, obs.adj = NA,
-  days_out1 = 30, days_out2 = NULL, model_type = run_basic)
+  days_out1 = 30, days_out2 = NULL, days_out3 = NULL,
+  model_type = run_basic, det_table)
 }
 \description{
 Run Model from Parameter Vector
+}
+\examples{
+  params <- load_parameters()
+  det_table <- load_detection_table()
+  
+ test = run_param_vec(
+   params = params, params2=NULL, days_out1 = 30, 
+   days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
+
+ params_int <- params
+ params_int$s <- .5
+
+ test = run_param_vec(
+   params = params, params2 = params_int, days_out1 = 15, days_out2 = 30, days_out3 = 20,
+   model_type = run_int, det_table = det_table)
 }
