@@ -240,7 +240,7 @@ server <- function(input, output, session) {
                                  days_out2 = input$sim_time, days_out3 = input$int_stop_time, 
                                  model_type = run_int, det_table = det_table_int)
         ### make plots
-        g = make_plots_int(test, params = param_vec, test_int, params_int = param_vec_int)
+        g = make_plots_int(test, params = param_vec, test_int, params_int = param_vec_int, observed_data = observed_data$cases)
 
         return(g)
   })

@@ -518,7 +518,7 @@ make_plots = function(test, params){
 #' Make Plots Comparing Base Case and Intervention
 #' 
 #' @export
-make_plots_int = function(test, params, test_int, params_int){
+make_plots_int = function(test, params, test_int, params_int, observed_data){
   # formatting
   out <- format_simulation_outcomes_for_plotting_int(test, test_int)
   
@@ -549,7 +549,7 @@ make_plots_int = function(test, params, test_int, params_int){
   g <- plot_flows_by_compartment2_int(out)
 
   # Check fit 
-  h <- plot_fit_to_observed_data_int(out_cases)
+  h <- plot_fit_to_observed_data_int(out_cases, observed_data)
   
   return(list(a,b,c,d,e,f,g,h,b2))
 }
