@@ -40,8 +40,6 @@ model_loss_function <- function(params, observed_data) {
   merge_df <- merge(observed_data, diagnosed_cumulative_cases, by = 'day')
 
   sse <- sum(
-    # weight towards most recent data points most
-    1:nrow(merge_df)/nrow(merge_df) * 
     # squared error
     (merge_df$observed_cumulative_cases - merge_df$model_diagnosed_cumulative_cases)^2
     )
