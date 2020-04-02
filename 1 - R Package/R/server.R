@@ -142,10 +142,11 @@ server <- function(input, output, session) {
         )
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
+                             days_out2 = NULL, days_out3 = NULL, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
         test_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
+                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, 
+                                 model_type = run_int, det_table = det_table_int)
         ### make plots
         g = make_plots_int(test, params = param_vec, test_int, params_int = param_vec_int)
 
