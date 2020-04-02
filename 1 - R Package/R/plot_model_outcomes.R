@@ -74,7 +74,7 @@ plot_cases_needing_advanced_care_int <- function(out_cases) {
 }
 
 
-#' Plot Ratio of New To Exisitng Cases
+#' Plot Ratio of New To Existing Cases
 plot_ratio_of_new_to_existing_cases <- function(out) {
 
   out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I", "UA", "DA", "A")) %>% 
@@ -187,13 +187,17 @@ plot_flows_by_compartment2_int <- function(out) {
 }
 
 #' Plot Fit to Observed Data
-plot_fit_to_observed_data <- function(out) {
-  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
-    mutate(time = 1:15, Total_obs = cum_cases)
+plot_fit_to_observed_data <- function(out, 
+  observed_data = 
+    load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)) 
+{
+  ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
   
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
   
-  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + geom_line() +
+  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) + 
+    geom_line() +
+    geom_point(data = filter(out_fit, id = 'Observed')) + 
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
                                                              title = "Calibration") + 
     scale_linetype(name = "")
@@ -201,17 +205,29 @@ plot_fit_to_observed_data <- function(out) {
 
 
 #' Plot Fit to Observed Data - Intervention 
-plot_fit_to_observed_data_int <- function(out_cases) {
+#plot_fit_to_observed_data_int <- function(out_cases) {
+
+#  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+#  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
+#    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+
+#  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
+#  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+
+#  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
+#  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
+
+
+plot_fit_to_observed_data_int <- function(out_cases,
+  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+  ) {
 
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
-    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+  # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>% 
+    rename(time = day)
 
-  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
-
-  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
-  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
+  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", 
@@ -336,6 +352,124 @@ format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcom
   
   out = bind_rows(out_base %>% mutate(int = "Base"), out_int %>% mutate(int = "Intervention"))
   return(out)
+}
+
+#' Plot hospital bed needs over time along with capacity
+#' 
+#' @export
+#' 
+#' @examples
+#'  params <- load_parameters()
+#'  det_table <- load_detection_table()
+#'  sim_out <- run_param_vec(params = params, days_out1 = 30, days_out2 = NULL,
+#'    model_type = run_basic, params2 = NULL, det_table = det_table)
+#'  out_formatted <- format_simulation_outcomes_for_plotting(sim_out)
+#'  hosp_time_plots(out_formatted, beds=100)
+#' 
+hosp_time_plots <- function(out_formatted,beds,num_scens=6,hosp_time=10,hosp_pc=.05){
+  #input output from run_vecs
+  out_formatted= out_formatted %>% filter(comp=="I") #data.frame(out_formatted)
+  out_formatted$hosp_beds = out_formatted$value
+  out_formatted$hosp_beds[out_formatted$time>hosp_time]=diff(out_formatted$value,num_scens*hosp_time)
+  #calculate hospital beds
+  out_formatted$hosp_beds = hosp_pc*out_formatted$hosp_beds
+  #get mean, min and max cases
+  hosp_cases<-out_formatted %>% group_by(time) %>% summarize(mean = mean(hosp_beds),min = min(hosp_beds), max=max(hosp_beds))
+  # get color values for  max > beds, mean > beds, min >beds
+  hosp_cases$Capacity <-"Not Exceeded"
+  hosp_cases$Capacity[hosp_cases$max>beds]<-"Possibly Exceeded"
+  hosp_cases$Capacity[hosp_cases$mean>beds]<-"Likely Exceeded"
+  hosp_cases$Capacity[hosp_cases$min>beds]<-"Definitely Exceeded"
+  hosp_cases$Capacity<-as.factor(hosp_cases$Capacity)
+  pal <- c("red", "orange", "forestgreen", "yellow"  )
+  #hosp_cases = cases_means*hosp_pc
+  print(ggplot(hosp_cases,aes(time,mean, fill=Capacity))+geom_bar(stat="identity")+geom_errorbar(aes(ymin=min, ymax=max))+
+          theme_minimal() + scale_fill_manual(values = pal) + geom_hline(yintercept =beds)  + 
+          labs(x = "Time (days)", y = "") +
+          theme(strip.text = element_text(size=12, face="bold")) +
+          geom_text(aes(7,beds,label = "Available\n Hospital Beds", vjust = -.1)) +
+          ggtitle("Projected Hospital Bed Requirements"))
+  ggsave(paste0("hosp_fig.pdf"),width=6.5, height=3.5)
+  
+}
+
+#' calculate which day hospital beds exceeds count
+#' 
+#' calculate difference with and without SD
+#' takes as inputs the outputs of run_vecs for scenarios with and without social distancing
+#' 
+#' @export
+#' 
+#' @examples
+#' 
+#'  # I wasn't sure how to get this working ... 
+#' 
+#'  # I tried different ways to call hosp_days_plots with outcomes from the simulation 
+#'  # model and I couldn't quite figure out what I should do
+#'  
+#'  # Below I tried to make the data frame look like what I anticipated the function wants 
+#'  # based on the variables it accesses, but I still couldn't get it to work.
+#'  
+#'   params <- load_parameters()
+#'   params2 <- load_parameters(8) # SD 50% scenario
+#'   
+#'   det_table <- load_detection_table()
+#'   
+#'   sim_out <- run_param_vec(params = params, days_out1 = 30, days_out2 = NULL,
+#'     model_type = run_basic, params2 = NULL, det_table = det_table)
+#' 
+#'   sim_out_int <- run_param_vec(params = params, days_out1 = 15, days_out2 = 30,
+#'     model_type = run_int, params2 = params2, det_table = det_table)
+#' 
+#'   sim_out <- format_simulation_outcomes_for_plotting(sim_out)
+#'   sim_out_int <- format_simulation_outcomes_for_plotting(sim_out_int)
+#' 
+#'   sim_out <- compute_cases(sim_out)
+#'   sim_out_int <- compute_cases(sim_out_int)
+#' 
+#'   sim_out %<>% group_by(time) %>% summarize(
+#'     Detected = sum(Detected),
+#'     Infected = sum(Infected),
+#'     value = sum(Total))
+#' 
+#'   sim_out_int %<>% group_by(time) %>% summarize(
+#'     Detected = sum(Detected),
+#'     Infected = sum(Infected),
+#'     value = sum(Total))
+#' 
+#'   sim_out$scenario <- 'base case'
+#'   sim_out_int$scenario <- 'social distancing 50%'
+#'   
+#'   # still throws an error
+#'   hosp_days_plots(no_sd_mat = sim_out, sd_mat = sim_out_int, beds = 100)
+#' 
+hosp_days_plots <-function(no_sd_mat,sd_mat,beds,num_scens=6,hosp_time=10,hosp_pc=.05, output_file){
+  #turn time series into datatables
+  setDT(no_sd_mat)
+  setDT(sd_mat)
+  #Calculate cumulative cases with 10 day lag to account for discharges
+  no_sd_mat$hosp_beds = no_sd_mat$value
+  no_sd_mat$hosp_beds[no_sd_mat$time>hosp_time]=diff(no_sd_mat$value,num_scens*hosp_time)
+  no_sd_mat$hosp_beds = hosp_pc*no_sd_mat$hosp_beds
+  sd_mat$hosp_beds = sd_mat$value
+  sd_mat$hosp_beds[sd_mat$time>hosp_time]=diff(sd_mat$value,num_scens*hosp_time)
+  sd_mat$hosp_beds = hosp_pc*sd_mat$hosp_beds
+  #get first day that beds go over capacity for no sd and sd
+  
+  no_sd_mat<-no_sd_mat[no_sd_mat$hosp_beds >beds,.SD[which.min(time)], by = scenario]
+  sd_mat<-sd_mat[sd_mat$hosp_beds >beds,.SD[which.min(time)], by = scenario]
+  #take difference in days between sd and no sd for scenarios where matrix exists for sd
+  hosp_days <-sd_mat$time -no_sd_mat[no_sd_mat$scenario %in% sd_mat$scenario,'time']
+  plot <- 
+    boxplot(hosp_days,main="Extra Days before Exceeding Hospital Bed Capacity", ylab ="Days")
+
+  if (! is.missing(output_file)) { 
+    pdf(paste0(output_file),width=6.5, height=3.5)
+      plot
+    dev.off()
+  }
+
+  return(plot)
 }
 
 ############## POST-PROCESSING-------------------

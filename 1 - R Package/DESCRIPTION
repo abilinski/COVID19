@@ -1,20 +1,37 @@
 Package: covid.epi
-Title: What the Package Does (one line, title case)
+Title: Interactive Projection Tool for COVID-19 Interventions
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
+Authors@R: c(
+  person("Alyssa", "Bilinski", email = "abilinski@g.harvard.edu", role = c("aut", "cre")),
+  person("Christian", "Testa", email = "ctesta@hsph.harvard.edu", role = "aut"),
+  person("Yu-Han", "Kao", email = "yu-han.kao@yale.edu", role = "aut"),
+  person("Lin", "Zhu", email = "linzhu1@stanford.edu", role = "aut"),
+  person("Kayoko", "Shioda", email = "kayoko.shioda@yale.edu", role = "aut"),
+  person("Ruthie", "Bierger", email = "ruthie.birger@yale.edu", role = "aut"),
+  person("Joshua", "Salomon", email = "salomon1@stanford.edu", role = "crp"),
+  person("Meagan", "Fitzpatrick", email = "meagan.fitzpatrick@som.umaryland.edu", role = "crp")
+  )
 Description: What the package does (one paragraph).
-License: What license is it under?
+License: MIT
 Encoding: UTF-8
 LazyData: true
 Imports:
-  ggplot2,
+  data.table,
+  deSolve,
+  DiagrammeR,
+  DiagrammeRsvg,
   dplyr,
+  ggplot2,
+  grid,
+  lubridate,
+  magrittr,
+  readr,
+  rhandsontable,
+  rsvg,
   shiny,
   shinyjs,
-  grid,
-  deSolve,
-  readr,
-  tidyr
+  tidyr,
+  XML
 RoxygenNote: 6.1.1
 Suggests: 
     testthat

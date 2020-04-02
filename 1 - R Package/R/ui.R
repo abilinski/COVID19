@@ -5,19 +5,6 @@
 
 generate_ui <- function() { 
 
-  # The parameters table is used to grab the parameter names from its column
-  # names.  In the future we could also use this table to define pre-defined
-  # and run scenarios in the user app, e.g.  school closures; generic social 
-  # distancing measures, improved treatment; etc
-  # df <- load_parameters_table()
-
-  # Grab the parameter names and also append _int to them to construct the list
-  # used to grab intervention parameters from user input IDs 
-  # default_params = df[1,]
-  param_vec = load_parameters() # df[1,]
-  # param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
-  # param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
-
   # Define UI for application
   ui <- fluidPage(
 
@@ -31,11 +18,20 @@ generate_ui <- function() {
     # doubling time)
 
     shinyjs::useShinyjs(),
+    tags$style(type="text/css", ".recalculating {opacity: 1.0;}"),
 
     # Plot Outcomes
 
     tabsetPanel(
-      tabPanel("Fits", plotOutput("fit"), p("*Currently only fit to data for 15 days")),
+      tabPanel("Case Series Input",
+        column(12,
+          h4("Specify case series to calibrate to."),
+          selectInput(inputId = "state_selected", label = "Select a state", choices = setNames(state.abb, state.name)),
+            rHandsontableOutput('table'),
+          actionButton('calibrateButton', "Calibrate to Observed Data")
+          )
+        ),
+      tabPanel("Fits", plotOutput("fit")),
 
       tabPanel("Comp flows", plotOutput("comp_flow")),
 
@@ -70,10 +66,6 @@ generate_ui <- function() {
 
       ),
 
-    # reset_inputs triggers an observeEvent in the server which takes 
-    # all of the user inputs and resets them to their default values
-    actionButton("reset_inputs", "Reset All Parameters"),
-
     hr(),
     column(6,
       h3("Base case parameters"),
@@ -81,12 +73,14 @@ generate_ui <- function() {
         fluidRow(
         tabsetPanel(
           tabPanel(
-            title = "transmission params",
+            title = "transmission parameters",
+            tags$div(
+              style = 'padding-top:12pt',
               column(4,
-                numericInput("sim_time", label="simulation time (days)", value=75),
+                numericInput("sim_time", label="simulation time (days)", value=30),
                 # we want to show r0 and td from calculation later
-                # disabled(numericInput("R0", label="R0", value=1.0)), 
-                # disabled(numericInput("p", lable="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("R0", label="R0", value=1.0)),
+                disabled(numericInput("p", label="p: Pr(transmission/contact)", value=0.05)),
                 numericInput("td", label="Doubling Time", value=2.5),
                 numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -131,11 +125,19 @@ generate_ui <- function() {
                 sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
                   max = 1, value = 1)
                 ),
-              downloadButton("download", "Download parameters")
+              downloadButton("download", "Download parameters"),
+
+              # reset_inputs triggers an observeEvent in the server which takes 
+              # all of the user inputs and resets them to their default values
+              actionButton("reset_inputs", "Reset All Parameters"),
+              )
             ),
           tabPanel(
             title = "contact matrix",
-            contact_matrix_ui_for_base_case(param_vec)
+            tags$div(
+              style = 'padding-top:12pt',
+              contact_matrix_ui_for_base_case(load_parameters()) 
+            )
           )
           )
         )
@@ -149,12 +151,14 @@ generate_ui <- function() {
           tabsetPanel(
             tabPanel(
               title = "transmission parameters",
+              tags$div(
+                style = 'padding-top:12pt',
               column(4,
-                numericInput("int_time", label="intervention starts at", value=5),
+                numericInput("int_time", label="intervention starts at", value=15),
                 numericInput("int_stop_time", label="intervention stops at", value=30),
                 # we want to show r0 and td from calculation later
-                # disabled(numericInput("R0_int", label="R0", value=1.0)),
-                # disabled(numericInput("p_int", lable="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("R0_int", label="R0", value=1.0)),
+                disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
                 disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
                 numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
@@ -198,12 +202,16 @@ generate_ui <- function() {
                   max = 1, value = 1),
                 sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
                   max = 1, value = 1)
-                ),
+                )
+              ),
               downloadButton("download_int", "Download parameters")
             ),
           tabPanel(
-            title = "contact mx",
-            contact_matrix_ui_for_intervention(param_vec)
+            title = "contact matrix",
+              tags$div(
+                style = 'padding-top:12pt',
+                contact_matrix_ui_for_intervention(load_parameters())
+              )
           )
           )
         )

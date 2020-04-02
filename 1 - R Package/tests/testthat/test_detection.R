@@ -9,7 +9,7 @@ test_that("changing the detection rate should change diagnosed cases", {
 
   test = run_param_vec(
     params = param_vec, params2=NULL, days_out1 = 30, 
-    days_out2 = NULL, model_type = run_basic, det_table = det_table)
+    days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
 
   # run a simulation with detection rates = 0
 
@@ -18,7 +18,7 @@ test_that("changing the detection rate should change diagnosed cases", {
 
   test2 = run_param_vec(
     params = param_vec, params2=NULL, days_out1 = 30, 
-    days_out2 = NULL, model_type = run_basic, det_table = det_table)
+    days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
 
   # we should expect some differences between a simulation run with 
   # positive detection rates vs. detection rates of 0 
