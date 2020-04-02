@@ -13,19 +13,19 @@ takes as inputs the outputs of run_vecs for scenarios with and without social di
 }
 \examples{
 
- # I wasn't sure how to get this working ... 
+ # I wasn't sure how to get this working ...
 
- # I tried different ways to call hosp_days_plots with outcomes from the simulation 
+ # I tried different ways to call hosp_days_plots with outcomes from the simulation
  # model and I couldn't quite figure out what I should do
- 
- # Below I tried to make the data frame look like what I anticipated the function wants 
+
+ # Below I tried to make the data frame look like what I anticipated the function wants
  # based on the variables it accesses, but I still couldn't get it to work.
- 
+
   params <- load_parameters()
   params2 <- load_parameters(8) # SD 50\% scenario
-  
+
   det_table <- load_detection_table()
-  
+
   sim_out <- run_param_vec(params = params, days_out1 = 30, days_out2 = NULL,
     model_type = run_basic, params2 = NULL, det_table = det_table)
 
@@ -50,7 +50,7 @@ takes as inputs the outputs of run_vecs for scenarios with and without social di
 
   sim_out$scenario <- 'base case'
   sim_out_int$scenario <- 'social distancing 50\%'
-  
+
   # still throws an error
   hosp_days_plots(no_sd_mat = sim_out, sd_mat = sim_out_int, beds = 100)
 

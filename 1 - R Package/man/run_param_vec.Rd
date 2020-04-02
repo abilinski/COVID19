@@ -8,15 +8,22 @@ run_param_vec(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   days_out1 = 30, days_out2 = NULL, days_out3 = NULL,
   model_type = run_basic, det_table)
 }
+\arguments{
+\item{days_out1}{Day of intervention start}
+
+\item{days_out2}{Length of simulation time}
+
+\item{days_out3}{Day of intervention stop}
+}
 \description{
 Run Model from Parameter Vector
 }
 \examples{
   params <- load_parameters()
   det_table <- load_detection_table()
-  
+
  test = run_param_vec(
-   params = params, params2=NULL, days_out1 = 30, 
+   params = params, params2=NULL, days_out1 = 30,
    days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
 
  params_int <- params

@@ -31,7 +31,4 @@ Imports:
   XML
 RoxygenNote: 6.1.1
 Suggests:   
-  DiagrammeR,
-  DiagrammeRsvg,
-  rsvg,
   testthat
