@@ -9,14 +9,14 @@ generate_ui <- function() {
   # names.  In the future we could also use this table to define pre-defined
   # and run scenarios in the user app, e.g.  school closures; generic social 
   # distancing measures, improved treatment; etc
-  df <- load_parameters_table()
+  # df <- load_parameters_table()
 
   # Grab the parameter names and also append _int to them to construct the list
   # used to grab intervention parameters from user input IDs 
-  default_params = df[1,]
-  param_vec = df[1,]
-  param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
-  param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
+  # default_params = df[1,]
+  param_vec = load_parameters() # df[1,]
+  # param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
+  # param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
 
   # Define UI for application
   ui <- fluidPage(
@@ -83,7 +83,7 @@ generate_ui <- function() {
           tabPanel(
             title = "transmission params",
               column(4,
-                numericInput("sim_time", label="simulation time (days)", value=30),
+                numericInput("sim_time", label="simulation time (days)", value=75),
                 # we want to show r0 and td from calculation later
                 # disabled(numericInput("R0", label="R0", value=1.0)), 
                 # disabled(numericInput("p", lable="p: Pr(transmission/contact)", value=0.05)),
