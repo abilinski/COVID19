@@ -12,23 +12,23 @@ make_eqn_strat = function(group){
   
   E = paste("dE", group, "dt = -delta*E", group, " +", F, sep = "")
   
-  UI = paste("dUI", group, "dt = (1-alpha", group, ")*delta*E", group, " - (", k, "i*q + m", group, "*omega + (1-m", group, ")*gamma)*UI", group, sep = "")
+  UI = paste("dUI", group, "dt = (1-alpha", group, ")*delta*E", group, " - (", k, "i + m", group, "*omega + (1-m", group, ")*gamma)*UI", group, sep = "")
   
-  DI = paste("dDI", group, "dt = ", k, "i*q*UI", group, " - (m", group, "*omega + (1-m", group, ")*gamma)*DI", group, sep = "")
+  DI = paste("dDI", group, "dt = ", k, "i*UI", group, " - (m", group, "*omega + (1-m", group, ")*gamma)*DI", group, sep = "")
   
-  UA = paste("dUA", group, "dt = alpha", group, "*delta*E", group, " - (", k,"a*q + gamma)*UA", group, sep = "")
+  UA = paste("dUA", group, "dt = alpha", group, "*delta*E", group, " - (", k,"a + gamma)*UA", group, sep = "")
   
-  DA = paste("dDA", group, "dt = ", k, "a*q*UA", group, " - gamma*DA", group, sep = "")
+  DA = paste("dDA", group, "dt = ", k, "a*UA", group, " - gamma*DA", group, sep = "")
   
   R = paste("dR", group, "dt = (1-m", group, ")*gamma*(UI", group,"+DI", group, ")"," + gamma*(UA", group, "+DA", group, ")", sep = "")
   
   IT = paste("It", group, " = (1-alpha", group, ")*delta*E", group, sep = "")
   
-  DIT = paste("DIt", group, " = ", k, "i*q*UI", group, sep = "")
+  DIT = paste("DIt", group, " = ", k, "i*UI", group, sep = "")
   
   AT = paste("At", group, " = alpha", group, "*delta*E", group, sep = "")
   
-  DAT = paste("DAt", group, " = ", k, "a*q*UA", group, sep = "")
+  DAT = paste("DAt", group, " = ", k, "a*UA", group, sep = "")
   
   DT = paste("Dt", group, " = m", group, "*omega*(UI", group, "+DI", group, ")", sep = "")
   
@@ -51,23 +51,23 @@ make_eqn_strat_Q = function(group){
   
   E = paste("dE", group, "Qdt = -delta*E", group, "Q + ", F, sep = "")
   
-  UI = paste("dUI", group, "Qdt = (1-alpha", group, "Q)*delta*E", group, "Q - (", k, "i*q + m", group, "Q*omega + (1-m", group, "Q)*gamma)*UI", group, "Q",sep = "")
+  UI = paste("dUI", group, "Qdt = (1-alpha", group, "Q)*delta*E", group, "Q - (", k, "i + m", group, "Q*omega + (1-m", group, "Q)*gamma)*UI", group, "Q",sep = "")
   
-  DI = paste("dDI", group, "Qdt = ", k, "i*q*UI", group, "Q - (m", group, "Q*omega + (1-m", group, "Q)*gamma)*DI", group, "Q", sep = "")
+  DI = paste("dDI", group, "Qdt = ", k, "i*UI", group, "Q - (m", group, "Q*omega + (1-m", group, "Q)*gamma)*DI", group, "Q", sep = "")
   
-  UA = paste("dUA", group, "Qdt = alpha", group, "Q*delta*E", group, "Q - (", k, "a*q + gamma)*UA", group, "Q", sep = "")
+  UA = paste("dUA", group, "Qdt = alpha", group, "Q*delta*E", group, "Q - (", k, "a + gamma)*UA", group, "Q", sep = "")
   
-  DA = paste("dDA", group, "Qdt = ", k, "a*q*UA", group, "Q - gamma*DA", group, "Q", sep = "")
+  DA = paste("dDA", group, "Qdt = ", k, "a*UA", group, "Q - gamma*DA", group, "Q", sep = "")
   
   R = paste("dR", group, "Qdt = (1-m", group, "Q)*gamma*(UI", group, "Q+DI", group, "Q)", " + gamma*(UA", group, "Q+DA", group, "Q)", sep = "")
   
   IT = paste("It", group, "Q = (1-alpha", group, "Q)*delta*E", group, "Q", sep = "")
   
-  DIT = paste("DIt", group, "Q = ", k, "i*q*UI", group, "Q", sep = "")
+  DIT = paste("DIt", group, "Q = ", k, "i*UI", group, "Q", sep = "")
   
   AT = paste("At", group, "Q = alpha", group, "Q*delta*E", group, "Q", sep = "")
   
-  DAT = paste("DAt", group, "Q = ", k, "a*q*UA", group, "Q", sep = "")
+  DAT = paste("DAt", group, "Q = ", k, "a*UA", group, "Q", sep = "")
   
   DT = paste("Dt", group, "Q = m", group, "Q*omega*(UI", group, "Q+DI", group, "Q)", sep = "")
   
