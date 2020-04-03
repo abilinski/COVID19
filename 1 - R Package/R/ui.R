@@ -26,12 +26,21 @@ generate_ui <- function() {
       selected = "Cumulative cases",
       tabPanel("Data Input",
         column(12,
+          column(5, 
           h4("Specify data to compare model outcomes against"),
           selectInput(inputId = "cases_hospitalizations_or_deaths", label = "What data are you entering?", choices = c("Cases", "Hospitalizations", "Deaths")),
-          # uiOutput('observedDataUI')
-
           rHandsontableOutput('observedData')
+          ),
+        column(7,
+          h4("Where can I find data to use here?"),
+          p("Check out sources such as:"),
+          tags$a("covidtracker.com", href='https://covidtracker.com'),
+          br(),
+          tags$a("Johns Hopkins CSSE Repository", href='https://github.com/CSSEGISandData/COVID-19'),
+          br(),
+          tags$a("New York Times Data Repository", href='https://github.com/nytimes/covid-19-data'),
           )
+        )
         ),
       tabPanel("Comparison to Data", 
         plotOutput("fit"),
