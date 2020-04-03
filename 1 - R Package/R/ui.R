@@ -75,74 +75,82 @@ generate_ui <- function() {
       h3("Base case parameters"),
       wellPanel(
         fluidRow(
-        tabsetPanel(
-          tabPanel(
-            title = "transmission parameters",
-            tags$div(
-              style = 'padding-top:12pt',
-              column(4,
-                numericInput("sim_time", label="simulation time (days)", value=30),
-                # we want to show r0 and td from calculation later
-                disabled(numericInput("R0", label="R0", value=1.0)),
-                numericInput("p", label="p: Pr(transmission/contact)", value=0.05),
-                disabled(numericInput("td", label="Doubling Time", value=2.5)),
-                numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
-                numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
-                numericInput("obs", label="obs cases at day1", value=100),
-                numericInput("n", label="n: total population", value=1938000),
-                sliderInput("rdetecti", label = "Symptomatic detection rate", 
-                  min = 0, max = 1, value = 0.1),
-                sliderInput("rdetecta", label = "Asymptomatic detection rate", 
-                  min = 0, max = 1, value = 0.01)
-                ),
-              column(4,
-                sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = .01, step=0.001),
-                sliderInput("e", label = "e: Social distance multiplier", min = 0, 
-                  max = 1, value = 0),
-                sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
-                  max = 1, value = 0.375),
-                sliderInput("m1", label = "m1: mortality yng", min = 0, 
-                  max = 1, value = 0),
-                sliderInput("m2", label = "m2: mortality med", min = 0, 
-                  max = 1, value = 0.005),
-                sliderInput("m3", label = "m3: mortality old", min = 0, 
-                  max = 1, value = 0.1),
-                sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
-                  max = 1, value = 1)
-                ),
-              column(4,
-                sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
-                  max = 1, value = 0.75),
-                sliderInput("alpha2", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
-                  max = 1, value = 0.3),
-                sliderInput("alpha3", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
-                  max = 1, value = 0.3),
-                sliderInput("young", label = "Frc youth", min = 0, 
-                  max = 1, value = 0.24),
-                sliderInput("medium", label = "Frc adults", min = 0, 
-                  max = 1, value = 0.6),
-                disabled(sliderInput("old", label = "Frc older adults", min = 0, 
-                    max = 1, value = 0.15)),
-                sliderInput("k_inf", label = "k_inf: rel infectiousness for yng", min = 0, 
-                  max = 1, value = 1),
-                sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
-                  max = 1, value = 1)
-                ),
-              downloadButton("download", "Download parameters"),
+          tabsetPanel(
+            tabPanel(
+              title = "transmission parameters",
+              tags$div(
+                style = 'padding-top:12pt',
+                column(4,
+                  numericInput("sim_time", label="simulation time (days)", value=30),
+                  # we want to show r0 and td from calculation later
+                  disabled(numericInput("R0", label="R0", value=1.0)),
+                  numericInput("p", label="p: Pr(transmission/contact)", value=0.05),
+                  disabled(numericInput("td", label="Doubling Time", value=2.5)),
+                  numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
+                  numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+                  numericInput("obs", label="obs cases at day1", value=100),
+                  numericInput("n", label="n: total population", value=1938000),
+                  sliderInput("rdetecti", label = "Symptomatic detection rate", 
+                    min = 0, max = 1, value = 0.1),
+                  sliderInput("rdetecta", label = "Asymptomatic detection rate", 
+                    min = 0, max = 1, value = 0.01)
+                  ),
+                column(4,
+                  sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
+                    max = .999, value = .01, step=0.001),
+                  sliderInput("e", label = "e: Social distance multiplier", min = 0, 
+                    max = 1, value = 0),
+                  sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
+                    max = 1, value = 0.375),
+                  sliderInput("m1", label = "m1: mortality yng", min = 0, 
+                    max = 1, value = 0),
+                  sliderInput("m2", label = "m2: mortality med", min = 0, 
+                    max = 1, value = 0.005),
+                  sliderInput("m3", label = "m3: mortality old", min = 0, 
+                    max = 1, value = 0.1),
+                  sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
+                    max = 1, value = 1)
+                  ),
+                column(4,
+                  sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
+                    max = 1, value = 0.75),
+                  sliderInput("alpha2", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
+                    max = 1, value = 0.3),
+                  sliderInput("alpha3", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
+                    max = 1, value = 0.3),
+                  sliderInput("young", label = "Frc youth", min = 0, 
+                    max = 1, value = 0.24),
+                  sliderInput("medium", label = "Frc adults", min = 0, 
+                    max = 1, value = 0.6),
+                  disabled(sliderInput("old", label = "Frc older adults", min = 0, 
+                      max = 1, value = 0.15)),
+                  sliderInput("k_inf", label = "k_inf: rel infectiousness for yng", min = 0, 
+                    max = 1, value = 1),
+                  sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
+                    max = 1, value = 1)
+                  ),
+                downloadButton("download", "Download parameters"),
 
-              # reset_inputs triggers an observeEvent in the server which takes 
-              # all of the user inputs and resets them to their default values
-              actionButton("reset_inputs", "Reset All Parameters"),
+                # reset_inputs triggers an observeEvent in the server which takes 
+                # all of the user inputs and resets them to their default values
+                actionButton("reset_inputs", "Reset All Parameters"),
               )
-            ),
-          tabPanel(
-            title = "contact matrix",
-            tags$div(
-              style = 'padding-top:12pt',
-              contact_matrix_ui_for_base_case(load_parameters()) 
+              ),
+            tabPanel(
+              title = "contact matrix",
+              tags$div(
+                style = 'padding-top:12pt',
+                contact_matrix_ui_for_base_case(load_parameters()) 
+              )
+              ),
+            tabPanel(
+              title = "compute doubling time",
+              tags$div(
+                style = 'padding-top:12pt',
+                uiOutput('doublingTimeInterval'),
+                textOutput('doublingTime')
+              )
             )
-          )
           )
         )
       )
@@ -157,66 +165,74 @@ generate_ui <- function() {
               title = "transmission parameters",
               tags$div(
                 style = 'padding-top:12pt',
-              column(4,
-                numericInput("int_time", label="intervention starts at", value=15),
-                numericInput("int_stop_time", label="intervention stops at", value=30),
-                # we want to show r0 and td from calculation later
-                disabled(numericInput("R0_int", label="R0", value=1.0)),
-                disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
-                disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
-                numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
-                numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
-                disabled(numericInput("obs_int", label="obs cases at day1", value=100)),
-                disabled(numericInput("n_int", label="n: total population", value=1938000)),
-                sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
-                  min = 0, max = 1, value = 0.1),
-                sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
-                  min = 0, max = 1, value = 0.01)
-                ),
-              column(4,
-                sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = 0.01, step=0.001),
-                disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
-                  max = 1, value = 0)),
-                sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
-                  max = 1, value = 0.375),
-                sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
-                  max = 1, value = 0),
-                sliderInput("m2_int", label = "m2: mortality med", min = 0, 
-                  max = 1, value = 0.005),
-                sliderInput("m3_int", label = "m3: mortality old", min = 0, 
-                  max = 1, value = 0.1),
-                sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
-                  max = 1, value = 1)
-                ),
-              column(4,
-                disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
-                  max = 1, value = 0.75)),
-                disabled(sliderInput("alpha2_int", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
-                  max = 1, value = 0.3)),
+                column(4,
+                  numericInput("int_time", label="intervention starts at", value=15),
+                  numericInput("int_stop_time", label="intervention stops at", value=30),
+                  # we want to show r0 and td from calculation later
+                  disabled(numericInput("R0_int", label="R0", value=1.0)),
+                  disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
+                  disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
+                  numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
+                  numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+                  disabled(numericInput("obs_int", label="obs cases at day1", value=100)),
+                  disabled(numericInput("n_int", label="n: total population", value=1938000)),
+                  sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
+                    min = 0, max = 1, value = 0.1),
+                  sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
+                    min = 0, max = 1, value = 0.01)
+                  ),
+                column(4,
+                  sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
+                    max = .999, value = 0.01, step=0.001),
+                  disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
+                      max = 1, value = 0)),
+                  sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
+                    max = 1, value = 0.375),
+                  sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
+                    max = 1, value = 0),
+                  sliderInput("m2_int", label = "m2: mortality med", min = 0, 
+                    max = 1, value = 0.005),
+                  sliderInput("m3_int", label = "m3: mortality old", min = 0, 
+                    max = 1, value = 0.1),
+                  sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
+                    max = 1, value = 1)
+                  ),
+                column(4,
+                  disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
+                      max = 1, value = 0.75)),
+                  disabled(sliderInput("alpha2_int", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
+                      max = 1, value = 0.3)),
                   disabled(sliderInput("alpha3_int", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
-                  max = 1, value = 0.3)),
-                disabled(sliderInput("young_int", label = "Frc youth", min = 0, 
-                                     max = 1, value = 0.24)),
-                disabled(sliderInput("medium_int", label = "Frc adults", min = 0, 
-                                     max = 1, value = 0.6)),
-                disabled(sliderInput("old_int", label = "Frc older adults", min = 0, 
-                                     max = 1, value = 0.15)),
-                sliderInput("k_inf_int", label = "k_inf: rel infectiousness for yng", min = 0, 
-                  max = 1, value = 1),
-                sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
-                  max = 1, value = 1)
+                      max = 1, value = 0.3)),
+                  disabled(sliderInput("young_int", label = "Frc youth", min = 0, 
+                      max = 1, value = 0.24)),
+                  disabled(sliderInput("medium_int", label = "Frc adults", min = 0, 
+                      max = 1, value = 0.6)),
+                  disabled(sliderInput("old_int", label = "Frc older adults", min = 0, 
+                      max = 1, value = 0.15)),
+                  sliderInput("k_inf_int", label = "k_inf: rel infectiousness for yng", min = 0, 
+                    max = 1, value = 1),
+                  sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
+                    max = 1, value = 1)
                 )
-              ),
+                ),
               downloadButton("download_int", "Download parameters")
-            ),
-          tabPanel(
-            title = "contact matrix",
+              ),
+            tabPanel(
+              title = "contact matrix",
               tags$div(
                 style = 'padding-top:12pt',
                 contact_matrix_ui_for_intervention(load_parameters())
               )
-          )
+              ),
+            tabPanel(
+              title = "compute doubling time",
+              tags$div(
+                style = 'padding-top:12pt',
+                uiOutput('doublingTimeIntervalInt'),
+                textOutput('doublingTimeInt')
+              )
+            )
           )
         )
       )
