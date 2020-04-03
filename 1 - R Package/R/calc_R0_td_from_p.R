@@ -1,4 +1,8 @@
-#calculate R0 and td from p
+#' This function takes the input p and the parameter vector as inputs and calculates the
+#' corresponding R0 and doubling time
+#' 
+#' Calculate R0 and td from p
+#' @export
 calc_R0_td_from_p <- function(params, p) {
   params$p <- p
   
