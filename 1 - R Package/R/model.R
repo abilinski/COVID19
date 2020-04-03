@@ -9,15 +9,17 @@
 
 ############## STRATIFIED MODEL-------------
 #' Stratified Model
-#' 
+#'
 #' @export
-model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='input',det_table=NULL) {
+model_strat <- function (t, x, parms, parms_int, int_start_time, int_stop_time, det_input_method='input',det_table=NULL) {
   #if using parameters in params to set up vary detection rate, det_input_method="calc"
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
   # decide if intervention starts
-  ifelse(t>=time_int, parms<-parms_int, parms)
-  
+  if (( ! is.null(int_start_time) ) & (! is.null(int_stop_time) )) {
+    if (t>=int_start_time & t <= int_stop_time) { parms<-parms_int }
+  }
+
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
   S2 = x[8]; E2 = x[9]; UI2 = x[10]; DI2 = x[11]; UA2 = x[12]; DA2 = x[13]; R2 = x[14]
@@ -25,7 +27,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   S1Q = x[22]; E1Q = x[23]; UI1Q = x[24]; DI1Q = x[25]; UA1Q = x[26]; DA1Q = x[27]; R1Q = x[28]
   S2Q = x[29]; E2Q = x[30]; UI2Q = x[31]; DI2Q = x[32]; UA2Q = x[33]; DA2Q = x[34]; R2Q = x[35]
   S3Q = x[36]; E3Q = x[37]; UI3Q = x[38]; DI3Q = x[39]; UA3Q = x[40]; DA3Q = x[41]; R3Q = x[42]
-  
+
   # pull in params
   # pulled from: paste(names(params), " = parms$", names(params), sep = "", collapse = ";")
   # in case params change
@@ -53,7 +55,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   vA3Q2 = parms$vA3Q2;vA3Q3 = parms$vA3Q3;vA3Q1Q = parms$vA3Q1Q;vA3Q2Q = parms$vA3Q2Q
   vA3Q3Q = parms$vA3Q3Q;N1 = parms$N1;N2 = parms$N2;N3 = parms$N3;N1Q = parms$N1Q;N2Q = parms$N2Q
   N3Q = parms$N3Q
-  
+
   ###time varying detection rate
   if (det_input_method == "calc") {
     #amended to detection rate directly: initial detection rate for I (det_ini), increasing p by time step (det_inc), a multiplier <1 to represent less detection rate for A (k_det_a); for calibration, use det_ini=0.1, det_inc=0, k_det_a=0 now.
@@ -67,10 +69,10 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
     rdetecti <- det_table[t,'rdetecti']
     rdetecta <- det_table[t,'rdetecta']
   }
-  
+
   #multiplier representing the change in contacts when detected
   k_det_c <- parms$k_det_c
-  
+
   ###### Equations
   ### YOUNG
   dS1dt = -S1*k_susp*p*(k_inf*v11*(UI1+k_det_c*DI1)/N1 + vA11*(UA1+k_det_c*DA1)/N1 + v21*(UI2+k_det_c*DI2)/N2 + vA21*(UA2+k_det_c*DA2)/N2 + v31*(UI3+k_det_c*DI3)/N3 + vA31*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1*(UA3Q+k_det_c*DA3Q)/N3Q)
@@ -85,7 +87,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   At1 = alpha1*delta*E1
   DAt1 = k_report*rdetecta*UA1
   Dt1 = m1*omega*(UI1+DI1)
-  
+
   ### MEDIUM
   dS2dt = -S2*p*(k_inf*v12*(UI1+k_det_c*DI1)/N1 + vA12*(UA1+k_det_c*DA1)/N1 + v22*(UI2+k_det_c*DI2)/N2 + vA22*(UA2+k_det_c*DA2)/N2 + v32*(UI3+k_det_c*DI3)/N3 + vA32*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE2dt = -delta*E2+ S2*p*(k_inf*v12*(UI1+k_det_c*DI1)/N1 + vA12*(UA1+k_det_c*DA1)/N1 + v22*(UI2+k_det_c*DI2)/N2 + vA22*(UA2+k_det_c*DA2)/N2 + v32*(UI3+k_det_c*DI3)/N3 + vA32*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2*(UA3Q+k_det_c*DA3Q)/N3Q)
@@ -99,7 +101,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   At2 = alpha2*delta*E2
   DAt2 = rdetecta*UA2
   Dt2 = m2*omega*(UI2+DI2)
-  
+
   ### OLD
   dS3dt = -S3*p*(k_inf*v13*(UI1+k_det_c*DI1)/N1 + vA13*(UA1+k_det_c*DA1)/N1 + v23*(UI2+k_det_c*DI2)/N2 + vA23*(UA2+k_det_c*DA2)/N2 + v33*(UI3+k_det_c*DI3)/N3 + vA33*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE3dt = -delta*E3+ S3*p*(k_inf*v13*(UI1+k_det_c*DI1)/N1 + vA13*(UA1+k_det_c*DA1)/N1 + v23*(UI2+k_det_c*DI2)/N2 + vA23*(UA2+k_det_c*DA2)/N2 + v33*(UI3+k_det_c*DI3)/N3 + vA33*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3*(UA3Q+k_det_c*DA3Q)/N3Q)
@@ -113,7 +115,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   At3 = alpha3*delta*E3
   DAt3 = rdetecta*UA3
   Dt3 = m3*omega*(UI3+DI3)
-  
+
   ### YOUNG - SOCIALLY DISTANCED
   dS1Qdt = -S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE1Qdt = -delta*E1Q + S1Q*k_susp*p*(k_inf*v11Q*(UI1+k_det_c*DI1)/N1 + vA11Q*(UA1+k_det_c*DA1)/N1 + v21Q*(UI2+k_det_c*DI2)/N2 + vA21Q*(UA2+k_det_c*DA2)/N2 + v31Q*(UI3+k_det_c*DI3)/N3 + vA31Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q1Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q1Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q1Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q1Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q1Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q1Q*(UA3Q+k_det_c*DA3Q)/N3Q)
@@ -127,7 +129,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   At1Q = alpha1Q*delta*E1Q
   DAt1Q = k_report*rdetecta*UA1Q
   Dt1Q = m1Q*omega*(UI1Q+DI1Q)
-  
+
   ### MEDIUM - SOCIALLY DISTANCED
   dS2Qdt = -S2Q*p*(k_inf*v12Q*(UI1+k_det_c*DI1)/N1 + vA12Q*(UA1+k_det_c*DA1)/N1 + v22Q*(UI2+k_det_c*DI2)/N2 + vA22Q*(UA2+k_det_c*DA2)/N2 + v32Q*(UI3+k_det_c*DI3)/N3 + vA32Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE2Qdt = -delta*E2Q + S2Q*p*(k_inf*v12Q*(UI1+k_det_c*DI1)/N1 + vA12Q*(UA1+k_det_c*DA1)/N1 + v22Q*(UI2+k_det_c*DI2)/N2 + vA22Q*(UA2+k_det_c*DA2)/N2 + v32Q*(UI3+k_det_c*DI3)/N3 + vA32Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q2Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q2Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q2Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q2Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q2Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q2Q*(UA3Q+k_det_c*DA3Q)/N3Q)
@@ -141,7 +143,7 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   At2Q = alpha2Q*delta*E2Q
   DAt2Q = rdetecta*UA2Q
   Dt2Q = m2Q*omega*(UI2Q+DI2Q)
-  
+
   ### OLD - SOCIALLY DISTANCED
   dS3Qdt = -S3Q*p*(k_inf*v13Q*(UI1+k_det_c*DI1)/N1 + vA13Q*(UA1+k_det_c*DA1)/N1 + v23Q*(UI2+k_det_c*DI2)/N2 + vA23Q*(UA2+k_det_c*DA2)/N2 + v33Q*(UI3+k_det_c*DI3)/N3 + vA33Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3Q*(UA3Q+k_det_c*DA3Q)/N3Q)
   dE3Qdt = -delta*E3Q + S3Q*p*(k_inf*v13Q*(UI1+k_det_c*DI1)/N1 + vA13Q*(UA1+k_det_c*DA1)/N1 + v23Q*(UI2+k_det_c*DI2)/N2 + vA23Q*(UA2+k_det_c*DA2)/N2 + v33Q*(UI3+k_det_c*DI3)/N3 + vA33Q*(UA3+k_det_c*DA3)/N3 + k_inf*v1Q3Q*(UI1Q+k_det_c*DI1Q)/N1Q + vA1Q3Q*(UA1Q+k_det_c*DA1Q)/N1Q + v2Q3Q*(UI2Q+k_det_c*DI2Q)/N2Q + vA2Q3Q*(UA2Q+k_det_c*DA2Q)/N2Q + v3Q3Q*(UI3Q+k_det_c*DI3Q)/N3Q + vA3Q3Q*(UA3Q+k_det_c*DA3Q)/N3Q)
@@ -155,30 +157,33 @@ model_strat <- function (t, x, parms, parms_int, time_int, det_input_method='inp
   At3Q = alpha3Q*delta*E3Q
   DAt3Q = rdetecta*UA3Q
   Dt3Q = m3Q*omega*(UI3Q+DI3Q)
-  
+
   # results
-  output <- c(dS1dt, dE1dt, dUI1dt, dDI1dt, dUA1dt, dDA1dt, dR1dt, 
-              dS2dt, dE2dt, dUI2dt, dDI2dt, dUA2dt, dDA2dt, dR2dt, 
-              dS3dt, dE3dt, dUI3dt, dDI3dt, dUA3dt, dDA3dt, dR3dt, 
-              dS1Qdt, dE1Qdt, dUI1Qdt, dDI1Qdt, dUA1Qdt, dDA1Qdt, dR1Qdt, 
-              dS2Qdt, dE2Qdt, dUI2Qdt, dDI2Qdt, dUA2Qdt, dDA2Qdt, dR2Qdt, 
-              dS3Qdt, dE3Qdt, dUI3Qdt, dDI3Qdt, dUA3Qdt, dDA3Qdt, dR3Qdt, 
+  output <- c(dS1dt, dE1dt, dUI1dt, dDI1dt, dUA1dt, dDA1dt, dR1dt,
+              dS2dt, dE2dt, dUI2dt, dDI2dt, dUA2dt, dDA2dt, dR2dt,
+              dS3dt, dE3dt, dUI3dt, dDI3dt, dUA3dt, dDA3dt, dR3dt,
+              dS1Qdt, dE1Qdt, dUI1Qdt, dDI1Qdt, dUA1Qdt, dDA1Qdt, dR1Qdt,
+              dS2Qdt, dE2Qdt, dUI2Qdt, dDI2Qdt, dUA2Qdt, dDA2Qdt, dR2Qdt,
+              dS3Qdt, dE3Qdt, dUI3Qdt, dDI3Qdt, dUA3Qdt, dDA3Qdt, dR3Qdt,
               It1, It2, It3, It1Q, It2Q, It3Q,
               DIt1, DIt2, DIt3, DIt1Q, DIt2Q, DIt3Q,
               At1, At2, At3, At1Q, At2Q, At3Q,
               DAt1, DAt2, DAt3, DAt1Q, DAt2Q, DAt3Q,
               Dt1, Dt2, Dt3, Dt1Q, Dt2Q, Dt3Q)
-  
+
   # list it!
   list(output)
 }
 
 ############## RUN ODE-----------------
 #'  Run the Model
-#' 
+#'
 #' @export
-run_model <- function(func, xstart, times, params, det_table, method = "lsodes", events=NULL, parms_int, time_int) {
-  return(as.data.frame(ode(func = func, y = xstart, times = times, parms = params, det_table=det_table, method = method, atol=1e-8, events=events, parms_int=parms_int, time_int=time_int)))
+run_model <- function(func, xstart, times, params, det_table,
+  method = "lsodes", events=NULL, parms_int, int_start_time, int_stop_time) {
+  return(as.data.frame(ode(func = func, y = xstart, times = times, parms =
+        params, det_table=det_table, method = method, atol=1e-8, events=events,
+      parms_int=parms_int, int_start_time=int_start_time, int_stop_time=int_stop_time)))
 }
 
 
@@ -192,7 +197,7 @@ load_detection_rates <- function() {
 
 
 #' Process Parameters
-#' 
+#'
 #' @export
 process_params = function(params, p.adj = NA, obs.adj = NA){
 
@@ -201,16 +206,16 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
   #
   # Update these to calc R0 and td from p
   params['R0'] = calc_R0_from_td(td=params['td'],vec=params)
-  params['p']= calc_p_from_R0(R0_input=params['R0'],vec=params) 
+  params['p']= calc_p_from_R0(R0_input=params['R0'],vec=params)
 
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
   params$obs = ifelse(is.na(obs.adj), params$obs, obs.adj)
-  
-  #### ADJUSTMENTS BASED ON MODEL SIMPLIFICATIONS 
+
+  #### ADJUSTMENTS BASED ON MODEL SIMPLIFICATIONS
   # same time to infection whether recovery or death
   params$omega = params$gamma
-  
+
   # asymptomatic and mortality prob same whether socially distanced (Q) or no
   params$alpha1Q = params$alpha1
   params$alpha2Q = params$alpha2
@@ -218,21 +223,21 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
   params$m1Q = params$m1
   params$m2Q = params$m2
   params$m3Q = params$m3
-  
+
   # contact rates for socially distanced
   # contact rates between socially distanced and non-socially distanced are social distance rates
   params$v1Q1Q = params$v1Q1 = params$v11Q = params$e*params$v11
   params$v1Q2Q = params$v1Q2 = params$v12Q = params$e*params$v12
   params$v1Q3Q = params$v1Q3 = params$v13Q = params$e*params$v13
-  
+
   params$v2Q1Q = params$v2Q1 = params$v21Q = params$e*params$v21
   params$v2Q2Q = params$v2Q2 = params$v22Q = params$e*params$v22
   params$v2Q3Q = params$v2Q3 = params$v23Q = params$e*params$v23
-  
+
   params$v3Q1Q = params$v3Q1 = params$v31Q = params$e*params$v31
   params$v3Q2Q = params$v3Q2 = params$v32Q = params$e*params$v32
   params$v3Q3Q = params$v3Q3 = params$v33Q = params$e*params$v33
-  
+
   # contact rates are same whether asymptomatic or no
   # (this might be adjusted with some interventions)
   # but they have lower infection prob (kappa)
@@ -242,42 +247,42 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
   params$vA11Q = params$v11Q*params$kappa
   params$vA12Q = params$v12Q*params$kappa
   params$vA13Q = params$v13Q*params$kappa
-  
+
   params$vA21 = params$v21*params$kappa
   params$vA22 = params$v22*params$kappa
   params$vA23 = params$v23*params$kappa
   params$vA21Q = params$v21Q*params$kappa
   params$vA22Q = params$v22Q*params$kappa
   params$vA23Q = params$v23Q*params$kappa
-  
+
   params$vA31 = params$v31*params$kappa
   params$vA32 = params$v32*params$kappa
   params$vA33 = params$v33*params$kappa
   params$vA31Q = params$v31Q*params$kappa
   params$vA32Q = params$v32Q*params$kappa
   params$vA33Q = params$v33Q*params$kappa
-  
+
   params$vA1Q1 = params$v1Q1*params$kappa
   params$vA1Q2 = params$v1Q2*params$kappa
   params$vA1Q3 = params$v1Q3*params$kappa
   params$vA1Q1Q = params$v1Q1Q*params$kappa
   params$vA1Q2Q = params$v1Q2Q*params$kappa
   params$vA1Q3Q = params$v1Q3Q*params$kappa
-  
+
   params$vA2Q1 = params$v2Q1*params$kappa
   params$vA2Q2 = params$v2Q2*params$kappa
   params$vA2Q3 = params$v2Q3*params$kappa
   params$vA2Q1Q = params$v2Q1Q*params$kappa
   params$vA2Q2Q = params$v2Q2Q*params$kappa
   params$vA2Q3Q = params$v2Q3Q*params$kappa
-  
+
   params$vA3Q1 = params$v3Q1*params$kappa
   params$vA3Q2 = params$v3Q2*params$kappa
   params$vA3Q3 = params$v3Q3*params$kappa
   params$vA3Q1Q = params$v3Q1Q*params$kappa
   params$vA3Q2Q = params$v3Q2Q*params$kappa
   params$vA3Q3Q = params$v3Q3Q*params$kappa
-  
+
   params$N1 = if_else(params$n*(1-params$s)*params$young == 0, 1, params$n*(1-params$s)*params$young)
   params$N2 = if_else(params$n*(1-params$s)*params$medium == 0, 1, params$n*(1-params$s)*params$medium)
   params$N3 = if_else(params$n*(1-params$s)*params$old == 0, 1, params$n*(1-params$s)*params$old)
@@ -290,20 +295,39 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 
 ############### RUN PARAMETER VECTOR
 #' Run Model from Parameter Vector
-#' 
+#'
+#' @param days_out1 Day of intervention start
+#' @param days_out2 Length of simulation time
+#' @param days_out3 Day of intervention stop
+#'
 #' @export
+#'
+#' @examples
+#'   params <- load_parameters()
+#'   det_table <- load_detection_table()
+#'
+#'  test = run_param_vec(
+#'    params = params, params2=NULL, days_out1 = 30,
+#'    days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
+#'
+#'  params_int <- params
+#'  params_int$s <- .5
+#'
+#'  test = run_param_vec(
+#'    params = params, params2 = params_int, days_out1 = 15, days_out2 = 30, days_out3 = 20,
+#'    model_type = run_int, det_table = det_table)
 run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
-                         days_out1 = 30, days_out2 = NULL, model_type = run_basic,
+                         days_out1 = 30, days_out2 = NULL, days_out3 = NULL, model_type = run_basic,
                          det_table){
-  
+
   # process parameters
   params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)
   if(!is.null(params2)) params2 = process_params(params2, p.adj = p.adj, obs.adj = obs.adj)
 
   ############## SET INITIAL CONDITIONS--------------
-  
+
   # assuming you don't have specific reporting rates
-  # you can instead pull from obs_adults and obs_kids by 
+  # you can instead pull from obs_adults and obs_kids by
   # adding to parameter vector
   #*** this code is being grumpy (need more edits down the line) so I held off for now
   #obs_adults = obs*(medium + old)
@@ -311,7 +335,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   #start = obs_adults/(c*(medium+old))
   #start_kids = obs_kids/(c*k_report*young)
   start = start_kids = params$obs
-  
+
   x = data.frame(
     # initial conditions
     S_1 = params$n*(1-params$s)*params$young - start_kids*params$young*(1-params$s),
@@ -347,7 +371,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
     R_1Q = 0,
 
     S_2Q = params$n*(params$s)*params$medium - start*params$medium*(params$s),
-    E_2Q = start*(params$s)*params$medium, 
+    E_2Q = start*(params$s)*params$medium,
     UI_2Q = start*(params$s)*params$medium*(1-params$alpha2),
     DI_2Q = 0,
     UA_2Q = start*(params$s)*params$medium*(params$alpha2),
@@ -392,62 +416,87 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
            D_2Q_cum = 0,
            D_3Q_cum = 0
     )
-    
-  
+
+
   ############## RUN MODEL----------------------
   # run the model
   test = model_type(model = model_strat, xstart = x, params = params, params2 = params2,
-                    days_out1 = days_out1, days_out2 = days_out2, det_table=det_table)
+                    days_out1 = days_out1, days_out2 = days_out2, days_out3 = days_out3,
+                    det_table=det_table)
   return(test)
 
 }
 
 ##### BASIC MODEL-------------
 #' Run Basic Model
-#' 
+#'
 #' @export
-run_basic = function(model = model_strat, xstart, params = params, params2 = NULL, days_out1, days_out2 = NULL, det_table=det_table){
-  
+run_basic = function(model = model_strat, xstart, params = params,
+  params2 = NULL, days_out1, days_out2 = NULL, days_out3 = NULL, det_table=det_table){
+
   # run model
-  test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1), 
-                   params = params, det_table=det_table, method = "lsoda", parms_int = params , time_int = 0)
+  test = run_model(model, xstart = as.numeric(xstart), times = c(1:days_out1),
+                   params = params, det_table=det_table, method = "lsoda", parms_int = params,
+                   int_start_time = 0, int_stop_time = days_out3)
   names(test)[2:ncol(test)] = names(xstart)
-  
+
   return(test)
-  
+
 }
 
 ##### WITH INTERVENTION
 #' Run Model with Intervention
-#' 
+#'
 #' @export
-run_int = function(model = model_strat, xstart, params = params, 
-  params2 = NULL, days_out1, days_out2, det_table=det_table){
+run_int = function(model = model_strat, xstart, params = params,
+  params2 = NULL, days_out1, days_out2, days_out3, det_table=det_table){
 
   compartment_names <- names(xstart)
   not_socially_distanced <- which( (! grepl("Q", compartment_names) & (! grepl("_cum", compartment_names))) )
   socially_distanced <- which( grepl("Q", compartment_names) & (! grepl("_cum", compartment_names)) )
 
-
-  eventfun <- function(t, y, parms, parms_int = parms_int, time_int = time_int, det_table = det_table){
+  # event function for intervention start and stop
+  eventfun <- function(t, y, parms, parms_int = parms_int, int_start_time,
+    int_stop_time, det_table = det_table){
     y_new<-y
-    if (parms_int$s != parms$s) { 
-      y_new[not_socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
-      y_new[socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
+    if (t == int_start_time) {
+      if (parms_int$s != parms$s) {
+        y_new[not_socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
+        y_new[socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
+      }
+    } else if (t == int_stop_time) {
+      if (parms_int$s != parms$s) {
+        y_new[not_socially_distanced]<-(1-parms$s)*(y[socially_distanced]+y[not_socially_distanced])
+        y_new[socially_distanced]<-parms$s*(y[socially_distanced]+y[not_socially_distanced])
+      }
     }
     return(y_new)
   }
-  
+
   # run intervention model
-  test = run_model(model_strat, xstart = as.numeric(xstart), 
-    times = c(1:days_out2), params, det_table=det_table,  method = "lsoda",
-    events=list(func = eventfun, time =days_out1), parms_int=params2,
-    time_int=days_out1)
+  test = run_model(
+    model_strat,
+    xstart = as.numeric(xstart),
+    times = c(1:days_out2),
+    params,
+    det_table=det_table,
+    method = "lsoda",
+    events =
+      list(
+        func = eventfun,
+        time =c(
+          days_out1,
+          days_out3)
+        ),
+    parms_int=params2,
+    int_start_time=days_out1,
+    int_stop_time=days_out3
+    )
 
   names(test)[2:ncol(test)] = names(xstart)
 
   return(test)
-  
+
 }
 
 #' Multiple plot function
@@ -463,12 +512,12 @@ run_int = function(model = model_strat, xstart, params = params,
 #' @export
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   require(grid)
-  
+
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
-  
+
   numPlots = length(plots)
-  
+
   # If layout is NULL, then use 'cols' to determine layout
   if (is.null(layout)) {
     # Make the panel
@@ -477,20 +526,20 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
                      ncol = cols, nrow = ceiling(numPlots/cols))
   }
-  
+
   if (numPlots==1) {
     print(plots[[1]])
-    
+
   } else {
     # Set up the page
     grid.newpage()
     pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
+
     # Make each plot, in the correct location
     for (i in 1:numPlots) {
       # Get the i,j matrix positions of the regions that contain this subplot
       matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
+
       print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
                                       layout.pos.col = matchidx$col))
     }

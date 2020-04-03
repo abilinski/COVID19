@@ -9,3 +9,11 @@ fit_model(params, observed_data)
 \description{
 Fit the Model
 }
+\examples{
+
+  params <- load_parameters()
+  observed_data <- filter_states_data('MA')
+  fit_model(params, observed_data)
+
+
+}

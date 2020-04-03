@@ -42,6 +42,11 @@
 #'     socially distanced contact matrix == not socially distanced contact matrix,
 #'     so varying s should have no effect on simulation outcomes.
 #' 
+#'   - Show the users imputed parameters, like R0 and p are determined
+#'     based off the doubling time parameter td
+#' 
+#'   - Parameter Validation, making sure frc young + medium + old == 1 [done!]
+#' 
 #'   - Someday we should think about caching plots: 
 #'     https://shiny.rstudio.com/articles/plot-caching.html 
 #' 
@@ -77,6 +82,7 @@ server <- function(input, output, session) {
       withProgress(message = 'Optimizing Model Fit', {
         fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
         updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
+        # print(fit_param_vec$optim$par[[1]])
         updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
       })
     })
@@ -175,10 +181,10 @@ server <- function(input, output, session) {
 
         ### run model without intervention
         simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
+                             days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
         simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
+                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, model_type = run_int, det_table = det_table_int)
 
     format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
   })
@@ -223,14 +229,21 @@ server <- function(input, output, session) {
           rdetecta = c(rep(input$rdetecta, input$int_time), 
             rep(input$rdetecta_int, (input$sim_time - input$int_time))))
         
+        ### give warning if population doesn't add up to 1
+        validate(
+          need(input$young<=1, 'total population = 1!!'),
+          need(input$medium<=1, 'total population = 1!!'),
+          need(input$young+input$medium<=1, 'total population = 1!!')
+        )
         ### run model without intervention
         test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, model_type = run_basic, det_table = det_table) 
+                             days_out2 = NULL, days_out3 = NULL, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
         test_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, model_type = run_int, det_table = det_table_int)
+                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, 
+                                 model_type = run_int, det_table = det_table_int)
         ### make plots
-        g = make_plots_int(test, params = param_vec, test_int, params_int = param_vec_int)
+        g = make_plots_int(test, params = param_vec, test_int, params_int = param_vec_int, observed_data = observed_data$cases)
 
         return(g)
   })
@@ -264,11 +277,7 @@ server <- function(input, output, session) {
     )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ 
-      plot_fit_to_observed_data_int(
-        format_model_sims_with_cases(),
-        observed_data = hot_to_r(input$table)) 
-    }) 
+    output$fit <- renderPlot({ model_plots()[[8]] })
     
     ## output for Comp flows tab
     output$comp_flow<- renderPlot({ model_plots()[[7]] })
@@ -327,40 +336,29 @@ server <- function(input, output, session) {
     })
     
     observeEvent(c(input$obs), {
-      updateNumericInput(session, 'obs_int', value = input$obs)
+      updateSliderInput(session, 'obs_int', value = input$obs)
     })
     
     observeEvent(c(input$n), {
-      updateNumericInput(session, 'n_int', value = input$n)
+      updateSliderInput(session, 'n_int', value = input$n)
     })
+    
     
     # show the corresponding p and R0 when entering td
     # Change this to update R0 and td based on p
-    observeEvent(c(input$td), {
-      R0 = R0_p_value()[1]
+    observeEvent(input$td, {
+      R0_and_p <- R0_p_value()
+
+      R0 = R0_and_p[1]
+      p = R0_and_p[2]
+
       updateNumericInput(session, 'R0', value = R0)
-    })
-    
-    # Change this to update R0 and td based on p
-    observeEvent(c(input$td), {
-      p = R0_p_value()[2]
-      updateNumericInput(session, 'p', value = p)
-    })
-    
-
-    # Change this to update R0 and td based on p
-    observeEvent(c(input$td), {
-      R0 = R0_p_value()[1]
       updateNumericInput(session, 'R0_int', value = R0)
-    })
-    
 
-    # Change this to update R0 and td based on p
-    observeEvent(c(input$td), {
-      R0 = R0_p_value()[2]
+      updateNumericInput(session, 'p', value = p)
       updateNumericInput(session, 'p_int', value = R0)
     })
-
+    
     callModule(contact_matrix_server_module, id = NULL)
 
     output$documentation_page <- renderUI({

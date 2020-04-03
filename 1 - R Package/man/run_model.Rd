@@ -5,7 +5,7 @@
 \title{Run the Model}
 \usage{
 run_model(func, xstart, times, params, det_table, method = "lsodes",
-  events = NULL, parms_int, time_int)
+  events = NULL, parms_int, int_start_time, int_stop_time)
 }
 \description{
 Run the Model

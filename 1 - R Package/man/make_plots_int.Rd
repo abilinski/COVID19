@@ -4,8 +4,26 @@
 \alias{make_plots_int}
 \title{Make Plots Comparing Base Case and Intervention}
 \usage{
-make_plots_int(test, params, test_int, params_int)
+make_plots_int(test, params, test_int, params_int, observed_data)
 }
 \description{
 Make Plots Comparing Base Case and Intervention
+}
+\examples{
+
+param_vec_int <- param_vec <- load_parameters()
+param_vec_int[['s']] <- .5
+
+det_table <- load_detection_table()
+
+test = run_param_vec(
+  params = param_vec, params2=NULL, days_out1 = 30,
+  days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
+
+test_int = run_param_vec(params = param_vec, params2 = param_vec_int,
+                         days_out1 = 10, days_out2 = 30, days_out3 = 30, model_type = run_int, det_table = det_table)
+
+plots <- make_plots_int(test = test, params = param_vec, test_int = test_int,
+  params_int = param_vec_int, observed_data = filter_states_data("MA"))
+
 }

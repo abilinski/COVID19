@@ -16,7 +16,7 @@ model_loss_function <- function(params, observed_data) {
 
   # run model
   model_simulation <- run_param_vec(params = params, params2 = NULL, days_out1 = ceiling(nrow(observed_data)*2),
-    days_out2 = nrow(observed_data), model_type = run_basic, det_table = det_table) 
+    days_out2 = ceiling(nrow(observed_data)*2), days_out3 = ceiling(nrow(observed_data)*2), model_type = run_basic, det_table = det_table) 
 
   # get cumulative diagnosed cases from model simulation
   
@@ -40,10 +40,8 @@ model_loss_function <- function(params, observed_data) {
   merge_df <- merge(observed_data, diagnosed_cumulative_cases, by = 'day')
 
   sse <- sum(
-    # weight towards most recent data points most
-    1:nrow(merge_df)/nrow(merge_df) * 
-      # squared error
-      (merge_df$observed_cumulative_cases - merge_df$model_diagnosed_cumulative_cases)^2
+    # squared error
+    (merge_df$observed_cumulative_cases - merge_df$model_diagnosed_cumulative_cases)^2
     )
 
   return(sse)
@@ -59,14 +57,21 @@ make_loss_function <- function(params, observed_data) {
 }
 
 #' Fit the Model
+#' 
+#' @examples
+#' 
+#'   params <- load_parameters()
+#'   observed_data <- filter_states_data('MA')
+#'   fit_model(params, observed_data)
+#' 
+#' 
 fit_model <- function(params, observed_data) { 
 
   loss_function <- make_loss_function(params, observed_data)
 
-  variables <- c(td = 2.5, obs = 100)
+  variables <- c(td = 2.5, obs = 10)
 
-  optim(par = variables, fn = loss_function, method = 'L-BFGS-B',
-    lower = c(0, 0), upper = c(1, Inf))
+  optim(par = variables, fn = loss_function, method = 'Nelder-Mead')
 }
 
 

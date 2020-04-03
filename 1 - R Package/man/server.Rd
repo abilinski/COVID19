@@ -32,7 +32,7 @@ Future directions in progress include:
 
 - Adding documentation [started on branch shiny_documentation_page]
 
-- Adding Calibration to User-Uploaded Case Series
+- Improve Calibration to User-Uploaded Case Series
 
 - More Comprehensive User Downloads: 
     - Parameters Downloads
@@ -50,7 +50,7 @@ Future directions in progress include:
     so varying s should have no effect on simulation outcomes.
 
 - Show the users imputed parameters, like R0 and p are determined
-    based off the doubling time parameter td [done!]
+    based off the doubling time parameter td
 
 - Parameter Validation, making sure frc young + medium + old == 1 [done!]
 

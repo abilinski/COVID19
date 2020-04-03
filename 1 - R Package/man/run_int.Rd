@@ -5,7 +5,7 @@
 \title{Run Model with Intervention}
 \usage{
 run_int(model = model_strat, xstart, params = params, params2 = NULL,
-  days_out1, days_out2, det_table = det_table)
+  days_out1, days_out2, days_out3, det_table = det_table)
 }
 \description{
 Run Model with Intervention

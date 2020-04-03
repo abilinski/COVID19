@@ -2,10 +2,10 @@
 % Please edit documentation in R/plot_model_outcomes.R
 \name{plot_ratio_of_new_to_existing_cases}
 \alias{plot_ratio_of_new_to_existing_cases}
-\title{Plot Ratio of New To Exisitng Cases}
+\title{Plot Ratio of New To Existing Cases}
 \usage{
 plot_ratio_of_new_to_existing_cases(out)
 }
 \description{
-Plot Ratio of New To Exisitng Cases
+Plot Ratio of New To Existing Cases
 }

@@ -5,19 +5,6 @@
 
 generate_ui <- function() { 
 
-  # The parameters table is used to grab the parameter names from its column
-  # names.  In the future we could also use this table to define pre-defined
-  # and run scenarios in the user app, e.g.  school closures; generic social 
-  # distancing measures, improved treatment; etc
-  df <- load_parameters_table()
-
-  # Grab the parameter names and also append _int to them to construct the list
-  # used to grab intervention parameters from user input IDs 
-  default_params = df[1,]
-  param_vec = df[1,]
-  param_names_base = c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
-  param_names_int = c(colnames(df)[1], unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
-
   # Define UI for application
   ui <- fluidPage(
 
@@ -153,7 +140,7 @@ generate_ui <- function() {
             title = "contact matrix",
             tags$div(
               style = 'padding-top:12pt',
-              contact_matrix_ui_for_base_case(param_vec)
+              contact_matrix_ui_for_base_case(load_parameters()) 
             )
           )
           )
@@ -172,6 +159,7 @@ generate_ui <- function() {
                 style = 'padding-top:12pt',
               column(4,
                 numericInput("int_time", label="intervention starts at", value=15),
+                numericInput("int_stop_time", label="intervention stops at", value=30),
                 # we want to show r0 and td from calculation later
                 disabled(numericInput("R0_int", label="R0", value=1.0)),
                 disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
@@ -226,7 +214,7 @@ generate_ui <- function() {
             title = "contact matrix",
               tags$div(
                 style = 'padding-top:12pt',
-                contact_matrix_ui_for_intervention(param_vec)
+                contact_matrix_ui_for_intervention(load_parameters())
               )
           )
           )
