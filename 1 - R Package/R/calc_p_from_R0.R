@@ -16,11 +16,22 @@ calc_p_from_R0<- function (R0_input,vec) {
   return(p_cand[which.min(abs(R0-R0_input))])
 }
 
-#' Calculate R0 from td 
+#' #' Calculate R0 from td (based on SIR) 
+#' #' @export
+#' calc_R0_from_td <-function(td,vec){
+#'   #calculate time of infectiousness
+#'   t_inf = 1/vec$gamma 
+#'   R0 = 1+(t_inf/td)*log(2)
+#'   return(R0)
+#' }
+
+#' Calculate R0 from td (based on SEIR)
 #' @export
 calc_R0_from_td <-function(td,vec){
   #calculate time of infectiousness
-  t_inf = 1/vec$gamma 
-  R0 = 1+(t_inf/td)*log(2)
+  gamma = vec$gamma
+  delta = vec$delta
+  R0 = ((delta+log(2)/td)/delta)*((gamma+log(2)/td)/gamma)
   return(R0)
 }
+
