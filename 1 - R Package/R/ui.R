@@ -24,14 +24,20 @@ generate_ui <- function() {
 
     tabsetPanel(
       selected = "Cumulative cases",
-      tabPanel("Case Series Input",
+      tabPanel("Data Input",
         column(12,
-          h4("Specify case series to calibrate to."),
+          h4("Specify data to compare model outcomes against"),
           selectInput(inputId = "cases_hospitalizations_or_deaths", label = "What data are you entering?", choices = c("Cases", "Hospitalizations", "Deaths")),
-          renderUI('userInputTable')
+          # uiOutput('observedDataUI')
+
+          rHandsontableOutput('observedData')
           )
         ),
-      tabPanel("Fits", plotOutput("fit")),
+      tabPanel("Comparison to Data", 
+        plotOutput("fit"),
+        selectInput("comparisonDataPlotChoice", "Select a Measure for Comparing Model Outcomes to Data", choices = c("Cases", "Hospitalizations", "Deaths")),
+        selectInput("comparisonDataPlotCumulative", "How do you want the plot formatted?", choices = c("Cumulative", "Daily Counts"))
+        ),
 
       tabPanel("Comp flows", plotOutput("comp_flow")),
 
@@ -169,7 +175,7 @@ generate_ui <- function() {
                 ),
               column(4,
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = 0.5, step=0.01),
+                  max = .999, value = 0.1, step=0.01),
                 disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
                   max = 1, value = 0)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
