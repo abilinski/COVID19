@@ -203,6 +203,8 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 
   # we take the approach of defining R0 and per-contact transmission
   # probability p based on the doubling time parameter td
+  #
+  # Update these to calc R0 and td from p
   params['R0'] = calc_R0_from_td(td=params['td'],vec=params)
   params['p']= calc_p_from_R0(R0_input=params['R0'],vec=params)
 

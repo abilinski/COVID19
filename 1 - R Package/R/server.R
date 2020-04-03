@@ -150,10 +150,13 @@ server <- function(input, output, session) {
   })
   
   ### calculate R0 and p
+  # Rename this to R0_td_value
   R0_p_value <- reactive({
     user_inputs<-c(unlist(reactiveValuesToList(input)))
     param_vec <- param_vec_reactive()
     param_vec_int <- param_vec_int_reactive()
+
+    # Edit this to compute R0 and td from p
     R0 = as.numeric(calc_R0_from_td(td=param_vec['td'],vec=param_vec))
     p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
     return (c(R0, p))
@@ -342,6 +345,7 @@ server <- function(input, output, session) {
     
     
     # show the corresponding p and R0 when entering td
+    # Change this to update R0 and td based on p
     observeEvent(input$td, {
       R0_and_p <- R0_p_value()
 
@@ -355,8 +359,25 @@ server <- function(input, output, session) {
       updateNumericInput(session, 'p_int', value = R0)
     })
     
-    
     callModule(contact_matrix_server_module, id = NULL)
+
+    output$documentation_page <- renderUI({
+
+      tempDocumentation <- file.path(tempdir(), "documentation.md") 
+
+      shiny::withMathJax(
+        HTML(
+          markdown::markdownToHTML(
+            knitr::knit(
+              input = system.file(
+                'documentation/app/app_documentation.Rmd', 
+                package='covid.epi'), 
+              output = tempDocumentation,
+              quiet=TRUE),
+            fragment.only = TRUE
+            ))
+      )
+    })
 
     lapply(param_names_base, function(param_name) {
       observeEvent(input[[param_name]], {
