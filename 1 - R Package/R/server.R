@@ -342,6 +342,72 @@ server <- function(input, output, session) {
     observeEvent(c(input$n), {
       updateSliderInput(session, 'n_int', value = input$n)
     })
+
+    # Render the doubling time interval with the maximum as the 
+    # simulation time. 
+    # 
+    # This needs to be done reactively a renderUI so that the 
+    # slider takes the user input into account. 
+    output$doublingTimeInterval <- renderUI({
+      sliderInput(
+        inputId = 'doublingTimeInterval', 
+        label = 'Interval for Estimating Doubling Time of Infections',
+        min = 0, 
+        max = input$sim_time,
+        value = c(0,5))
+    })
+    output$doublingTimeIntervalInt <- renderUI({
+      sliderInput(
+        inputId = 'doublingTimeIntervalInt', 
+        label = 'Interval for Estimating Doubling Time of Infections',
+        min = 0, 
+        max = input$sim_time,
+        value = c(0,5))
+    })
+
+
+    # When the user changes the doubling time interval, calculate the 
+    # doubling time based on the growth rate during the intervention 
+    # time period.
+
+    output$doublingTime <- renderText({ 
+      # as an example 
+      # length of time considered: 
+
+      # change to "The doubling time during [ ... "
+      paste0(
+        "The length of time in [", 
+
+        input$doublingTimeInterval[1], 
+        ", ", 
+        input$doublingTimeInterval[2],
+
+        "] is: ", 
+
+      input$doublingTimeInterval[2] - 
+        input$doublingTimeInterval[1]
+      )
+    })
+
+
+    output$doublingTimeInt <- renderText({ 
+      # as an example 
+      # length of time considered: 
+
+      # change to "The doubling time during [ ... "
+      paste0(
+        "The length of time in [", 
+
+        input$doublingTimeIntervalInt[1], 
+        ", ", 
+        input$doublingTimeIntervalInt[2],
+
+        "] is: ", 
+
+      input$doublingTimeIntervalInt[2] - 
+        input$doublingTimeIntervalInt[1]
+      )
+    })
     
     
     # show the corresponding p and R0 when entering td
