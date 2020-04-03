@@ -5,3 +5,9 @@
 __pycache__
 *.pyc
 *.DS_Store
+2\ -\ Figures
+2\ -\ Figures/*
+3\ -\ Presentations
+3\ -\ Presentations/*
+4\ -\ State\ Epi\ Model\ Results
+4\ -\ State\ Epi\ Model\ Results/*
