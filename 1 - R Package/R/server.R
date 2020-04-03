@@ -150,15 +150,15 @@ server <- function(input, output, session) {
   })
   
   ### calculate R0 and p
-  # Rename this to R0_td_value
-  R0_p_value <- reactive({
+  # Rename this to R0_td_value (done)
+  R0_td_value <- reactive({
     user_inputs<-c(unlist(reactiveValuesToList(input)))
     param_vec <- param_vec_reactive()
     param_vec_int <- param_vec_int_reactive()
 
-    # Edit this to compute R0 and td from p
-    R0 = as.numeric(calc_R0_from_td(td=param_vec['td'],vec=param_vec))
-    p = as.numeric(calc_p_from_R0(R0_input=R0, vec=param_vec))
+    # Edit this to compute R0 and td from p (done)
+    R0 = as.numeric(calc_R0_td_from_p(param_vec, param_vec['p'])[1])
+    p = as.numeric(calc_R0_td_from_p(param_vec, param_vec['p'])[2])
     return (c(R0, p))
   })
 
@@ -411,18 +411,18 @@ server <- function(input, output, session) {
     
     
     # show the corresponding p and R0 when entering td
-    # Change this to update R0 and td based on p
-    observeEvent(input$td, {
-      R0_and_p <- R0_p_value()
+    # Change this to update R0 and td based on p (done)
+    observeEvent(input$p, {
+      R0_and_td <- R0_td_value()
 
-      R0 = R0_and_p[1]
-      p = R0_and_p[2]
+      R0 = R0_and_td[1]
+      td = R0_and_td[2]
 
       updateNumericInput(session, 'R0', value = R0)
       updateNumericInput(session, 'R0_int', value = R0)
 
-      updateNumericInput(session, 'p', value = p)
-      updateNumericInput(session, 'p_int', value = R0)
+      updateNumericInput(session, 'td', value = td)
+      updateNumericInput(session, 'td_int', value = td)
     })
     
     callModule(contact_matrix_server_module, id = NULL)
