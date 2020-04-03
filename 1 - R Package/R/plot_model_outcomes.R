@@ -218,9 +218,7 @@ plot_fit_to_observed_data <- function(out,
 #  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
 
 
-plot_fit_to_observed_data_int <- function(out_cases,
-  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)
-  ) {
+plot_fit_to_observed_data_int <- function(out_cases, observed_data = load_SCC_time_series()) {
 
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
   # These rows are for March 1st - 15th# Set a reasonable range of p
@@ -231,7 +229,7 @@ plot_fit_to_observed_data_int <- function(out_cases,
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Calibration") +
+                                                             title = "Comparison to Data") +
     scale_linetype(name = "")
 }
 
