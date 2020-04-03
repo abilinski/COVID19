@@ -23,12 +23,12 @@ generate_ui <- function() {
     # Plot Outcomes
 
     tabsetPanel(
+      selected = "Cumulative cases",
       tabPanel("Case Series Input",
         column(12,
           h4("Specify case series to calibrate to."),
-          selectInput(inputId = "state_selected", label = "Select a state", choices = setNames(state.abb, state.name)),
-            rHandsontableOutput('table'),
-          actionButton('calibrateButton', "Calibrate to Observed Data")
+          selectInput(inputId = "cases_hospitalizations_or_deaths", label = "What data are you entering?", choices = c("Cases", "Hospitalizations", "Deaths")),
+          renderUI('userInputTable')
           )
         ),
       tabPanel("Fits", plotOutput("fit")),
@@ -77,7 +77,7 @@ generate_ui <- function() {
             tags$div(
               style = 'padding-top:12pt',
               column(4,
-                numericInput("sim_time", label="simulation time (days)", value=30),
+                numericInput("sim_time", label="simulation time (days)", value=180),
                 # we want to show r0 and td from calculation later
                 disabled(numericInput("R0", label="R0", value=1.0)),
                 disabled(numericInput("p", label="p: Pr(transmission/contact)", value=0.05)),
@@ -93,7 +93,7 @@ generate_ui <- function() {
                 ),
               column(4,
                 sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = .01, step=0.001),
+                  max = .999, value = .01, step=0.01),
                 sliderInput("e", label = "e: Social distance multiplier", min = 0, 
                   max = 1, value = 0),
                 sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
@@ -154,9 +154,7 @@ generate_ui <- function() {
               tags$div(
                 style = 'padding-top:12pt',
               column(4,
-                numericInput("int_time", label="intervention starts at", value=15),
-                numericInput("int_stop_time", label="intervention stops at", value=30),
-                # we want to show r0 and td from calculation later
+                uiOutput('interventionInterval'),
                 disabled(numericInput("R0_int", label="R0", value=1.0)),
                 disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
                 disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
@@ -171,7 +169,7 @@ generate_ui <- function() {
                 ),
               column(4,
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = 0.01, step=0.001),
+                  max = .999, value = 0.5, step=0.01),
                 disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
                   max = 1, value = 0)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
