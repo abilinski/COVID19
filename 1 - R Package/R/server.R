@@ -152,14 +152,34 @@ server <- function(input, output, session) {
   ### calculate R0 and p
   # Rename this to R0_td_value (done)
   R0_td_value <- reactive({
-    user_inputs<-c(unlist(reactiveValuesToList(input)))
     param_vec <- param_vec_reactive()
     param_vec_int <- param_vec_int_reactive()
 
     # Edit this to compute R0 and td from p (done)
-    R0 = as.numeric(calc_R0_td_from_p(param_vec, param_vec['p'])[1])
-    p = as.numeric(calc_R0_td_from_p(param_vec, param_vec['p'])[2])
+    R0 = as.numeric(calc_R0_td_from_p(param_vec, param_vec$p)[1])
+    p = as.numeric(calc_R0_td_from_p(param_vec, param_vec$p)[2])
+    
     return (c(R0, p))
+  })
+  
+  # Use exponential curve to estimate td and Re
+  Re_td_value_exp <- reactive({
+    param_vec <- param_vec_reactive()
+    det_table <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = rep(input$rdetecti, input$sim_time),
+      rdetecta = rep(input$rdetecta, input$sim_time))
+    simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
+                                        days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
+    
+    cum_case = data.frame(day=c(1:dim(simulation_outcomes)[1]), cumulative_cases=simulation_outcomes$I_1_cum + simulation_outcomes$I_2_cum + simulation_outcomes$I_3_cum + simulation_outcomes$I_1Q_cum + simulation_outcomes$I_2Q_cum + simulation_outcomes$I_3Q_cum)
+    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q)
+    avg_s_t = mean(s_t[input$doublingTimeInterval[1]:input$doublingTimeInterval[2],2])/param_vec$n
+    # Edit this to compute Re and td from exponential curve (done)
+    Re = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[1]), digits=3)
+    p = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[2]), digits=3)
+    
+    return (c(Re, p))
   })
 
   format_model_sims <- reactive({
@@ -354,15 +374,17 @@ server <- function(input, output, session) {
         label = 'Interval for Estimating Doubling Time of Infections',
         min = 0, 
         max = input$sim_time,
+        step = 1,
         value = c(0,5))
     })
     output$doublingTimeIntervalInt <- renderUI({
-      sliderInput(
+      disabled(sliderInput(
         inputId = 'doublingTimeIntervalInt', 
         label = 'Interval for Estimating Doubling Time of Infections',
         min = 0, 
         max = input$sim_time,
-        value = c(0,5))
+        step = 1,
+        value = c(0,5)))
     })
 
 
@@ -370,43 +392,30 @@ server <- function(input, output, session) {
     # doubling time based on the growth rate during the intervention 
     # time period.
 
-    output$doublingTime <- renderText({ 
+    output$doublingTime <- renderUI({ 
       # as an example 
       # length of time considered: 
-
+      
       # change to "The doubling time during [ ... "
-      paste0(
-        "The length of time in [", 
 
-        input$doublingTimeInterval[1], 
-        ", ", 
-        input$doublingTimeInterval[2],
-
-        "] is: ", 
-
-      input$doublingTimeInterval[2] - 
-        input$doublingTimeInterval[1]
-      )
+      re_str <- paste0("The Re between day ", input$doublingTimeInterval[1], ", and day ", 
+        input$doublingTimeInterval[2], ": ", Re_td_value_exp()[1]) 
+        
+      td_str <- paste0("The doubling time between day ", input$doublingTimeInterval[1], ", and day ", 
+          input$doublingTimeInterval[2], ": ", Re_td_value_exp()[2])
+      
+      HTML(paste(re_str, td_str, sep = '<br/>'))
     })
 
 
-    output$doublingTimeInt <- renderText({ 
-      # as an example 
-      # length of time considered: 
+    output$doublingTimeInt <- renderUI({ 
 
       # change to "The doubling time during [ ... "
-      paste0(
-        "The length of time in [", 
-
-        input$doublingTimeIntervalInt[1], 
-        ", ", 
-        input$doublingTimeIntervalInt[2],
-
-        "] is: ", 
-
-      input$doublingTimeIntervalInt[2] - 
-        input$doublingTimeIntervalInt[1]
-      )
+      re_str <- paste0("The Re between day ", input$doublingTimeIntervalInt[1], ", and day ", 
+        input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp()[1])
+      td_str <- paste0("The doubling time between day ", input$doublingTimeIntervalInt[1], ", and day ", 
+          input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp()[2])
+      HTML(paste(re_str, td_str, sep = '<br/>'))
     })
     
     
@@ -423,6 +432,13 @@ server <- function(input, output, session) {
 
       updateNumericInput(session, 'td', value = td)
       updateNumericInput(session, 'td_int', value = td)
+    })
+    
+    # show the corresponding p and R0 when entering td
+    # Change this to update R0 and td based on p (done)
+    observeEvent(input$doublingTimeInterval, {
+      updateSliderInput(session, 'doublingTimeIntervalInt', 
+                        value=c(input$doublingTimeInterval[1],input$doublingTimeInterval[2]))
     })
     
     callModule(contact_matrix_server_module, id = NULL)
