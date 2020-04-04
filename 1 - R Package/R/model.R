@@ -205,8 +205,8 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
   # probability p based on the doubling time parameter td
   #
   # Update these to calc R0 and td from p (done)
-  params['R0'] = calc_R0_td_from_p(params, params['p'])[1]
-  params['td']= calc_R0_td_from_p(params, params['p'])[2] 
+  params['R0'] = calc_R0_td_from_p(params, params$p)[1]
+  params['td']= calc_R0_td_from_p(params, params$p)[2] 
 
   # adjust if calibrating
   params$p = ifelse(is.na(p.adj), params$p, p.adj)
