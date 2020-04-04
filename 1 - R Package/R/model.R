@@ -16,10 +16,10 @@ model_strat <- function (t, x, parms, parms_int, int_start_time, int_stop_time, 
   #if using input table directly to set up detection rate for each time step, det_input_method="input"
 
   # decide if intervention starts
-  if (( ! is.null(int_start_time) ) & (! is.null(int_stop_time) )) {
+  if (( ! is.null(int_start_time) ) & (! is.null(int_stop_time) )) { 
     if (t>=int_start_time & t <= int_stop_time) { parms<-parms_int }
   }
-
+  
   # initial conditions
   S1 = x[1]; E1 = x[2]; UI1 = x[3]; DI1 = x[4]; UA1 = x[5]; DA1 = x[6]; R1 = x[7]
   S2 = x[8]; E2 = x[9]; UI2 = x[10]; DI2 = x[11]; UA2 = x[12]; DA2 = x[13]; R2 = x[14]
@@ -179,7 +179,7 @@ model_strat <- function (t, x, parms, parms_int, int_start_time, int_stop_time, 
 #'  Run the Model
 #'
 #' @export
-run_model <- function(func, xstart, times, params, det_table,
+run_model <- function(func, xstart, times, params, det_table, 
   method = "lsodes", events=NULL, parms_int, int_start_time, int_stop_time) {
   return(as.data.frame(ode(func = func, y = xstart, times = times, parms =
         params, det_table=det_table, method = method, atol=1e-8, events=events,
@@ -299,18 +299,18 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 #' @param days_out3 Day of intervention stop
 #'
 #' @export
-#'
+#' 
 #' @examples
 #'   params <- load_parameters()
 #'   det_table <- load_detection_table()
-#'
+#'   
 #'  test = run_param_vec(
-#'    params = params, params2=NULL, days_out1 = 30,
+#'    params = params, params2=NULL, days_out1 = 30, 
 #'    days_out2 = NULL, days_out3 = 30, model_type = run_basic, det_table = det_table)
-#'
+#' 
 #'  params_int <- params
 #'  params_int$s <- .5
-#'
+#' 
 #'  test = run_param_vec(
 #'    params = params, params2 = params_int, days_out1 = 15, days_out2 = 30, days_out3 = 20,
 #'    model_type = run_int, det_table = det_table)
@@ -419,7 +419,7 @@ run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
   ############## RUN MODEL----------------------
   # run the model
   test = model_type(model = model_strat, xstart = x, params = params, params2 = params2,
-                    days_out1 = days_out1, days_out2 = days_out2, days_out3 = days_out3,
+                    days_out1 = days_out1, days_out2 = days_out2, days_out3 = days_out3, 
                     det_table=det_table)
   return(test)
 
@@ -446,7 +446,7 @@ run_basic = function(model = model_strat, xstart, params = params,
 #' Run Model with Intervention
 #'
 #' @export
-run_int = function(model = model_strat, xstart, params = params,
+run_int = function(model = model_strat, xstart, params = params, 
   params2 = NULL, days_out1, days_out2, days_out3, det_table=det_table){
 
   compartment_names <- names(xstart)
@@ -457,13 +457,13 @@ run_int = function(model = model_strat, xstart, params = params,
   eventfun <- function(t, y, parms, parms_int = parms_int, int_start_time,
     int_stop_time, det_table = det_table){
     y_new<-y
-    if (t == int_start_time) {
-      if (parms_int$s != parms$s) {
+    if (t == int_start_time) { 
+      if (parms_int$s != parms$s) { 
         y_new[not_socially_distanced]<-(1-parms_int$s)*(y[socially_distanced]+y[not_socially_distanced])
         y_new[socially_distanced]<-parms_int$s*(y[socially_distanced]+y[not_socially_distanced])
       }
-    } else if (t == int_stop_time) {
-      if (parms_int$s != parms$s) {
+    } else if (t == int_stop_time) { 
+      if (parms_int$s != parms$s) { 
         y_new[not_socially_distanced]<-(1-parms$s)*(y[socially_distanced]+y[not_socially_distanced])
         y_new[socially_distanced]<-parms$s*(y[socially_distanced]+y[not_socially_distanced])
       }
@@ -473,19 +473,19 @@ run_int = function(model = model_strat, xstart, params = params,
 
   # run intervention model
   test = run_model(
-    model_strat,
-    xstart = as.numeric(xstart),
-    times = c(1:days_out2),
-    params,
-    det_table=det_table,
+    model_strat, 
+    xstart = as.numeric(xstart), 
+    times = c(1:days_out2), 
+    params, 
+    det_table=det_table,  
     method = "lsoda",
-    events =
+    events = 
       list(
-        func = eventfun,
+        func = eventfun, 
         time =c(
-          days_out1,
+          days_out1, 
           days_out3)
-        ),
+        ), 
     parms_int=params2,
     int_start_time=days_out1,
     int_stop_time=days_out3

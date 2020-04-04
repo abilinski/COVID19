@@ -180,40 +180,48 @@ server <- function(input, output, session) {
   # Run Simulations
   runSimulations <- reactive({
     req(input$interventionInterval)
-        ### update the params using inputs
-        user_inputs<-c(unlist(reactiveValuesToList(input)))
-        param_vec <- param_vec_reactive()
-        param_vec_int <- param_vec_int_reactive()
 
-        det_table <- data.frame(
-          time = 1:(input$sim_time),
-          rdetecti = rep(input$rdetecti, input$sim_time),
-          rdetecta = rep(input$rdetecta, input$sim_time))
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
 
-        det_table_int <- data.frame(
-          time = 1:(input$sim_time),
-          rdetecti = c(rep(input$rdetecti, input$interventionInterval[1]), 
-            rep(input$rdetecti_int, (input$sim_time - input$interventionInterval[1]))),
-          rdetecta = c(rep(input$rdetecta, input$interventionInterval[1]), 
-            rep(input$rdetecta_int, (input$sim_time - input$interventionInterval[1]))))
-        
-        ### give warning if population doesn't add up to 1
-        validate(
-          need(input$young<=1, 'total population = 1!!'),
-          need(input$medium<=1, 'total population = 1!!'),
-          need(input$young+input$medium<=1, 'total population = 1!!')
-        )
+    det_table <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = rep(input$rdetecti, input$sim_time),
+      rdetecta = rep(input$rdetecta, input$sim_time))
+
+    det_table_int <- data.frame(
+      time = 1:(input$sim_time),
+      rdetecti = c(rep(input$rdetecti, input$int_time), 
+        rep(input$rdetecti_int, (input$sim_time - input$int_time))),
+      rdetecta = c(rep(input$rdetecta, input$int_time), 
+        rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+
         ### run model without intervention
-        test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, days_out3 = NULL, model_type = run_basic, det_table = det_table) 
+        simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
+                             days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
-        test_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$interventionInterval[1],
-                                 days_out2 = input$sim_time, days_out3 = input$interventionInterval[2], 
-                                 model_type = run_int, det_table = det_table_int)
-      
-        return(list(test, test_int))
+        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
+                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, model_type = run_int, det_table = det_table_int)
+
+    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
   })
 
+  format_model_sims_with_cases <- reactive({
+    compute_cases_intervention(format_model_sims())
+  })
+
+  popsizes <- load_population_sizes() 
+
+  observeEvent(input$state_selected, {
+    observed_data$cases <- filter_states_data(input$state_selected)
+
+    popsizes_filtered <- popsizes %>% filter(state == state_names()[[input$state_selected]])
+
+    updateNumericInput(session = session, inputId = 'n', 
+      value = popsizes_filtered[['popsize']]
+     )
+  })
+  
   # Reformat the data for plotting
   formatSimsForPlotting <- reactive({
     sims <- runSimulations()

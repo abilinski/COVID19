@@ -14,6 +14,10 @@ Fit the Model
   params <- load_parameters()
   observed_data <- filter_states_data('MA')
   fit_model(params, observed_data)
+<<<<<<< HEAD
+=======
+  params$td <- 1 
+>>>>>>> 97b124ea164ca586d68a6ffb52ce47eac3880f12
 
 
 }
