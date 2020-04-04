@@ -96,7 +96,7 @@ generate_ui <- function() {
               tags$div(
                 style = 'padding-top:12pt',
                 column(4,
-                  numericInput("sim_time", label="simulation time (days)", value=30),
+                  numericInput("sim_time", label="simulation time (days)", value=180),
                   # we want to show r0 and td from calculation later
                   disabled(numericInput("R0", label="R0", value=1.0)),
                   numericInput("p", label="p: Pr(transmission per contact)", value=0.05),
