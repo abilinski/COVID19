@@ -76,8 +76,8 @@ generate_ui <- function() {
           plotOutput('effective_reproductive_number')
         ),
         selectInput(
-          inputId = 'deaths_ncr_cumulative', 
-          label = "Outcomes format:",
+          inputId = 'deaths_cumulative', 
+          label = "Outcomes format for deaths:",
           choices = c("Cumulative", "Daily Rates"),
           )
         ),

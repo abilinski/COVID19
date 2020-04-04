@@ -101,7 +101,7 @@ plot_flows_by_compartment_strata_int <- function(out,
     facet_wrap(.~strat2, ncol = 2, scales="free_y") + 
     theme_minimal() + 
     scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
-    scale_color_discrete(name = "") +
+    scale_color_discrete(name = "Compartment") +
     scale_y_continuous(labels = scales::comma_format()) + 
     labs(x = "Time (days)", y = "", 
       title = "Population Sizes by Disease Stage, Age, and Social Distancing")
@@ -200,7 +200,8 @@ plot_cases_needing_advanced_care <- function(out_cases, cumulative=TRUE) {
 plot_cases_needing_advanced_care_int <- function(out_cases, cumulative=TRUE) {
   ggplot(out_cases %>% gather(var, value, Hospital, Ventilator),
               aes(x = time, y = value, group = interaction(var, int), col = var)) + geom_line(aes(lty = int)) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
+            scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+    theme_minimal() + scale_color_discrete(name = "Cases") + labs(x = "Time (days)", y = "",
                                                              title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases needing advanced care"))
 }
 
@@ -216,7 +217,8 @@ plot_ratio_of_new_to_existing_cases <- function(out) {
 
   ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() +
            theme_minimal() + scale_color_discrete(name = "") +
-           labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+           labs(x = "Time (days)", y = "", title = "Ratio of daily new cases to existing cases")
+
 }
 
 
@@ -250,7 +252,8 @@ plot_diagnosed_cumulative_cases_by_age_int <- function(out_cases) {
   ggplot(out_cases, aes(x = time, y = Detected,
                             group = interaction(strat3,int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total_obs, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
+    scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+    theme_minimal() + scale_color_discrete(name = "Age Group") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
 }
 
 #' Plot Deaths by Age
@@ -260,18 +263,38 @@ plot_deaths_by_age <- function(out) {
 
   ggplot(out_death, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
+    theme_minimal() + scale_color_discrete(name = "Total Deaths", labels = c("Base Case", "Intervention")) + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
 
 }
 
 
 #' Plot Deaths by Age - Intervention
-plot_deaths_by_age_int <- function(out) {
-  out_death = out %>% filter(cum == T & comp=="D") %>% group_by(time, strat3, int) %>%
-    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2)) %>% ungroup()
+plot_deaths_by_age_int <- function(out, cumulative=TRUE) {
+  out_death = 
+    out %>% filter(cum == T & comp=="D") %>% 
+    group_by(time, strat3, int) %>%
+    summarize(val2 = sum(value)) %>% 
+    group_by(time,int) %>% 
+    mutate(Total = sum(val2)) %>% 
+    ungroup()
+
+  if (! cumulative) {
+    out_death %<>% group_by(int, strat3) %>% 
+      arrange(time) %>% 
+      mutate(val2 = val2 - lag(val2)) %>% 
+      ungroup() %>% 
+      group_by(time, int) %>% 
+      mutate(
+        Total = sum(val2, na.rm=T)) %>% 
+      ungroup() 
+  }
+
   ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
+    theme_minimal() + scale_color_discrete(name = "Age Groups") + 
+    scale_linetype_discrete(name = "Total Deaths", labels = c("Base Case", "Intervention")) + 
+      labs(x = "Time (days)", y = "", title = 
+      paste0(if (cumulative) "Cumulative " else "Daily ", "deaths by age"))
 }
 
 #' Plot cases by symptom status
@@ -281,7 +304,7 @@ plot_cases_by_symptom_status <- function(out) {
 
   ggplot(out_symp, aes(x = time, y = val2, group = comp2, col = comp2)) + geom_line() +
     geom_line(aes(y = Total), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = 
+    theme_minimal() + scale_color_discrete(name = "Symptom Status") + labs(x = "Time (days)", y = "", title = 
       paste0(if (cumulative) "Cumulative " else "Daily ", "cases by symptoms"))
 }
 
@@ -294,7 +317,9 @@ plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
 
   ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + 
     geom_line(aes(lty = int)) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = 
+    theme_minimal() + scale_color_discrete(name = "Symptom Status") + 
+    scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+    labs(x = "Time (days)", y = "", title = 
       paste0(if (cumulative) "Cumulative " else "Daily ", "cases by symptoms")) + 
     if (cumulative) { 
       geom_line(aes(y = Total, group = int, lty=int), col = "black")
