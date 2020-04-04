@@ -23,15 +23,30 @@ generate_ui <- function() {
     # Plot Outcomes
 
     tabsetPanel(
-      tabPanel("Case Series Input",
+      selected = "Cumulative cases",
+      tabPanel("Data Input",
         column(12,
-          h4("Specify case series to calibrate to."),
-          selectInput(inputId = "state_selected", label = "Select a state", choices = setNames(state.abb, state.name)),
-            rHandsontableOutput('table'),
-          actionButton('calibrateButton', "Calibrate to Observed Data")
+          column(5, 
+          h4("Specify data to compare model outcomes against"),
+          selectInput(inputId = "cases_hospitalizations_or_deaths", label = "What data are you entering?", choices = c("Cases", "Hospitalizations", "Deaths")),
+          rHandsontableOutput('observedData')
+          ),
+        column(7,
+          h4("Where can I find data to use here?"),
+          p("Check out sources such as:"),
+          tags$a("covidtracker.com", href='https://covidtracker.com'),
+          br(),
+          tags$a("Johns Hopkins CSSE Repository", href='https://github.com/CSSEGISandData/COVID-19'),
+          br(),
+          tags$a("New York Times Data Repository", href='https://github.com/nytimes/covid-19-data'),
           )
+        )
         ),
-      tabPanel("Fits", plotOutput("fit")),
+      tabPanel("Comparison to Data", 
+        plotOutput("fit"),
+        selectInput("comparisonDataPlotChoice", "Select a Measure for Comparing Model Outcomes to Data", choices = c("Cases", "Hospitalizations", "Deaths")),
+        selectInput("comparisonDataPlotCumulative", "How do you want the plot formatted?", choices = c("Cumulative", "Daily Counts"))
+        ),
 
       tabPanel("Comp flows", plotOutput("comp_flow")),
 
@@ -149,8 +164,9 @@ generate_ui <- function() {
                 style = 'padding-top:12pt',
                 uiOutput('doublingTimeInterval'),
                 htmlOutput('doublingTime'),
+                # numericOutput('doublingTime'),
                 br(),
-                h5('* Please note that the estimated doubling time and effective R (Re) are only sensible during exponentail growth period.')
+                h5('* Please note that the estimated doubling time and Re are only sensible during exponentail growth period.')
               )
             )
           )
@@ -167,43 +183,41 @@ generate_ui <- function() {
               title = "transmission parameters",
               tags$div(
                 style = 'padding-top:12pt',
-                column(4,
-                  numericInput("int_time", label="intervention starts at", value=15),
-                  numericInput("int_stop_time", label="intervention stops at", value=30),
-                  # we want to show r0 and td from calculation later
-                  disabled(numericInput("R0_int", label="R0", value=1.0)),
-                  disabled(numericInput("p_int", label="p: Pr(transmission per contact)", value=0.05)),
-                  disabled(numericInput("td_int", label="DFE doubling Time", value=2.5)),
-                  numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
-                  numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
-                  disabled(numericInput("obs_int", label="obs cases at day1", value=100)),
-                  disabled(numericInput("n_int", label="n: total population", value=1938000)),
-                  sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
-                    min = 0, max = 1, value = 0.1),
-                  sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
-                    min = 0, max = 1, value = 0.01)
-                  ),
-                column(4,
-                  sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
-                    max = .999, value = 0.01, step=0.001),
-                  disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
-                      max = 1, value = 0)),
-                  sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
-                    max = 1, value = 0.375),
-                  sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
-                    max = 1, value = 0),
-                  sliderInput("m2_int", label = "m2: mortality med", min = 0, 
-                    max = 1, value = 0.005),
-                  sliderInput("m3_int", label = "m3: mortality old", min = 0, 
-                    max = 1, value = 0.1),
-                  sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
-                    max = 1, value = 1)
-                  ),
-                column(4,
-                  disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
-                      max = 1, value = 0.75)),
-                  disabled(sliderInput("alpha2_int", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
-                      max = 1, value = 0.3)),
+              column(4,
+                uiOutput('interventionInterval'),
+                disabled(numericInput("R0_int", label="R0", value=1.0)),
+                disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
+                numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
+                numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
+                disabled(numericInput("obs_int", label="obs cases at day1", value=100)),
+                disabled(numericInput("n_int", label="n: total population", value=1938000)),
+                sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
+                  min = 0, max = 1, value = 0.1),
+                sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
+                  min = 0, max = 1, value = 0.01)
+                ),
+              column(4,
+                sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
+                  max = .999, value = 0.01, step=0.01),
+                disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
+                  max = 1, value = 0)),
+                sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
+                  max = 1, value = 0.375),
+                sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
+                  max = 1, value = 0),
+                sliderInput("m2_int", label = "m2: mortality med", min = 0, 
+                  max = 1, value = 0.005),
+                sliderInput("m3_int", label = "m3: mortality old", min = 0, 
+                  max = 1, value = 0.1),
+                sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
+                  max = 1, value = 1)
+                ),
+              column(4,
+                disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
+                  max = 1, value = 0.75)),
+                disabled(sliderInput("alpha2_int", label = HTML("&alpha;2: Pr(asymp) med"), min = 0, 
+                  max = 1, value = 0.3)),
                   disabled(sliderInput("alpha3_int", label = HTML("&alpha;3: Pr(asymp) old"), min = 0, 
                       max = 1, value = 0.3)),
                   disabled(sliderInput("young_int", label = "Frc youth", min = 0, 
@@ -234,7 +248,7 @@ generate_ui <- function() {
                 uiOutput('doublingTimeIntervalInt'),
                 htmlOutput('doublingTimeInt'),
                 br(),
-                h5('* Please note that the estimated doubling time and effective R (Re) are only sensible during exponentail growth period.')
+                h5('* Please note that the estimated doubling time and Re are only sensible during exponentail growth period.')
               )
             )
           )

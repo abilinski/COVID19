@@ -49,6 +49,38 @@ plot_cumulative_cases_by_age <- function(out_cases) {
 }
 
 
+#' Plot infections by age
+plot_infections_by_age <- function(out) { 
+
+  out_infections <- out %>% filter(comp %in% c("UI", "DI", "UA", "DA"), cum == FALSE) %>% 
+    mutate(strat = gsub("Q", "", strat)) %>% 
+    group_by(time, int, strat) %>% 
+    summarize(value = sum(value))
+
+  out_infections <- merge(
+    out_infections %>% group_by(time, int) %>% 
+      summarize(value = sum(value)) %>% 
+        mutate(strat = "0"),
+      out_infections,
+      by = c("time", "int", "strat"),
+      all = TRUE
+  )
+  out_infections %<>% 
+    mutate(value = ifelse(is.na(value.x), value.y, value.x)) %>% 
+    select(-c(value.x, value.y))
+
+  # out_infections$strat <- recode(out_infections$strat, `0` = "All", `1` = "<20", `2` = "21-65", `3` = ">65")
+  out_infections$strat %<>% factor(., labels = c(`0` = "All", `1` = "<20", `2` = "21-65", `3` = ">65"))
+
+  ggplot(out_infections, aes(x = time, y = value, col = strat, lty = int)) + 
+    geom_line() + 
+    theme_minimal() + 
+    scale_color_manual(name="", values=c('black', 'red', 'green', 'blue')) + 
+    labs(x = "Time (days)", y = "",
+      title = "Ongoing infections by age")
+
+}
+
 #' Plot Cumulative Cases by Age - Intervention
 plot_cumulative_cases_by_age_int <- function(out_cases) {
   ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
@@ -204,22 +236,22 @@ plot_fit_to_observed_data <- function(out,
 }
 
 
-#' Plot Fit to Observed Data - Intervention
+#' Plot Fit to Observed Data - Intervention 
 #plot_fit_to_observed_data_int <- function(out_cases) {
 
 #  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-#  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"),
+#  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
 #    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
 
 #  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
 #  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
 
-#  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+#  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
 #  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
 
 
 plot_fit_to_observed_data_int <- function(out_cases,
-  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)
+  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
   ) {
 
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
@@ -231,7 +263,7 @@ plot_fit_to_observed_data_int <- function(out_cases,
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Calibration") +
+                                                             title = "Comparison to Data") +
     scale_linetype(name = "")
 }
 
@@ -566,9 +598,9 @@ make_plots_int = function(test, params, test_int, params_int, observed_data){
   # Flows by compartment (devided by strata and quarentine)
   g <- plot_flows_by_compartment2_int(out)
 
-  # Check fit
+  # Check fit 
   h <- plot_fit_to_observed_data_int(out_cases, observed_data)
-
+  
   return(list(a,b,c,d,e,f,g,h,b2))
 }
 

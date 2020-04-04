@@ -57,66 +57,83 @@ server <- function(input, output, session) {
 
   # Get the default parameter vector for the model
   default_param_vec = load_parameters() 
+
+  # render the intervention time period interval as a slider 
+  # between 0 and the total sim time
+  output$interventionInterval <- renderUI({
+    sliderInput(
+      inputId = 'interventionInterval', 
+      label = 'Intervention Time Period',
+      min = 0,
+      max = input$sim_time,
+      value = c(30, input$sim_time))
+  })
  
   # Observed data reactive values list
-  observed_data <- reactiveValues(cases = load_SCC_time_series())
+  observed_data <- reactiveValues(
+    cases = data.frame(day = 1:30, daily_cases = 0, cumulative_cases = 0),
+    hospitalizations = data.frame(day = 1:30, daily_hospitalizations = 0, cumulative_hospitalizations = 0),
+    deaths = data.frame(day = 1:30, daily_deaths = 0, cumulative_deaths = 0))
 
-  # Render santa clara county data with RHandsontable to make it editable
-  output$table <- renderRHandsontable({ 
-    observed_data$cases %>% 
-      mutate(day = 1:nrow(.)) %>% 
+  # userInputDataTable
+  # Render cases / hospitalizations / deaths as separate data tables
+  output$observedData <- renderRHandsontable({
+    df <- switch(input$cases_hospitalizations_or_deaths,
+      "Cases" = observed_data$cases, 
+      "Hospitalizations" = observed_data$hospitalizations,
+      "Deaths" = observed_data$deaths
+    ) 
+
+    df$day = 1:nrow(df)
+
+    df[[3]] <- cumsum(df[[2]])
+
+    df %>% 
     rhandsontable() %>% 
-      hot_col(col = "day", readOnly = TRUE)
+    hot_col(col = "day", readOnly = TRUE) %>%
+    hot_col(col = 3, readOnly = TRUE)
   })
 
-  # Update cases definition when user edits Rhandsontable
+
+  # If the data table is updated, update the reactiveValues list 
+  # observed_data  to store the data the user is giving us. 
+  # 
+  # use shiny::isolate on this so we don't overwrite their data when they
+  # change the choice of what data they're inputting
   observe({
-    if (!is.null(input$table)) { 
-      observed_data$cases <- hot_to_r(input$table)
+    if (!is.null(input$observedData)) { 
+      isolate({
+      switch(input$cases_hospitalizations_or_deaths,
+        "Cases" = { 
+          observed_data$cases <- hot_to_r(input$observedData) 
+        }, 
+        "Hospitalizations" = { 
+          observed_data$hospitalizations <- hot_to_r(input$observedData) 
+        },
+        "Deaths" = { 
+          observed_data$deaths <- hot_to_r(input$observedData) 
+        }
+    )
+    })
     }
-    })
+  })
 
-  fit_param_vec <- reactiveValues()
 
-  observeEvent(input$calibrateButton, {
-      withProgress(message = 'Optimizing Model Fit', {
-        fit_param_vec$optim <- fit_model(default_param_vec, observed_data$cases)
-        updateNumericInput(session, 'td', value = fit_param_vec$optim$par[[1]])
-        # print(fit_param_vec$optim$par[[1]])
-        updateNumericInput(session, 'obs', value = fit_param_vec$optim$par[[2]])
-      })
-    })
-
-  # TODO: I (Christian) think we should make sure the parameters.csv that gets 
-  # loaded in *only* has parameters that we actually take as inputs. 
-  # 
-  # Previously we were doing things like this: 
-  # 
-  # param_names_base = # colnames(df)[2:ncol(df)]
-  #   c(colnames(df)[1], colnames(df)[11:34])[!c(colnames(df)[1], 
-  #   colnames(df)[11:34]) %in% c("epsilon","e_ratio")]
-  # 
-  # param_names_int = c(colnames(df)[1], 
-  #   unlist(lapply(param_names_base[-1],function(x) paste(x,"int", sep="_"))))
-  # param_names_int <- paste0(param_names_base, "_int")
-  # 
-  # I just worry this will get too confusing to update over time, so I updated 
-  # the definition of param_names_base below to be explicit about what we're 
-  # parameters are used.
-  # 
-
-  # this just makes the list v11, v12, v13, v21, ... 
+  # this makes the list v11, v12, v13, v21, ... for use in param_names_base
   social_distancing_params <- 
     apply(expand.grid(1:3, 1:3), 1, 
       function(x) { paste0("v", paste0(x,collapse="")) })
 
+  # define the parameters we're going to be using
   param_names_base <- c(social_distancing_params, "s", "e", "p", "kappa",
     "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2", "m3","c",
     "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n",
     "rdetecti", "rdetecta","td")
 
+  # append _int to construct the names of intervention parameters
   param_names_int <- paste0(param_names_base, "_int")
 
+  # reactive that returns the param_vec
   param_vec_reactive <- reactive({
 
     ### give warning if population doesn't add up to 1
@@ -134,6 +151,7 @@ server <- function(input, output, session) {
     return(param_vec)
   })
 
+  # reactive that returns the param_vec_int
   param_vec_int_reactive <- reactive({
     ### update the params using inputs
     user_inputs<-c(unlist(reactiveValuesToList(input)))
@@ -162,15 +180,12 @@ server <- function(input, output, session) {
     return (c(R0, p))
   })
   
-  # Use exponential curve to estimate td and Re
+  # use exponential curve to estimate td and re
   Re_td_value_exp <- reactive({
+    req(input$doublingTimeInterval)
     param_vec <- param_vec_reactive()
-    det_table <- data.frame(
-      time = 1:(input$sim_time),
-      rdetecti = rep(input$rdetecti, input$sim_time),
-      rdetecta = rep(input$rdetecta, input$sim_time))
-    simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
-                                        days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
+
+    simulation_outcomes <- runSimulations()[[1]]
     
     start_t = input$doublingTimeInterval[1]
     end_t = input$doublingTimeInterval[2]
@@ -184,7 +199,31 @@ server <- function(input, output, session) {
     return (c(Re, p))
   })
 
-  format_model_sims <- reactive({
+  # use exponential curve to estimate td and re in the intervention scenario
+  # Re_td_value_exp <- reactive({
+  Re_td_value_exp_int <- reactive({
+    req(input$doublingTimeInterval)
+    param_vec <- param_vec_int_reactive()
+
+    simulation_outcomes <- runSimulations()[[2]]
+    
+    start_t = input$doublingTimeInterval[1]
+    end_t = input$doublingTimeInterval[2]
+    cum_case = data.frame(day=c(start_t:end_t), cumulative_cases=(simulation_outcomes$I_1_cum + simulation_outcomes$I_2_cum + simulation_outcomes$I_3_cum + simulation_outcomes$I_1Q_cum + simulation_outcomes$I_2Q_cum + simulation_outcomes$I_3Q_cum)[start_t:end_t])
+    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q))
+    avg_s_t = mean(s_t[start_t:end_t,2])/param_vec$n
+    # Edit this to compute Re and td from exponential curve (done)
+    Re = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[1]), digits=3)
+    p = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[2]), digits=3)
+    
+    return (c(Re, p))
+  })
+
+
+
+  # Run Simulations
+  runSimulations <- reactive({
+    req(input$interventionInterval)
 
     param_vec <- param_vec_reactive()
     param_vec_int <- param_vec_int_reactive()
@@ -196,124 +235,78 @@ server <- function(input, output, session) {
 
     det_table_int <- data.frame(
       time = 1:(input$sim_time),
-      rdetecti = c(rep(input$rdetecti, input$int_time), 
-        rep(input$rdetecti_int, (input$sim_time - input$int_time))),
-      rdetecta = c(rep(input$rdetecta, input$int_time), 
-        rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+      rdetecti = c(rep(input$rdetecti, input$interventionInterval[1]), 
+        rep(input$rdetecti_int, (input$sim_time - input$interventionInterval[1]))),
+      rdetecta = c(rep(input$rdetecta, input$interventionInterval[1]), 
+        rep(input$rdetecta_int, (input$sim_time - input$interventionInterval[1]))))
 
         ### run model without intervention
         simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
                              days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
-        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, model_type = run_int, det_table = det_table_int)
+        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$interventionInterval[1],
+                                 days_out2 = input$sim_time, days_out3 = input$interventionInterval[2], model_type = run_int, det_table = det_table_int)
 
-    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
+    list(simulation_outcomes, simulation_outcomes_int)
   })
 
-  format_model_sims_with_cases <- reactive({
-    compute_cases_intervention(format_model_sims())
+  # Reformat the data for plotting
+  formatSimsForPlotting <- reactive({
+    sims <- runSimulations()
+    format_simulation_outcomes_for_plotting_int(sims[[1]], sims[[2]]) %>% 
+      as.data.frame()
   })
 
-  popsizes <- load_population_sizes() 
-
-  observeEvent(input$state_selected, {
-    observed_data$cases <- filter_states_data(input$state_selected)
-
-    popsizes_filtered <- popsizes %>% filter(state == state_names()[[input$state_selected]])
-
-    updateNumericInput(session = session, inputId = 'n', 
-      value = popsizes_filtered[['popsize']]
-     )
+  # Reformat for specifically plotting cases
+  formatForCasesPlotting <- reactive({
+    df <- formatSimsForPlotting()
+    compute_cases_intervention(df) %>% 
+      as.data.frame()
   })
   
-  # Model Plots 
-  # 
-  # Use the user input to run the model for the base case and intervention.
-  # Make plots of the outcomes.
-  # Returns a list of plots
-  #
-  model_plots <- reactive({ 
-        ### update the params using inputs
-        user_inputs<-c(unlist(reactiveValuesToList(input)))
-        param_vec <- param_vec_reactive()
-        param_vec_int <- param_vec_int_reactive()
+  ## download adjusted base parameters
+  output$download <- downloadHandler(
+    filename = function() {
+      paste("parameters_base_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      old_vec['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
+      old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
+      old_vec$Scenario<-'Base'
+      write.csv(old_vec, file, row.names = FALSE)
+    }
+  )
 
-        det_table <- data.frame(
-          time = 1:(input$sim_time),
-          rdetecti = rep(input$rdetecti, input$sim_time),
-          rdetecta = rep(input$rdetecta, input$sim_time))
-
-        det_table_int <- data.frame(
-          time = 1:(input$sim_time),
-          rdetecti = c(rep(input$rdetecti, input$int_time), 
-            rep(input$rdetecti_int, (input$sim_time - input$int_time))),
-          rdetecta = c(rep(input$rdetecta, input$int_time), 
-            rep(input$rdetecta_int, (input$sim_time - input$int_time))))
-        
-        ### give warning if population doesn't add up to 1
-        validate(
-          need(input$young<=1, 'total population = 1!!'),
-          need(input$medium<=1, 'total population = 1!!'),
-          need(input$young+input$medium<=1, 'total population = 1!!')
-        )
-        ### run model without intervention
-        test = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
-                             days_out2 = NULL, days_out3 = NULL, model_type = run_basic, det_table = det_table) 
-        ### run intervention halfway
-        test_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, 
-                                 model_type = run_int, det_table = det_table_int)
-        ### make plots
-        g = make_plots_int(test, params = param_vec, test_int, params_int = param_vec_int, observed_data = observed_data$cases)
-
-        return(g)
-  })
-
-  
-    ## download adjusted base parameters
-    output$download <- downloadHandler(
-        filename = function() {
-            paste("parameters_base_",Sys.Date(),".csv", sep = "")
-        },
-        content = function(file) {
-            old_vec['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
-            old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
-            old_vec$Scenario<-'Base'
-            write.csv(old_vec, file, row.names = FALSE)
-        }
-    )
-    
-    ## download adjusted intervention parameters
-    output$download_int <- downloadHandler(
-        filename = function() {
-            paste("parameters_int_",Sys.Date(),".csv", sep = "")
-        },
-        content = function(file) {
-          param_vec_int <- param_vec_int_reactive()
-            param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
-            param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
-            param_vec_int$Scenario<-'Intervention'
-            write.csv(param_vec_int, file, row.names = FALSE)
-        }
-    )
+  ## download adjusted intervention parameters
+  output$download_int <- downloadHandler(
+    filename = function() {
+      paste("parameters_int_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      param_vec_int <- param_vec_int_reactive()
+      param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
+      param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
+      param_vec_int$Scenario<-'Intervention'
+      write.csv(param_vec_int, file, row.names = FALSE)
+    }
+  )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ model_plots()[[8]] })
+    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }) # model_plots()[[8]] 
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlot({ model_plots()[[7]] })
+    output$comp_flow<- renderPlot({ plot_flows_by_compartment2_int(formatSimsForPlotting()) }) # model_plots()[[7]] 
     
-    output$cumulative_infections_by_age <- renderPlot({ model_plots()[[2]] })
-    output$cumulative_diagnosed_by_age <- renderPlot({ model_plots()[[4]] })
+    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCasesPlotting()) })
+    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCasesPlotting()) })
     
     ## output for Death & New case ratio tab
-    output$deaths_by_age <- renderPlot({ model_plots()[[5]] })
-    output$effective_reproductive_number <- renderPlot({ model_plots()[[3]] })
+    output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting()) })
+    output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) })
     
     ## output for Advanced care & Symptoms ratio tab
-    output$cases_needing_advanced_care <- renderPlot({ model_plots()[[9]] })
-    output$cumulative_cases_by_symptoms <- renderPlot({ model_plots()[[6]] })
+    output$cases_needing_advanced_care <- renderPlot({ plot_cases_needing_advanced_care_int(formatForCasesPlotting()) })
+    output$cumulative_cases_by_symptoms <- renderPlot({ plot_cases_by_symptom_status_int(formatSimsForPlotting()) })
 
     # if the user preses the Reset All Parameters actionButton, use the
     # shinyjs::reset function to reset all parameters to their default values. 
@@ -400,11 +393,21 @@ server <- function(input, output, session) {
       
       # change to "The doubling time during [ ... "
 
-      re_str <- paste0("The Re between day ", input$doublingTimeInterval[1], ", and day ", 
-        input$doublingTimeInterval[2], ": ", Re_td_value_exp()[1]) 
+      re_str <- paste0("The effective reproductive rate between day ", input$doublingTimeInterval[1], " and day ", 
+        input$doublingTimeInterval[2], ": ", 
+
+      disabled(numericInput(
+          inputId='ReOutput',
+          label = 'Re',
+          value = Re_td_value_exp()[1])) )
         
       td_str <- paste0("The doubling time between day ", input$doublingTimeInterval[1], ", and day ", 
-          input$doublingTimeInterval[2], ": ", Re_td_value_exp()[2])
+          input$doublingTimeInterval[2], ": ", 
+
+      disabled(numericInput(
+          inputId='doublingTimeOutput',
+          label = 'Doubling Time',
+          value = Re_td_value_exp()[2])) )
       
       HTML(paste(re_str, td_str, sep = '<br/>'))
     })
@@ -412,11 +415,29 @@ server <- function(input, output, session) {
 
     output$doublingTimeInt <- renderUI({ 
 
-      # change to "The doubling time during [ ... "
-      re_str <- paste0("The Re between day ", input$doublingTimeIntervalInt[1], "and day ", 
-        input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp()[1])
-      td_str <- paste0("The doubling time between day ", input$doublingTimeIntervalInt[1], "and day ", 
-          input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp()[2])
+      # # change to "The doubling time during [ ... "
+      # re_str <- paste0("The Re between day ", input$doublingTimeIntervalInt[1], "and day ", 
+      #   input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp_int()[1])
+      # td_str <- paste0("The doubling time between day ", input$doublingTimeIntervalInt[1], "and day ", 
+      #     input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp_int()[2])
+      # HTML(paste(re_str, td_str, sep = '<br/>'))
+
+      re_str <- paste0("The effective reproductive rate between day ", input$doublingTimeInterval[1], " and day ", 
+        input$doublingTimeInterval[2], ": ", 
+
+      disabled(numericInput(
+          inputId='ReOutput_Int',
+          label = 'Re',
+          value = Re_td_value_exp_int()[1])) )
+        
+      td_str <- paste0("The doubling time between day ", input$doublingTimeInterval[1], ", and day ", 
+          input$doublingTimeInterval[2], ": ", 
+
+      disabled(numericInput(
+          inputId='doublingTimeOutputInt',
+          label = 'Doubling Time',
+          value = Re_td_value_exp_int()[2])) )
+      
       HTML(paste(re_str, td_str, sep = '<br/>'))
     })
     
@@ -443,8 +464,11 @@ server <- function(input, output, session) {
                         value=c(input$doublingTimeInterval[1],input$doublingTimeInterval[2]))
     })
     
+    # Module for updating the contact matrices entries
     callModule(contact_matrix_server_module, id = NULL)
 
+
+    # Documentation page
     output$documentation_page <- renderUI({
 
       tempDocumentation <- file.path(tempdir(), "documentation.md") 
@@ -463,6 +487,9 @@ server <- function(input, output, session) {
       )
     })
 
+
+    # Go through each param name and apply changes from the base case 
+    # param vector to the intervention param vector.
     lapply(param_names_base, function(param_name) {
       observeEvent(input[[param_name]], {
         param_name_int <- paste0(param_name, "_int")
@@ -472,7 +499,7 @@ server <- function(input, output, session) {
             value = input[[param_name]],
             session = session)
         }
-        })
+        }, ignoreInit = TRUE)
     })
 
 }
