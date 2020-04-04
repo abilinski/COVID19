@@ -283,21 +283,21 @@ server <- function(input, output, session) {
   )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }) # model_plots()[[8]] 
+    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }, res=120) # model_plots()[[8]] 
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlot({ plot_flows_by_compartment2_int(formatSimsForPlotting()) }) # model_plots()[[7]] 
+    output$comp_flow<- renderPlot({ plot_flows_by_compartment_strata_int(formatSimsForPlotting()) }, height=1200, res=120) # model_plots()[[7]] 
     
-    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCasesPlotting()) })
-    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCasesPlotting()) })
+    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCasesPlotting()) }, res=120)
+    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCasesPlotting()) }, res=120)
     
     ## output for Death & New case ratio tab
-    output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting()) })
-    output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) })
+    output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting()) }, res=120)
+    output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) }, res=120)
     
     ## output for Advanced care & Symptoms ratio tab
-    output$cases_needing_advanced_care <- renderPlot({ plot_cases_needing_advanced_care_int(formatForCasesPlotting()) })
-    output$cumulative_cases_by_symptoms <- renderPlot({ plot_cases_by_symptom_status_int(formatSimsForPlotting()) })
+    output$cases_needing_advanced_care <- renderPlot({ plot_cases_needing_advanced_care_int(formatForCasesPlotting()) }, res=120)
+    output$cumulative_cases_by_symptoms <- renderPlot({ plot_cases_by_symptom_status_int(formatSimsForPlotting()) }, res=120)
 
     # if the user preses the Reset All Parameters actionButton, use the
     # shinyjs::reset function to reset all parameters to their default values. 

@@ -48,7 +48,7 @@ generate_ui <- function() {
         selectInput("comparisonDataPlotCumulative", "How do you want the plot formatted?", choices = c("Cumulative", "Daily Counts"))
         ),
 
-      tabPanel("Comp flows", plotOutput("comp_flow")),
+      tabPanel("Compartment flows", fluidRow(plotOutput("comp_flow", height='auto'))),
 
       tabPanel("Cumulative cases", 
         # Side by side layout for cumulative infections and diagnosed cases by age
@@ -114,7 +114,7 @@ generate_ui <- function() {
                   sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
                     max = .999, value = .01, step=0.001),
                   sliderInput("e", label = "e: Social distance multiplier", min = 0, 
-                    max = 1, value = 0),
+                    max = 1, value = 0.01),
                   sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                     max = 1, value = 0.375),
                   sliderInput("m1", label = "m1: mortality yng", min = 0, 
@@ -201,7 +201,7 @@ generate_ui <- function() {
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
                   max = .999, value = 0.01, step=0.01),
                 disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
-                  max = 1, value = 0)),
+                  max = 1, value = 0.01)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                   max = 1, value = 0.375),
                 sliderInput("m1_int", label = "m1: mortality yng", min = 0, 

@@ -176,6 +176,7 @@ model_strat <- function (t, x, parms, parms_int, int_start_time, int_stop_time, 
 }
 
 ############## RUN ODE-----------------
+
 #'  Run the Model
 #'
 #' @export
@@ -187,11 +188,6 @@ run_model <- function(func, xstart, times, params, det_table,
 }
 
 
-#' Read In Detection Rates
-load_detection_rates <- function() {
-  det_table <- read.csv(system.file("detection_input.csv", package="covid.epi"), as.is = T)
-  return(det_table)
-}
 
 ############### RUN PARAMETER VECTOR----------------------
 
@@ -317,8 +313,8 @@ process_params = function(params, p.adj = NA, obs.adj = NA){
 #'    params = params, params2 = params_int, days_out1 = 15, days_out2 = 30, days_out3 = 20,
 #'    model_type = run_int, det_table = det_table)
 run_param_vec = function(params, params2 = NULL, p.adj = NA, obs.adj = NA,
-                         days_out1 = 30, days_out2 = NULL, days_out3 = NULL, model_type = run_basic,
-                         det_table){
+                         days_out1 = 30, days_out2 = NULL, days_out3 = 30, model_type = run_basic,
+                         det_table = load_detection_table){
 
   # process parameters
   params = process_params(params, p.adj = p.adj, obs.adj = obs.adj)

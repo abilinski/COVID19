@@ -1,7 +1,24 @@
 
 
 
-#' Plot Flows by Compartment
+#' Plot Compartment Population Sizes Over Time
+#' 
+#' Note that this plot is not shown in the modellers' Shiny app,
+#' rather the plot_flows_by_compartment_strata_int is used.
+#' 
+#' @examples
+#' # setup
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' # run simulation
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting(sim_out)
+#' 
+#' plot_flows_by_compartment(sim_out_formatted)
+#' 
 plot_flows_by_compartment <- function(out) {
   ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2) %>% summarize(value = sum(value)),
     aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() +
@@ -9,14 +26,80 @@ plot_flows_by_compartment <- function(out) {
   labs(x = "Time (days)", y = "", title = "Flows by compartment")
 }
 
-#' Plot Flows by Compartment for Interventions
+#' Plot Flows by Compartment with an Intervention
+#' 
 plot_flows_by_compartment_int <- function(out) {
-  ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)),
-               aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) + theme_minimal() +
+  ggplot(
+    out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)),
+
+               aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + 
+
+             geom_line(aes(lty = int)) + 
+             theme_minimal() +
       scale_color_discrete(name = "") +
-      labs(x = "Time (days)", y = "", title = "Flows by compartment") + scale_linetype(name ="")
+      labs(x = "Time (days)", y = "", title = "Flows by compartment") + 
+      scale_linetype(name ="")
 }
 
+#' Plot Flows by Compartment - Broken down by Strata 
+#'
+#' Not sure what the difference between this and plot_flows_by_compartment is
+#'
+plot_flows_by_compartment_strata <- function(out) {
+  ggplot(
+    # data
+    out %>% filter(cum ==F), 
+    # mapping 
+    aes(x = time, y = value, group = comp, col = comp2)) + 
+
+  geom_line() +
+  facet_wrap(.~strat2, ncol = 2) + 
+  theme_minimal() + 
+  scale_color_discrete(name = "") +
+  labs(x = "Time (days)", y = "", title = "Flows by compartment")
+}
+
+
+#' Plot Flows by Compartment Version 2 - Intervention
+#'
+#' Not sure what the difference between this and plot_flows_by_compartment is
+#'
+#' @examples
+#' # setup
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' param_vec_int <- param_vec
+#' param_vec_int['s'] <- .5
+#' 
+#' # run simulations
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' # run intervention scenario
+#' sim_out_int <- run_param_vec(params = param_vec, params2 = param_vec_int, 
+#'    days_out1 = 30, days_out2 = 180, days_out3 = 180, det_table=det_table,
+#'    model_type = run_int)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting_int(sim_out, sim_out_int)
+#' 
+#' # plot!
+#' plot_flows_by_compartment_strata_int(sim_out_formatted)
+#' 
+plot_flows_by_compartment_strata_int <- function(out) {
+  ggplot(
+    # data
+    out %>% filter(cum ==F), 
+    # mapping
+    aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + 
+  geom_line(aes(lty = int)) +
+    facet_wrap(.~strat2, ncol = 2, scales="free_y") + 
+    theme_minimal() + 
+    scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+    scale_color_discrete(name = "") +
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "", 
+      title = "Population Sizes by Disease Stage, Age, and Social Distancing")
+}
 
 #' Compute Cases from Simulation Outcomes
 compute_cases <- function(out) {
@@ -82,11 +165,42 @@ plot_infections_by_age <- function(out) {
 }
 
 #' Plot Cumulative Cases by Age - Intervention
+#'
+#' @examples
+#' # setup
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' param_vec_int <- param_vec
+#' param_vec_int['s'] <- .5
+#' 
+#' # run simulations
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' # run intervention scenario
+#' sim_out_int <- run_param_vec(params = param_vec, params2 = param_vec_int, 
+#'    days_out1 = 30, days_out2 = 180, days_out3 = 180, det_table=det_table,
+#'    model_type = run_int)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting_int(sim_out, sim_out_int)
+#' 
+#' # reformat for plotting cumulative cases
+#' sim_out_formatted_cases <- compute_cases_intervention(sim_out_formatted)
+#' 
+#' # plot!
+#' plot_cumulative_cases_by_age_int(sim_out_formatted_cases)
 plot_cumulative_cases_by_age_int <- function(out_cases) {
-  ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Cumulative cases by age")
+  ggplot(
+    out_cases, 
+    aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + 
+  geom_line(aes(lty = int)) +
+  geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+  scale_y_continuous(labels = scales::comma_format()) + 
+  scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+  theme_minimal() + 
+  scale_color_discrete(name = "Age Group") + 
+  labs(x = "Time (days)", y = "",
+    title = "Cumulative cases by age")
 }
 
 #' Plot Cases Needing Advanced Care
@@ -197,26 +311,6 @@ plot_cases_by_symptom_status_int <- function(out) {
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
 }
 
-#' Plot Flows by Compartment Version 2
-#'
-#' Not sure what the difference between this and plot_flows_by_compartment is
-#'
-plot_flows_by_compartment2 <- function(out) {
-  ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = comp, col = comp2)) + geom_line() +
-    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") +
-    labs(x = "Time (days)", y = "", title = "Flows by compartment")
-}
-
-
-#' Plot Flows by Compartment Version 2 - Intervention
-#'
-#' Not sure what the difference between this and plot_flows_by_compartment is
-#'
-plot_flows_by_compartment2_int <- function(out) {
-  ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + geom_line(aes(lty = int)) +
-    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") +
-    labs(x = "Time (days)", y = "", title = "Flows by compartment")
-}
 
 #' Plot Fit to Observed Data
 plot_fit_to_observed_data <- function(out,
@@ -265,125 +359,6 @@ plot_fit_to_observed_data_int <- function(out_cases,
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
                                                              title = "Comparison to Data") +
     scale_linetype(name = "")
-}
-
-#' Format Model Outcomes for Plotting
-format_simulation_outcomes_for_plotting <- function(sim_outcomes) {
-  sim_outcomes %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-
-      # reformat compartments
-      comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-      comp2 = ifelse(comp=="E", "Exposed", comp2),
-      comp2 = ifelse(comp=="R", "Recovered", comp2),
-      comp2 = ifelse(comp=="S", "Susceptible", comp2),
-      comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-          "Symptomatic", "Recovered")),
-
-      # compartments with U/D
-      comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-      comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-      comp3 = ifelse(comp=="E", "Exposed", comp3),
-      comp3 = ifelse(comp=="R", "Recovered", comp3),
-      comp3 = ifelse(comp=="S", "Susceptible", comp3),
-      comp3 = factor(comp3, levels = c("Susceptible", "Exposed",
-          "Detected", "Undetected", "Infected",
-          "Recovered")),
-
-      # reformat strata
-      strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-      strat2 = ifelse(strat=="2", "21-65", strat2),
-      strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-      strat2 = ifelse(strat=="3", ">65", strat2),
-      strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-      strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-          "21-65", "21-65 (SD)",
-          ">65", ">65 (SD)")),
-
-      # get only age
-      strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-}
-
-
-#' Format Model Outcomes for Plotting - Intervention
-format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcomes_int) {
-
-  out_base = sim_outcomes %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-
-           # reformat compartments
-           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-           comp2 = ifelse(comp=="E", "Exposed", comp2),
-           comp2 = ifelse(comp=="R", "Recovered", comp2),
-           comp2 = ifelse(comp=="S", "Susceptible", comp2),
-           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-                                            "Symptomatic", "Recovered")),
-
-           # compartments with U/D
-           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-           comp3 = ifelse(comp=="E", "Exposed", comp3),
-           comp3 = ifelse(comp=="R", "Recovered", comp3),
-           comp3 = ifelse(comp=="S", "Susceptible", comp3),
-           comp3 = factor(comp3, levels = c("Susceptible", "Exposed",
-                                            "Detected", "Undetected", "Infected",
-                                            "Recovered")),
-
-           # reformat strata
-           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-           strat2 = ifelse(strat=="2", "21-65", strat2),
-           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-           strat2 = ifelse(strat=="3", ">65", strat2),
-           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-                                              "21-65", "21-65 (SD)",
-                                              ">65", ">65 (SD)")),
-
-           # get only age
-           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-
-  out_int = sim_outcomes_int %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-
-           # reformat compartments
-           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-           comp2 = ifelse(comp=="E", "Exposed", comp2),
-           comp2 = ifelse(comp=="R", "Recovered", comp2),
-           comp2 = ifelse(comp=="S", "Susceptible", comp2),
-           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-                                            "Symptomatic", "Recovered")),
-
-           # compartments with U/D
-           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-           comp3 = ifelse(comp=="E", "Exposed", comp3),
-           comp3 = ifelse(comp=="R", "Recovered", comp3),
-           comp3 = ifelse(comp=="S", "Susceptible", comp3),
-           comp3 = factor(comp3, levels = c("Susceptible", "Exposed",
-                                            "Detected", "Undetected", "Infected",
-                                            "Recovered")),
-
-           # reformat strata
-           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-           strat2 = ifelse(strat=="2", "21-65", strat2),
-           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-           strat2 = ifelse(strat=="3", ">65", strat2),
-           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-                                              "21-65", "21-65 (SD)",
-                                              ">65", ">65 (SD)")),
-
-           # get only age
-           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-
-  out = bind_rows(out_base %>% mutate(int = "Base"), out_int %>% mutate(int = "Intervention"))
-  return(out)
 }
 
 #' Plot hospital bed needs over time along with capacity
