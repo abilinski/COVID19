@@ -184,7 +184,7 @@ generate_ui <- function() {
                 ),
               column(4,
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
-                  max = .999, value = 0.1, step=0.01),
+                  max = .999, value = 0.01, step=0.01),
                 disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
                   max = 1, value = 0)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
