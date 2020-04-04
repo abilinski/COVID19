@@ -3,8 +3,8 @@
 #' 
 #' Calculate R0 and td from exponential curve
 #' @export
-calc_Re_td_from_exp <- function(params, time_series=NA, S=0.9) {
-  if (is.na(time_series)) {
+calc_Re_td_from_exp <- function(params, time_series=NULL, S=0.9) {
+  if (is.null(time_series)) {
     time_series <- read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)
   }
   fit <- lm(log(time_series$cumulative_cases) ~ time_series$day)
