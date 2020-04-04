@@ -491,7 +491,7 @@ server <- function(input, output, session) {
     
     output$download_doc <- downloadHandler(
       filename = function() {
-        'banana.pdf'
+        'CSPEC_Epi_Model_Documentation.pdf'
       },
       content = function(file) {
         file.copy(system.file('Epi_Model_Documentation.pdf', package='covid.epi'), file)
