@@ -172,9 +172,11 @@ server <- function(input, output, session) {
     simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
                                         days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
     
-    cum_case = data.frame(day=c(1:dim(simulation_outcomes)[1]), cumulative_cases=simulation_outcomes$I_1_cum + simulation_outcomes$I_2_cum + simulation_outcomes$I_3_cum + simulation_outcomes$I_1Q_cum + simulation_outcomes$I_2Q_cum + simulation_outcomes$I_3Q_cum)
-    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q)
-    avg_s_t = mean(s_t[input$doublingTimeInterval[1]:input$doublingTimeInterval[2],2])/param_vec$n
+    start_t = input$doublingTimeInterval[1]
+    end_t = input$doublingTimeInterval[2]
+    cum_case = data.frame(day=c(start_t:end_t), cumulative_cases=(simulation_outcomes$I_1_cum + simulation_outcomes$I_2_cum + simulation_outcomes$I_3_cum + simulation_outcomes$I_1Q_cum + simulation_outcomes$I_2Q_cum + simulation_outcomes$I_3Q_cum)[start_t:end_t])
+    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q))
+    avg_s_t = mean(s_t[start_t:end_t,2])/param_vec$n
     # Edit this to compute Re and td from exponential curve (done)
     Re = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[1]), digits=3)
     p = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[2]), digits=3)
@@ -372,19 +374,19 @@ server <- function(input, output, session) {
       sliderInput(
         inputId = 'doublingTimeInterval', 
         label = 'Interval for Estimating Doubling Time of Infections',
-        min = 0, 
+        min = 1, 
         max = input$sim_time,
         step = 1,
-        value = c(0,5))
+        value = c(1,5))
     })
     output$doublingTimeIntervalInt <- renderUI({
       disabled(sliderInput(
         inputId = 'doublingTimeIntervalInt', 
         label = 'Interval for Estimating Doubling Time of Infections',
-        min = 0, 
+        min = 1, 
         max = input$sim_time,
         step = 1,
-        value = c(0,5)))
+        value = c(1,5)))
     })
 
 
@@ -411,9 +413,9 @@ server <- function(input, output, session) {
     output$doublingTimeInt <- renderUI({ 
 
       # change to "The doubling time during [ ... "
-      re_str <- paste0("The Re between day ", input$doublingTimeIntervalInt[1], ", and day ", 
+      re_str <- paste0("The Re between day ", input$doublingTimeIntervalInt[1], "and day ", 
         input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp()[1])
-      td_str <- paste0("The doubling time between day ", input$doublingTimeIntervalInt[1], ", and day ", 
+      td_str <- paste0("The doubling time between day ", input$doublingTimeIntervalInt[1], "and day ", 
           input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp()[2])
       HTML(paste(re_str, td_str, sep = '<br/>'))
     })
