@@ -191,47 +191,33 @@ server <- function(input, output, session) {
 
     det_table_int <- data.frame(
       time = 1:(input$sim_time),
-      rdetecti = c(rep(input$rdetecti, input$int_time), 
-        rep(input$rdetecti_int, (input$sim_time - input$int_time))),
-      rdetecta = c(rep(input$rdetecta, input$int_time), 
-        rep(input$rdetecta_int, (input$sim_time - input$int_time))))
+      rdetecti = c(rep(input$rdetecti, input$interventionInterval[1]), 
+        rep(input$rdetecti_int, (input$sim_time - input$interventionInterval[1]))),
+      rdetecta = c(rep(input$rdetecta, input$interventionInterval[1]), 
+        rep(input$rdetecta_int, (input$sim_time - input$interventionInterval[1]))))
 
         ### run model without intervention
         simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = input$sim_time,
                              days_out2 = NULL, days_out3 = input$sim_time, model_type = run_basic, det_table = det_table) 
         ### run intervention halfway
-        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$int_time,
-                                 days_out2 = input$sim_time, days_out3 = input$int_stop_time, model_type = run_int, det_table = det_table_int)
+        simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = input$interventionInterval[1],
+                                 days_out2 = input$sim_time, days_out3 = input$interventionInterval[2], model_type = run_int, det_table = det_table_int)
 
-    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int)
+    list(simulation_outcomes, simulation_outcomes_int)
   })
 
-  format_model_sims_with_cases <- reactive({
-    compute_cases_intervention(format_model_sims())
-  })
-
-  popsizes <- load_population_sizes() 
-
-  observeEvent(input$state_selected, {
-    observed_data$cases <- filter_states_data(input$state_selected)
-
-    popsizes_filtered <- popsizes %>% filter(state == state_names()[[input$state_selected]])
-
-    updateNumericInput(session = session, inputId = 'n', 
-      value = popsizes_filtered[['popsize']]
-     )
-  })
-  
   # Reformat the data for plotting
   formatSimsForPlotting <- reactive({
     sims <- runSimulations()
-    format_simulation_outcomes_for_plotting_int(sims[[1]], sims[[2]])
+    format_simulation_outcomes_for_plotting_int(sims[[1]], sims[[2]]) %>% 
+      as.data.frame()
   })
 
   # Reformat for specifically plotting cases
   formatForCasesPlotting <- reactive({
     df <- formatSimsForPlotting()
-    compute_cases_intervention(df)
+    compute_cases_intervention(df) %>% 
+      as.data.frame()
   })
   
   ## download adjusted base parameters

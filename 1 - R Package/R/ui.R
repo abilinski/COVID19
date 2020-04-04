@@ -94,9 +94,9 @@ generate_ui <- function() {
               column(4,
                 numericInput("sim_time", label="simulation time (days)", value=180),
                 # we want to show r0 and td from calculation later
-                disabled(numericInput("R0", label="R0", value=1.0)),
+                disabled(numericInput("R0", label="R0", value=2.23)),
                 disabled(numericInput("p", label="p: Pr(transmission/contact)", value=0.05)),
-                numericInput("td", label="Doubling Time", value=2.5),
+                numericInput("td", label="Doubling Time", value=7),
                 numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
                 numericInput("obs", label="obs cases at day1", value=100),
