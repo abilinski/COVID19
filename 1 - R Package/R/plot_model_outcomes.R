@@ -49,6 +49,38 @@ plot_cumulative_cases_by_age <- function(out_cases) {
 }
 
 
+#' Plot infections by age
+plot_infections_by_age <- function(out) { 
+
+  out_infections <- out %>% filter(comp %in% c("UI", "DI", "UA", "DA"), cum == FALSE) %>% 
+    mutate(strat = gsub("Q", "", strat)) %>% 
+    group_by(time, int, strat) %>% 
+    summarize(value = sum(value))
+
+  out_infections <- merge(
+    out_infections %>% group_by(time, int) %>% 
+      summarize(value = sum(value)) %>% 
+        mutate(strat = "0"),
+      out_infections,
+      by = c("time", "int", "strat"),
+      all = TRUE
+  )
+  out_infections %<>% 
+    mutate(value = ifelse(is.na(value.x), value.y, value.x)) %>% 
+    select(-c(value.x, value.y))
+
+  # out_infections$strat <- recode(out_infections$strat, `0` = "All", `1` = "<20", `2` = "21-65", `3` = ">65")
+  out_infections$strat %<>% factor(., labels = c(`0` = "All", `1` = "<20", `2` = "21-65", `3` = ">65"))
+
+  ggplot(out_infections, aes(x = time, y = value, col = strat, lty = int)) + 
+    geom_line() + 
+    theme_minimal() + 
+    scale_color_manual(name="", values=c('black', 'red', 'green', 'blue')) + 
+    labs(x = "Time (days)", y = "",
+      title = "Ongoing infections by age")
+
+}
+
 #' Plot Cumulative Cases by Age - Intervention
 plot_cumulative_cases_by_age_int <- function(out_cases) {
   ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
