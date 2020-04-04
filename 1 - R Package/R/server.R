@@ -255,10 +255,17 @@ server <- function(input, output, session) {
       as.data.frame()
   })
 
-  # Reformat for specifically plotting cases
-  formatForCasesPlotting <- reactive({
+  # Reformat for specifically plotting cumulative cases
+  formatForCumulativeCasesPlotting <- reactive({
     df <- formatSimsForPlotting()
-    compute_cases_intervention(df) %>% 
+    compute_cumulative_cases_intervention(df) %>% 
+      as.data.frame()
+  })
+
+  # Reformat for specifically plotting daily case rates
+  formatForDailyCasesPlotting <- reactive({
+    df <- formatSimsForPlotting()
+    compute_daily_cases_intervention(df) %>% 
       as.data.frame()
   })
   
@@ -283,7 +290,7 @@ server <- function(input, output, session) {
   )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }, res=120)  
+    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCumulativeCasesPlotting(), observed_data$cases) }, res=120)  
     
     ## output for Comp flows tab
     output$comp_flow<- renderPlot({ 
@@ -292,16 +299,24 @@ server <- function(input, output, session) {
     height=1200, 
     res=120) 
     
-    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCasesPlotting()) }, res=120)
-    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCasesPlotting()) }, res=120)
+    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting()) }, res=120)
+    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting()) }, res=120)
     
     ## output for Death & New case ratio tab
     output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting()) }, res=120)
     output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) }, res=120)
     
     ## output for Advanced care & Symptoms ratio tab
-    output$cases_needing_advanced_care <- renderPlot({ plot_cases_needing_advanced_care_int(formatForCasesPlotting()) }, res=120)
-    output$cumulative_cases_by_symptoms <- renderPlot({ plot_cases_by_symptom_status_int(formatSimsForPlotting()) }, res=120)
+    output$cases_needing_advanced_care <- renderPlot({ 
+      if (input$adv_care_and_symptoms_cumulative == 'Cumulative') {
+        plot_cases_needing_advanced_care_int(formatForCumulativeCasesPlotting(), cumulative=TRUE) 
+      } else if (input$adv_care_and_symptoms_cumulative == 'Daily Rates') {
+        plot_cases_needing_advanced_care_int(formatForDailyCasesPlotting(), cumulative=FALSE) 
+      }
+    }, res=120)
+    output$cumulative_cases_by_symptoms <- renderPlot({ 
+      plot_cases_by_symptom_status_int(formatSimsForPlotting(), cumulative = (input$adv_care_and_symptoms_cumulative == 'Cumulative'))
+    }, res=120)
 
     # if the user preses the Reset All Parameters actionButton, use the
     # shinyjs::reset function to reset all parameters to their default values. 

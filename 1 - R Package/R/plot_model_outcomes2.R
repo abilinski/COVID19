@@ -102,6 +102,42 @@ format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcom
   return(out)
 }
 
+#' Compute Cases from Simulation Outcomes
+compute_cases <- function(out, hospitalization_rate = .17, ventilator_rate = .05) {
+  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3) %>%
+    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) %>%
+    mutate(Total = sum(Infected),
+           Total_obs = sum(Detected),
+           Hospital = hospitalization_rate*Total,
+           Ventilator = ventilator_rate*Total)
+}
+
+#' Compute Cumulative Cases from Simulation Outcomes - Intervention
+compute_cumulative_cases_intervention <- function(out, hospitalization_rate = .17, ventilation_rate = 0.05) {
+  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3, int) %>%
+    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>%
+    mutate(Total = sum(Infected),
+           Total_obs = sum(Detected),
+           Hospital = hospitalization_rate*Total,
+           Ventilator = ventilation_rate*Total) %>% ungroup()
+}
+
+#' Compute Daily Cases from Simulation Outcomes - Intervention
+compute_daily_cases_intervention <- function(out, hospitalization_rate = .17, ventilation_rate = 0.05) {
+  out %>% filter(cum == T & comp!="D") %>% 
+    group_by(time, strat3, comp3, int) %>%
+    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>%
+    summarize(Total = sum(Infected),
+           Total_obs = sum(Detected)) %>% 
+    ungroup() %>% 
+    group_by(int) %>% 
+    mutate(Total = Total - lag(Total),
+      Total_obs = Total_obs - lag(Total_obs),
+      Hospital = hospitalization_rate*Total, 
+      Ventilator = ventilation_rate*Total) %>% ungroup()
+}
+
+
 
 #' Add Deaths Compartment
 #' 

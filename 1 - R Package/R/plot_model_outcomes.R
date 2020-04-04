@@ -107,27 +107,6 @@ plot_flows_by_compartment_strata_int <- function(out,
       title = "Population Sizes by Disease Stage, Age, and Social Distancing")
 }
 
-#' Compute Cases from Simulation Outcomes
-compute_cases <- function(out) {
-  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3) %>%
-    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) %>%
-    mutate(Total = sum(Infected),
-           Total_obs = sum(Detected),
-           Hospital = .17*Total,
-           Ventilator = .05*Total)
-}
-
-#' Compute Cases from Simulation Outcomes - Intervention
-compute_cases_intervention <- function(out) {
-  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3, int) %>%
-    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>%
-    mutate(Total = sum(Infected),
-           Total_obs = sum(Detected),
-           Hospital = .17*Total, ########this multipliers are different from the one used in no interventions
-           Ventilator = .05*Total) %>% ungroup()
-}
-
-
 #' Plot Cumulative Cases by Age
 plot_cumulative_cases_by_age <- function(out_cases) {
 
@@ -210,19 +189,19 @@ plot_cumulative_cases_by_age_int <- function(out_cases) {
 }
 
 #' Plot Cases Needing Advanced Care
-plot_cases_needing_advanced_care <- function(out_cases) {
+plot_cases_needing_advanced_care <- function(out_cases, cumulative=TRUE) {
   ggplot(out_cases %>% gather(var, value, Hospital, Ventilator),
               aes(x = time, y = value, group = var, col = var)) + geom_line() +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Cases needing advanced care")
+                                                             title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases needing advanced care"))
 }
 
 #' Plot Cases Needing Advanced Care - Intervention
-plot_cases_needing_advanced_care_int <- function(out_cases) {
+plot_cases_needing_advanced_care_int <- function(out_cases, cumulative=TRUE) {
   ggplot(out_cases %>% gather(var, value, Hospital, Ventilator),
               aes(x = time, y = value, group = interaction(var, int), col = var)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Cases needing advanced care")
+                                                             title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases needing advanced care"))
 }
 
 
@@ -297,24 +276,29 @@ plot_deaths_by_age_int <- function(out) {
 
 #' Plot cases by symptom status
 plot_cases_by_symptom_status <- function(out) {
-  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2) %>%
+  out_symp = out %>% filter(cum == cumulative & ! comp %in% c("S", "D", "R") & !is.na(strat3)) %>% group_by(time, comp2) %>%
     summarize(val2 = sum(value)) %>% group_by(time) %>% mutate(Total = sum(val2))
 
   ggplot(out_symp, aes(x = time, y = val2, group = comp2, col = comp2)) + geom_line() +
     geom_line(aes(y = Total), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = 
+      paste0(if (cumulative) "Cumulative " else "Daily ", "cases by symptoms"))
 }
 
 
 #' Plot cases by symptom status - Intervention
-plot_cases_by_symptom_status_int <- function(out) {
+plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
 
-  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2, int) %>%
+  out_symp = out %>% filter(cum == cumulative & ! comp %in% c("S", "D", "R") & !is.na(strat3)) %>% group_by(time, comp2, int) %>%
     summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
 
-  ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+  ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + 
+    geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = 
+      paste0(if (cumulative) "Cumulative " else "Daily ", "cases by symptoms")) + 
+    if (cumulative) { 
+      geom_line(aes(y = Total, group = int, lty=int), col = "black")
+    }
 }
 
 
