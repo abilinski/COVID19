@@ -80,8 +80,9 @@ generate_ui <- function() {
       ),
       tabPanel("Documentation",
         fluidPage(
-          uiOutput('documentation_page')
-          )
+          uiOutput('documentation_page'),
+          ),
+        downloadButton("download_doc", "Download our Technical Documentation")
         )
       ),
 

@@ -469,6 +469,16 @@ server <- function(input, output, session) {
             ))
       )
     })
+    
+    output$download_doc <- downloadHandler(
+      filename = function() {
+        'banana.pdf'
+      },
+      content = function(file) {
+        file.copy(system.file('Epi_Model_Documentation.pdf', package='covid.epi'), file)
+      },
+      contentType = 'application/pdf'
+    )
 
 
     # Go through each param name and apply changes from the base case 
