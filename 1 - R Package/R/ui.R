@@ -32,6 +32,13 @@ generate_ui <- function() {
           rHandsontableOutput('observedData')
           ),
         column(7,
+          br(),
+          h4("Instructions"),
+          p("Enter data in the data table to compare with model outcomes."),
+          p("Daily observed data entered will be automatically cumulated and available for visualization as daily and cumulative outcomes in the Comparison to Data tab."),
+          p("Feel free to tune the model parameters to reflect what you believe best represents the trend in the data."),
+          br(),
+          br(),
           h4("Where can I find data to use here?"),
           p("Check out sources such as:"),
           tags$a("covidtracker.com", href='https://covidtracker.com'),
@@ -65,7 +72,12 @@ generate_ui <- function() {
           ), 
         column(6, 
           plotOutput('cumulative_diagnosed_by_age')
-        )
+        ),
+        selectInput(
+          inputId = 'cases_cumulative', 
+          label = "Outcomes format:",
+          choices = c("Cumulative", "Daily Rates"),
+          )
         ), 
       tabPanel("Deaths & New case ratio", 
         # side by side layout for deaths by age and new cases / existing cases

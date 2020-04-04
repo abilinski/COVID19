@@ -299,8 +299,10 @@ server <- function(input, output, session) {
     height=1200, 
     res=120) 
     
-    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting()) }, res=120)
-    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting()) }, res=120)
+    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), 
+      input$cases_cumulative == 'Cumulative') }, res=120)
+    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(),
+      input$cases_cumulative == 'Cumulative') }, res=120)
     
     ## output for Death & New case ratio tab
     output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = (input$deaths_cumulative == 'Cumulative')) }, res=120)
