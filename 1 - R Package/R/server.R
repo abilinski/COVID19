@@ -268,9 +268,6 @@ server <- function(input, output, session) {
       paste("parameters_base_",Sys.Date(),".csv", sep = "")
     },
     content = function(file) {
-      # old_vec['R0'] = calc_R0_from_td(td=param_vec_int()['td'],vec=param_vec_int)
-      # old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
-      # old_vec$Scenario<-'Base'
       write.csv(param_vec_reactive(), file, row.names = FALSE)
     }
   )
@@ -281,10 +278,6 @@ server <- function(input, output, session) {
       paste("parameters_int_",Sys.Date(),".csv", sep = "")
     },
     content = function(file) {
-      # param_vec_int <- param_vec_int_reactive()
-      # param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
-      # param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
-      # param_vec_int$Scenario<-'Intervention'
       write.csv(param_vec_int_reactive(), file, row.names = FALSE)
     }
   )
