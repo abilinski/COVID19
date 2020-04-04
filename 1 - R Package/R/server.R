@@ -219,9 +219,7 @@ server <- function(input, output, session) {
     return (c(Re, p))
   })
 
-
-
-  # Run Simulations
+  # Run Simulations Reactive Module
   runSimulations <- reactive({
     req(input$interventionInterval)
 
@@ -270,10 +268,10 @@ server <- function(input, output, session) {
       paste("parameters_base_",Sys.Date(),".csv", sep = "")
     },
     content = function(file) {
-      old_vec['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
-      old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
-      old_vec$Scenario<-'Base'
-      write.csv(old_vec, file, row.names = FALSE)
+      # old_vec['R0'] = calc_R0_from_td(td=param_vec_int()['td'],vec=param_vec_int)
+      # old_vec['p']= calc_p_from_R0(R0_input=param_vec_reactive()['R0'],vec=param_vec_reactive()) 
+      # old_vec$Scenario<-'Base'
+      write.csv(param_vec_reactive(), file, row.names = FALSE)
     }
   )
 
@@ -283,11 +281,11 @@ server <- function(input, output, session) {
       paste("parameters_int_",Sys.Date(),".csv", sep = "")
     },
     content = function(file) {
-      param_vec_int <- param_vec_int_reactive()
-      param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
-      param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
-      param_vec_int$Scenario<-'Intervention'
-      write.csv(param_vec_int, file, row.names = FALSE)
+      # param_vec_int <- param_vec_int_reactive()
+      # param_vec_int['R0'] = calc_R0_from_td(td=param_vec_int['td'],vec=param_vec_int)
+      # param_vec_int['p']= calc_p_from_R0(R0_input=param_vec_int['R0'],vec=param_vec_int) 
+      # param_vec_int$Scenario<-'Intervention'
+      write.csv(param_vec_int_reactive(), file, row.names = FALSE)
     }
   )
     
@@ -383,15 +381,10 @@ server <- function(input, output, session) {
     })
 
 
-    # When the user changes the doubling time interval, calculate the 
-    # doubling time based on the growth rate during the intervention 
-    # time period.
+    # When the user changes the doubling time interval, calculate the doubling
+    # time based on the growth rate during the time period specified.
 
     output$doublingTime <- renderUI({ 
-      # as an example 
-      # length of time considered: 
-      
-      # change to "The doubling time during [ ... "
 
       re_str <- paste0("The effective reproductive rate between day ", input$doublingTimeInterval[1], " and day ", 
         input$doublingTimeInterval[2], ": ", 
@@ -413,14 +406,11 @@ server <- function(input, output, session) {
     })
 
 
-    output$doublingTimeInt <- renderUI({ 
+    # When the user changes the doubling time interval, calculate the doubling
+    # time based on the growth rate (for the intervention) during the specified
+    # time period.
 
-      # # change to "The doubling time during [ ... "
-      # re_str <- paste0("The Re between day ", input$doublingTimeIntervalInt[1], "and day ", 
-      #   input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp_int()[1])
-      # td_str <- paste0("The doubling time between day ", input$doublingTimeIntervalInt[1], "and day ", 
-      #     input$doublingTimeIntervalInt[2], ": ", Re_td_value_exp_int()[2])
-      # HTML(paste(re_str, td_str, sep = '<br/>'))
+    output$doublingTimeInt <- renderUI({ 
 
       re_str <- paste0("The effective reproductive rate between day ", input$doublingTimeInterval[1], " and day ", 
         input$doublingTimeInterval[2], ": ", 
