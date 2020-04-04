@@ -283,10 +283,14 @@ server <- function(input, output, session) {
   )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }, res=120) # model_plots()[[8]] 
+    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }, res=120)  
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlot({ plot_flows_by_compartment_strata_int(formatSimsForPlotting()) }, height=1200, res=120) # model_plots()[[7]] 
+    output$comp_flow<- renderPlot({ 
+      plot_flows_by_compartment_strata_int(formatSimsForPlotting(), input$compartmentFlowSelectedComps) 
+    }, 
+    height=1200, 
+    res=120) 
     
     output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCasesPlotting()) }, res=120)
     output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCasesPlotting()) }, res=120)

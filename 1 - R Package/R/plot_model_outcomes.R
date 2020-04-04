@@ -85,12 +85,18 @@ plot_flows_by_compartment_strata <- function(out) {
 #' # plot!
 #' plot_flows_by_compartment_strata_int(sim_out_formatted)
 #' 
-plot_flows_by_compartment_strata_int <- function(out) {
+plot_flows_by_compartment_strata_int <- function(out, 
+  selected_compartments = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered')) {
+
   ggplot(
     # data
-    out %>% filter(cum ==F), 
+    out %>% 
+      filter(cum ==F, comp2 %in% selected_compartments, comp %in% c("S", "E", "UA", "UI", "DA", "DI", "R")) %>% 
+      group_by(time, comp2, strat2, int) %>%
+      summarize(value = sum(value)) %>% 
+      ungroup(),
     # mapping
-    aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + 
+    aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + 
   geom_line(aes(lty = int)) +
     facet_wrap(.~strat2, ncol = 2, scales="free_y") + 
     theme_minimal() + 

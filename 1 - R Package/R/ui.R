@@ -49,7 +49,14 @@ generate_ui <- function() {
         selectInput("comparisonDataPlotCumulative", "Outcomes format:", choices = c("Cumulative", "Daily Rates"))
         ),
 
-      tabPanel("Compartment flows", fluidRow(plotOutput("comp_flow", height='auto'))),
+      tabPanel("Compartment flows", 
+        plotOutput("comp_flow", height='auto'),
+        checkboxGroupInput(
+          inputId = 'compartmentFlowSelectedComps', 
+          label = 'Select Compartments Shown',
+          choices = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'),
+          selected = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'))
+        ),
 
       tabPanel("Cumulative cases", 
         # Side by side layout for cumulative infections and diagnosed cases by age
