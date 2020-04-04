@@ -148,7 +148,7 @@ generate_ui <- function() {
               tags$div(
                 style = 'padding-top:12pt',
                 uiOutput('doublingTimeInterval'),
-                textOutput('doublingTime')
+                htmlOutput('doublingTime')
               )
             )
           )
@@ -230,7 +230,7 @@ generate_ui <- function() {
               tags$div(
                 style = 'padding-top:12pt',
                 uiOutput('doublingTimeIntervalInt'),
-                textOutput('doublingTimeInt')
+                htmlOutput('doublingTimeInt')
               )
             )
           )
