@@ -100,7 +100,7 @@ generate_ui <- function() {
                   # we want to show r0 and td from calculation later
                   disabled(numericInput("R0", label="R0", value=1.0)),
                   numericInput("p", label="p: Pr(transmission per contact)", value=0.05),
-                  disabled(numericInput("td", label="DFE doubling Time", value=2.5)),
+                  disabled(numericInput("td", label="Disease Free Equilibrium Doubling Time", value=2.5)),
                   numericInput("delta", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                   numericInput("gamma", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
                   numericInput("obs", label="obs cases at day1", value=100),
@@ -187,7 +187,7 @@ generate_ui <- function() {
                 uiOutput('interventionInterval'),
                 disabled(numericInput("R0_int", label="R0", value=1.0)),
                 disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
-                disabled(numericInput("td_int", label="Doubling Time", value=2.5)),
+                disabled(numericInput("td_int", label="Disease Free Equilibrium Doubling Time", value=2.5)),
                 numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
                 disabled(numericInput("obs_int", label="obs cases at day1", value=100)),
