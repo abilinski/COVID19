@@ -43,9 +43,10 @@ generate_ui <- function() {
         )
         ),
       tabPanel("Comparison to Data", 
+        h4("Enter observed data in the Data Input page and compare model outcomes against it here."),
+        selectInput("comparisonDataPlotChoice", "Select the Comparison Data Set", choices = c("Cases", "Hospitalizations", "Deaths")),
         plotOutput("fit"),
-        selectInput("comparisonDataPlotChoice", "Select a Measure for Comparing Model Outcomes to Data", choices = c("Cases", "Hospitalizations", "Deaths")),
-        selectInput("comparisonDataPlotCumulative", "How do you want the plot formatted?", choices = c("Cumulative", "Daily Counts"))
+        selectInput("comparisonDataPlotCumulative", "Outcomes format:", choices = c("Cumulative", "Daily Rates"))
         ),
 
       tabPanel("Compartment flows", fluidRow(plotOutput("comp_flow", height='auto'))),
@@ -66,7 +67,12 @@ generate_ui <- function() {
           ),
         column(6,
           plotOutput('effective_reproductive_number')
-        )
+        ),
+        selectInput(
+          inputId = 'deaths_ncr_cumulative', 
+          label = "Outcomes format:",
+          choices = c("Cumulative", "Daily Rates"),
+          )
         ),
       tabPanel("Advanced care & Symptoms", 
         # side by side layout for those needing advanced care and cumulative
@@ -76,7 +82,12 @@ generate_ui <- function() {
           ),
         column(6,
           plotOutput('cumulative_cases_by_symptoms')
-        )
+        ),
+        selectInput(
+          inputId = 'adv_care_and_symptoms_cumulative', 
+          label = "Outcomes format:",
+          choices = c("Cumulative", "Daily Rates"),
+          )
       ),
       tabPanel("Documentation",
         fluidPage(
