@@ -1,3 +1,8 @@
+#' This function takes the input time series, S(t), and the parameter vector as inputs and calculates the
+#' corresponding R0 and doubling time
+#' 
+#' Calculate R0 and td from exponential curve
+#' @export
 calc_Re_td_from_exp <- function(params, time_series=NA, S=0.9) {
   if (is.na(time_series)) {
     time_series <- read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T)
