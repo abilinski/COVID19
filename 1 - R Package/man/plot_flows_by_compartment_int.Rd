@@ -2,10 +2,10 @@
 % Please edit documentation in R/plot_model_outcomes.R
 \name{plot_flows_by_compartment_int}
 \alias{plot_flows_by_compartment_int}
-\title{Plot Flows by Compartment for Interventions}
+\title{Plot Flows by Compartment with an Intervention}
 \usage{
 plot_flows_by_compartment_int(out)
 }
 \description{
-Plot Flows by Compartment for Interventions
+Plot Flows by Compartment with an Intervention
 }

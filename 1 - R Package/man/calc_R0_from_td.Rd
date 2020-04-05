@@ -2,10 +2,26 @@
 % Please edit documentation in R/calc_p_from_R0.R
 \name{calc_R0_from_td}
 \alias{calc_R0_from_td}
-\title{Calculate R0 from td}
+\title{#' Calculate R0 from td (based on SIR) 
+#' @export
+calc_R0_from_td <-function(td,vec){
+  #calculate time of infectiousness
+  t_inf = 1/vec$gamma 
+  R0 = 1+(t_inf/td)*log(2)
+  return(R0)
+}
+Calculate R0 from td (based on SEIR)}
 \usage{
 calc_R0_from_td(td, vec)
 }
 \description{
-Calculate R0 from td
+#' Calculate R0 from td (based on SIR) 
+#' @export
+calc_R0_from_td <-function(td,vec){
+  #calculate time of infectiousness
+  t_inf = 1/vec$gamma 
+  R0 = 1+(t_inf/td)*log(2)
+  return(R0)
+}
+Calculate R0 from td (based on SEIR)
 }

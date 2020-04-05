@@ -2,10 +2,25 @@
 % Please edit documentation in R/plot_model_outcomes.R
 \name{plot_flows_by_compartment}
 \alias{plot_flows_by_compartment}
-\title{Plot Flows by Compartment}
+\title{Plot Compartment Population Sizes Over Time}
 \usage{
 plot_flows_by_compartment(out)
 }
 \description{
-Plot Flows by Compartment
+Note that this plot is not shown in the modellers' Shiny app,
+rather the plot_flows_by_compartment_strata_int is used.
+}
+\examples{
+# setup
+param_vec <- load_parameters()
+det_table <- make_detection_table(180, .1, 0)
+
+# run simulation
+sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+
+# reformat for plotting
+sim_out_formatted <- format_simulation_outcomes_for_plotting(sim_out)
+
+plot_flows_by_compartment(sim_out_formatted)
+
 }

@@ -23,7 +23,7 @@ generate_ui <- function() {
     # Plot Outcomes
 
     tabsetPanel(
-      selected = "Cumulative cases",
+      selected = "Cases by age",
       tabPanel("Data Input",
         column(12,
           column(5, 
@@ -32,6 +32,13 @@ generate_ui <- function() {
           rHandsontableOutput('observedData')
           ),
         column(7,
+          br(),
+          h4("Instructions"),
+          p("Enter data in the data table to compare with model outcomes."),
+          p("Daily observed data entered will be automatically cumulated and available for visualization as daily and cumulative outcomes in the Comparison to Data tab."),
+          p("Feel free to tune the model parameters to reflect what you believe best represents the trend in the data."),
+          br(),
+          br(),
           h4("Where can I find data to use here?"),
           p("Check out sources such as:"),
           tags$a("covidtracker.com", href='https://covidtracker.com'),
@@ -43,21 +50,34 @@ generate_ui <- function() {
         )
         ),
       tabPanel("Comparison to Data", 
+        h4("Enter observed data in the Data Input page and compare model outcomes against it here."),
+        selectInput("comparisonDataPlotChoice", "Select the Comparison Data Set", choices = c("Cases", "Hospitalizations", "Deaths")),
         plotOutput("fit"),
-        selectInput("comparisonDataPlotChoice", "Select a Measure for Comparing Model Outcomes to Data", choices = c("Cases", "Hospitalizations", "Deaths")),
-        selectInput("comparisonDataPlotCumulative", "How do you want the plot formatted?", choices = c("Cumulative", "Daily Counts"))
+        selectInput("comparisonDataPlotCumulative", "Outcomes format:", choices = c("Cumulative", "Daily Rates"))
         ),
 
-      tabPanel("Comp flows", plotOutput("comp_flow")),
+      tabPanel("Compartment flows", 
+        plotOutput("comp_flow", height='auto'),
+        checkboxGroupInput(
+          inputId = 'compartmentFlowSelectedComps', 
+          label = 'Select Compartments Shown',
+          choices = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'),
+          selected = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'))
+        ),
 
-      tabPanel("Cumulative cases", 
+      tabPanel("Cases by age", 
         # Side by side layout for cumulative infections and diagnosed cases by age
         column(6, 
           plotOutput('cumulative_infections_by_age')
           ), 
         column(6, 
           plotOutput('cumulative_diagnosed_by_age')
-        )
+        ),
+        selectInput(
+          inputId = 'cases_cumulative', 
+          label = "Outcomes format:",
+          choices = c("Cumulative", "Daily Rates"),
+          )
         ), 
       tabPanel("Deaths & New case ratio", 
         # side by side layout for deaths by age and new cases / existing cases
@@ -66,7 +86,12 @@ generate_ui <- function() {
           ),
         column(6,
           plotOutput('effective_reproductive_number')
-        )
+        ),
+        selectInput(
+          inputId = 'deaths_cumulative', 
+          label = "Outcomes format for deaths:",
+          choices = c("Cumulative", "Daily Rates"),
+          )
         ),
       tabPanel("Advanced care & Symptoms", 
         # side by side layout for those needing advanced care and cumulative
@@ -76,7 +101,12 @@ generate_ui <- function() {
           ),
         column(6,
           plotOutput('cumulative_cases_by_symptoms')
-        )
+        ),
+        selectInput(
+          inputId = 'adv_care_and_symptoms_cumulative', 
+          label = "Outcomes format:",
+          choices = c("Cumulative", "Daily Rates"),
+          )
       ),
       tabPanel("Documentation",
         fluidPage(
@@ -109,13 +139,20 @@ generate_ui <- function() {
                   sliderInput("rdetecti", label = "Symptomatic detection rate", 
                     min = 0, max = 1, value = 0.1),
                   sliderInput("rdetecta", label = "Asymptomatic detection rate", 
-                    min = 0, max = 1, value = 0.01)
+                    min = 0, max = 1, value = 0.01),
+                  downloadButton("download", "Download parameters"),
+                  br(),
+                  br(),
+
+                  # reset_inputs triggers an observeEvent in the server which takes 
+                  # all of the user inputs and resets them to their default values
+                  actionButton("reset_inputs", "Reset All Parameters")
                   ),
                 column(4,
                   sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
                     max = .999, value = .01, step=0.001),
                   sliderInput("e", label = "e: Social distance multiplier", min = 0, 
-                    max = 1, value = 0),
+                    max = 1, value = 0.01),
                   sliderInput("kappa", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                     max = 1, value = 0.375),
                   sliderInput("m1", label = "m1: mortality yng", min = 0, 
@@ -125,7 +162,9 @@ generate_ui <- function() {
                   sliderInput("m3", label = "m3: mortality old", min = 0, 
                     max = 1, value = 0.1),
                   sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
-                    max = 1, value = 1)
+                    max = 1, value = 1),
+                  sliderInput("hospitalized", label = "hosp: hospitalization rate for infected", min = 0, max = 1, value = 0.17),
+                  sliderInput("respirator", label = "resp: rate of needing respirator for infected", min = 0, max = 1, value = 0.05)
                   ),
                 column(4,
                   sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
@@ -144,12 +183,7 @@ generate_ui <- function() {
                     max = 1, value = 1),
                   sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
                     max = 1, value = 1)
-                  ),
-                downloadButton("download", "Download parameters"),
-
-                # reset_inputs triggers an observeEvent in the server which takes 
-                # all of the user inputs and resets them to their default values
-                actionButton("reset_inputs", "Reset All Parameters"),
+                  )
               )
               ),
             tabPanel(
@@ -170,7 +204,7 @@ generate_ui <- function() {
                 h5('* Please note that the estimated doubling time and Re are only sensible during exponentail growth period.')
               )
             )
-          )
+            )
         )
       )
       ),
@@ -196,13 +230,14 @@ generate_ui <- function() {
                 sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
                   min = 0, max = 1, value = 0.1),
                 sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
-                  min = 0, max = 1, value = 0.01)
+                  min = 0, max = 1, value = 0.01),
+                downloadButton("download_int", "Download parameters")
                 ),
               column(4,
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
                   max = .999, value = 0.01, step=0.01),
                 disabled(sliderInput("e_int", label = "e: Social distance multiplier", min = 0, 
-                  max = 1, value = 0)),
+                  max = 1, value = 0.01)),
                 sliderInput("kappa_int", label = HTML("&kappa;: rel. Pr(trans) for asymp"), min = 0, 
                   max = 1, value = 0.375),
                 sliderInput("m1_int", label = "m1: mortality yng", min = 0, 
@@ -212,7 +247,9 @@ generate_ui <- function() {
                 sliderInput("m3_int", label = "m3: mortality old", min = 0, 
                   max = 1, value = 0.1),
                 sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
-                  max = 1, value = 1)
+                  max = 1, value = 1),
+                disabled(sliderInput("hospitalized_int", label = "hosp: hospitalization rate for infected", min = 0, max = 1, value = 0.17)),
+                disabled(sliderInput("respirator_int", label = "resp: rate of needing respirator", min = 0, max = 1, value = 0.05))
                 ),
               column(4,
                 disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
@@ -232,8 +269,7 @@ generate_ui <- function() {
                   sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
                     max = 1, value = 1)
                 )
-                ),
-              downloadButton("download_int", "Download parameters")
+                )
               ),
             tabPanel(
               title = "contact matrix",

@@ -1,7 +1,24 @@
 
 
 
-#' Plot Flows by Compartment
+#' Plot Compartment Population Sizes Over Time
+#' 
+#' Note that this plot is not shown in the modellers' Shiny app,
+#' rather the plot_flows_by_compartment_strata_int is used.
+#' 
+#' @examples
+#' # setup
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' # run simulation
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting(sim_out)
+#' 
+#' plot_flows_by_compartment(sim_out_formatted)
+#' 
 plot_flows_by_compartment <- function(out) {
   ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2) %>% summarize(value = sum(value)),
     aes(x = time, y = value, group = comp2, col = comp2)) + geom_line() + theme_minimal() +
@@ -9,35 +26,87 @@ plot_flows_by_compartment <- function(out) {
   labs(x = "Time (days)", y = "", title = "Flows by compartment")
 }
 
-#' Plot Flows by Compartment for Interventions
+#' Plot Flows by Compartment with an Intervention
+#' 
 plot_flows_by_compartment_int <- function(out) {
-  ggplot(out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)),
-               aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) + theme_minimal() +
+  ggplot(
+    out %>% filter(cum ==F) %>% group_by(time, comp2, int) %>% summarize(value = sum(value)),
+
+               aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + 
+
+             geom_line(aes(lty = int)) + 
+             theme_minimal() +
       scale_color_discrete(name = "") +
-      labs(x = "Time (days)", y = "", title = "Flows by compartment") + scale_linetype(name ="")
+      labs(x = "Time (days)", y = "", title = "Flows by compartment") + 
+      scale_linetype(name ="")
+}
+
+#' Plot Flows by Compartment - Broken down by Strata 
+#'
+#' Not sure what the difference between this and plot_flows_by_compartment is
+#'
+plot_flows_by_compartment_strata <- function(out) {
+  ggplot(
+    # data
+    out %>% filter(cum ==F), 
+    # mapping 
+    aes(x = time, y = value, group = comp, col = comp2)) + 
+
+  geom_line() +
+  facet_wrap(.~strat2, ncol = 2) + 
+  theme_minimal() + 
+  scale_color_discrete(name = "") +
+  labs(x = "Time (days)", y = "", title = "Flows by compartment")
 }
 
 
-#' Compute Cases from Simulation Outcomes
-compute_cases <- function(out) {
-  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3) %>%
-    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) %>%
-    mutate(Total = sum(Infected),
-           Total_obs = sum(Detected),
-           Hospital = .17*Total,
-           Ventilator = .05*Total)
-}
+#' Plot Flows by Compartment Version 2 - Intervention
+#'
+#' Not sure what the difference between this and plot_flows_by_compartment is
+#'
+#' @examples
+#' # setup
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' param_vec_int <- param_vec
+#' param_vec_int['s'] <- .5
+#' 
+#' # run simulations
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' # run intervention scenario
+#' sim_out_int <- run_param_vec(params = param_vec, params2 = param_vec_int, 
+#'    days_out1 = 30, days_out2 = 180, days_out3 = 180, det_table=det_table,
+#'    model_type = run_int)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting_int(sim_out, sim_out_int)
+#' 
+#' # plot!
+#' plot_flows_by_compartment_strata_int(sim_out_formatted)
+#' 
+plot_flows_by_compartment_strata_int <- function(out, 
+  selected_compartments = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered')) {
 
-#' Compute Cases from Simulation Outcomes - Intervention
-compute_cases_intervention <- function(out) {
-  out %>% filter(cum == T & comp!="D") %>% group_by(time, strat3, comp3, int) %>%
-    summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time, int) %>%
-    mutate(Total = sum(Infected),
-           Total_obs = sum(Detected),
-           Hospital = .17*Total, ########this multipliers are different from the one used in no interventions
-           Ventilator = .05*Total) %>% ungroup()
+  ggplot(
+    # data
+    out %>% 
+      filter(cum ==F, comp2 %in% selected_compartments, comp %in% c("S", "E", "UA", "UI", "DA", "DI", "R")) %>% 
+      group_by(time, comp2, strat2, int) %>%
+      summarize(value = sum(value)) %>% 
+      ungroup() %>% 
+      drop_na(),
+    # mapping
+    aes(x = time, y = value, group = interaction(comp2, int), col = comp2)) + 
+  geom_line(aes(lty = int)) +
+    facet_wrap(.~strat2, ncol = 2, scales="free_y") + 
+    theme_minimal() + 
+    scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+    scale_color_discrete(name = "Compartment") +
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "", 
+      title = "Population Sizes by Disease Stage, Age, and Social Distancing")
 }
-
 
 #' Plot Cumulative Cases by Age
 plot_cumulative_cases_by_age <- function(out_cases) {
@@ -82,27 +151,70 @@ plot_infections_by_age <- function(out) {
 }
 
 #' Plot Cumulative Cases by Age - Intervention
-plot_cumulative_cases_by_age_int <- function(out_cases) {
-  ggplot(out_cases, aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Cumulative cases by age")
+#'
+#' @examples
+#' # setup
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' param_vec_int <- param_vec
+#' param_vec_int['s'] <- .5
+#' 
+#' # run simulations
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' # run intervention scenario
+#' sim_out_int <- run_param_vec(params = param_vec, params2 = param_vec_int, 
+#'    days_out1 = 30, days_out2 = 180, days_out3 = 180, det_table=det_table,
+#'    model_type = run_int)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting_int(sim_out, sim_out_int)
+#' 
+#' # reformat for plotting cumulative cases
+#' sim_out_formatted_cases <- compute_cases_intervention(sim_out_formatted)
+#' 
+#' # plot!
+#' plot_cumulative_cases_by_age_int(sim_out_formatted_cases)
+plot_cumulative_cases_by_age_int <- function(out_cases, cumulative = TRUE) {
+  if (! cumulative) { 
+    out_cases <- out_cases %>% group_by(strat3, int) %>% 
+      arrange(time) %>% 
+      mutate(Infected = Infected - lag(Infected)) %>% 
+      ungroup() %>% 
+      group_by(time, int) %>% 
+      mutate(Total = sum(Infected, na.rm=T)) %>% 
+      drop_na()
+  }
+  ggplot(
+    out_cases, 
+    aes(x = time, y = Infected, group = interaction(strat3, int), col = strat3)) + 
+  geom_line(aes(lty = int)) +
+  geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+  scale_y_continuous(labels = scales::comma_format()) + 
+  scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+  theme_minimal() + 
+  scale_color_discrete(name = "Age Group") + 
+  labs(x = "Time (days)", y = "",
+    title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases by age"))
 }
 
 #' Plot Cases Needing Advanced Care
-plot_cases_needing_advanced_care <- function(out_cases) {
+plot_cases_needing_advanced_care <- function(out_cases, cumulative=TRUE) {
   ggplot(out_cases %>% gather(var, value, Hospital, Ventilator),
               aes(x = time, y = value, group = var, col = var)) + geom_line() +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Cases needing advanced care")
+                                                             title = paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases needing advanced care"))
 }
 
 #' Plot Cases Needing Advanced Care - Intervention
-plot_cases_needing_advanced_care_int <- function(out_cases) {
-  ggplot(out_cases %>% gather(var, value, Hospital, Ventilator),
-              aes(x = time, y = value, group = interaction(var, int), col = var)) + geom_line(aes(lty = int)) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Cases needing advanced care")
+plot_cases_needing_advanced_care_int <- function(out_cases, cumulative=TRUE) {
+  ggplot(out_cases %>% gather(var, value, Hospital, Ventilator) %>% drop_na,
+              aes(x = time, y = value, group = interaction(var, int), col = var)) + 
+            geom_line(aes(lty = int)) +
+            scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+            scale_y_continuous(labels = scales::comma_format()) + 
+    theme_minimal() + scale_color_discrete(name = "Cases") + labs(x = "Time (days)", y = "",
+                                                             title = paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases needing advanced care"))
 }
 
 
@@ -117,7 +229,8 @@ plot_ratio_of_new_to_existing_cases <- function(out) {
 
   ggplot(out_Re, aes(x = time, y = ratio)) + geom_line() +
            theme_minimal() + scale_color_discrete(name = "") +
-           labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+           labs(x = "Time (days)", y = "", title = "Ratio of daily new cases to existing cases")
+
 }
 
 
@@ -147,11 +260,24 @@ plot_diagnosed_cumulative_cases_by_age <- function(out_cases) {
 
 #' Plot Diagnosed Cumulative Cases by Age
 #' Note that these are "observed" meaning diagnosed
-plot_diagnosed_cumulative_cases_by_age_int <- function(out_cases) {
+plot_diagnosed_cumulative_cases_by_age_int <- function(out_cases, cumulative=TRUE) {
+  if (!cumulative) {
+    out_cases <- out_cases %>% group_by(strat3, int) %>% 
+      arrange(time) %>% 
+      mutate(Detected = Detected - lag(Detected)) %>% 
+      ungroup() %>% 
+      group_by(time, int) %>% 
+      mutate(Total_obs = sum(Detected, na.rm=T)) %>% 
+      drop_na()
+  }
+
   ggplot(out_cases, aes(x = time, y = Detected,
                             group = interaction(strat3,int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total_obs, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Observed cumulative cases by age")
+    scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+    scale_y_continuous(labels = scales::comma_format()) + 
+    theme_minimal() + scale_color_discrete(name = "Age Group") + labs(x = "Time (days)", y = "", title = 
+      paste0("Diagnosed ", if (cumulative) "cumulative " else "daily ", "cases by age"))
 }
 
 #' Plot Deaths by Age
@@ -161,230 +287,211 @@ plot_deaths_by_age <- function(out) {
 
   ggplot(out_death, aes(x = time, y = val2, group = strat3, col = strat3)) + geom_line() +
     geom_line(aes(y = Total), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
+    theme_minimal() + scale_color_discrete(name = "Total Deaths", labels = c("Base Case", "Intervention")) + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
 
 }
 
 
 #' Plot Deaths by Age - Intervention
-plot_deaths_by_age_int <- function(out) {
-  out_death = out %>% filter(cum == T & comp=="D") %>% group_by(time, strat3, int) %>%
-    summarize(val2 = sum(value)) %>% group_by(time,int) %>% mutate(Total = sum(val2)) %>% ungroup()
+plot_deaths_by_age_int <- function(out, cumulative=TRUE) {
+  out_death = 
+    out %>% filter(cum == T & comp=="D") %>% 
+    group_by(time, strat3, int) %>%
+    summarize(val2 = sum(value)) %>% 
+    group_by(time,int) %>% 
+    mutate(Total = sum(val2)) %>% 
+    ungroup()
+
+  if (! cumulative) {
+    out_death %<>% group_by(int, strat3) %>% 
+      arrange(time) %>% 
+      mutate(val2 = val2 - lag(val2)) %>% 
+      ungroup() %>% 
+      group_by(time, int) %>% 
+      mutate(
+        Total = sum(val2, na.rm=T)) %>% 
+      ungroup() %>%
+      drop_na()
+  }
+
   ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
     geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative deaths by age")
+    theme_minimal() + scale_color_discrete(name = "Age Groups") + 
+    scale_linetype_discrete(name = "Total Deaths", labels = c("Base Case", "Intervention")) + 
+      labs(x = "Time (days)", y = "", title = 
+      paste0(if (cumulative) "Cumulative " else "Daily ", "deaths by age"))
 }
 
 #' Plot cases by symptom status
 plot_cases_by_symptom_status <- function(out) {
-  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2) %>%
+  out_symp = out %>% filter(cum == cumulative & ! comp %in% c("S", "D", "R") & !is.na(strat3)) %>% group_by(time, comp2) %>%
     summarize(val2 = sum(value)) %>% group_by(time) %>% mutate(Total = sum(val2))
 
   ggplot(out_symp, aes(x = time, y = val2, group = comp2, col = comp2)) + geom_line() +
     geom_line(aes(y = Total), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+    theme_minimal() + scale_color_discrete(name = "Symptom Status") + labs(x = "Time (days)", y = "", title = 
+      paste0(if (cumulative) "Cumulative " else "Daily ", "cases by symptoms"))
 }
 
 
 #' Plot cases by symptom status - Intervention
-plot_cases_by_symptom_status_int <- function(out) {
+plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
 
-  out_symp = out %>% filter(cum == T & comp!="D" & !is.na(strat3)) %>% group_by(time, comp2, int) %>%
+  out_symp = out %>% filter(cum == cumulative & ! comp %in% c("S", "D", "R") & !is.na(strat3)) %>% group_by(time, comp2, int) %>%
     summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
 
-  ggplot(out_symp, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "", title = "Cumulative cases by symptoms")
+  ggplot(out_symp %>% drop_na, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + 
+    geom_line(aes(lty = int)) +
+    geom_line(aes(y = Total, group = int, lty = int), col='black') +
+    theme_minimal() + scale_color_discrete(name = "Symptom Status") + 
+    scale_linetype_discrete(name = "Total Cases", labels = c("Base Case", "Intervention")) + 
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "", title = 
+      paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases by symptoms")) 
+    # + 
+    # if (cumulative) { 
+    #   geom_line(aes(y = Total, group = int, lty=int), col = "black")
+    # }
 }
 
-#' Plot Flows by Compartment Version 2
-#'
-#' Not sure what the difference between this and plot_flows_by_compartment is
-#'
-plot_flows_by_compartment2 <- function(out) {
-  ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = comp, col = comp2)) + geom_line() +
-    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") +
-    labs(x = "Time (days)", y = "", title = "Flows by compartment")
-}
-
-
-#' Plot Flows by Compartment Version 2 - Intervention
-#'
-#' Not sure what the difference between this and plot_flows_by_compartment is
-#'
-plot_flows_by_compartment2_int <- function(out) {
-  ggplot(out %>% filter(cum ==F), aes(x = time, y = value, group = interaction(comp, int), col = comp2)) + geom_line(aes(lty = int)) +
-    facet_wrap(.~strat, ncol = 2) + theme_minimal() + scale_color_discrete(name = "") +
-    labs(x = "Time (days)", y = "", title = "Flows by compartment")
-}
 
 #' Plot Fit to Observed Data
-plot_fit_to_observed_data <- function(out,
-  observed_data =
-    load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T))
-{
-  ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
+# plot_fit_to_observed_data <- function(out,
+#   observed_data =
+#     load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T))
+# {
+#   ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
 
-  out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+#   out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
 
-  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) +
-    geom_line() +
-    geom_point(data = filter(out_fit, id = 'Observed')) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Calibration") +
-    scale_linetype(name = "")
-}
+#   ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) +
+#     geom_line() +
+#     geom_point(data = filter(out_fit, id = 'Observed')) +
+#     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
+#                                                              title = "Calibration") +
+#     scale_linetype(name = "")
+# }
 
 
 #' Plot Fit to Observed Data - Intervention 
-#plot_fit_to_observed_data_int <- function(out_cases) {
+# plot_fit_to_observed_data_int <- function(out_cases,
+#   observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+#   ) {
 
-#  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-#  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
-#    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+#   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+#   # These rows are for March 1st - 15th# Set a reasonable range of p
+#   ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>%
+#     rename(time = day)
 
-#  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-#  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+#   out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
 
-#  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
-#  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
+#   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+#     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
+#                                                              title = "Comparison to Data") +
+#     scale_linetype(name = "")
+# }
 
-
-plot_fit_to_observed_data_int <- function(out_cases,
-  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+#' Plot Fit to Observed Data - Intervention 
+plot_fit_to_observed_case_data_int <- function(out,
+  observed_data = load_SCC_time_series(), # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+  cumulative = TRUE
   ) {
+  out_cases <- compute_cumulative_cases_intervention(out) 
+
+  out_cases %<>% group_by(time, int) %>% 
+    summarize(Total_obs = sum(Total_obs)) %>% 
+    ungroup()
+
+  if (! cumulative) {
+    out_cases %<>% group_by(int) %>% 
+      arrange(time) %>% 
+      mutate(Total_obs = Total_obs - lag(Total_obs))
+  }
 
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
   # These rows are for March 1st - 15th# Set a reasonable range of p
-  ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>%
+  ts = observed_data %>% mutate(Total_obs = if (cumulative) cumulative_cases else daily_cases, int = "Base") %>%
     rename(time = day)
 
-  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  out_fit = bind_rows(out_cases %>% filter(time <= max(ts$time)) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + 
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "",
+                                                             title = 
+      paste0("Comparison to ", if (cumulative) "Cumulative " else "Daily ", "Case Data")) +
+    scale_linetype(name = "Scenario", labels = c("Base Case", "Intervention"))
+}
+
+#' Plot Fit to Observed Hospitalization Data - Intervention 
+plot_fit_to_observed_hospitalizations_data_int <- function(out,
+  observed_data = load_SCC_time_series(),
+  hospitalized,
+  cumulative = TRUE
+  ) {
+  out_cases <- compute_cumulative_cases_intervention(out, hospitalized) 
+
+  out_cases %<>% group_by(time, int) %>% 
+    summarize(Hospital = sum(Hospital)) %>% 
+    ungroup()
+
+
+  if (! cumulative) {
+    out_cases %<>% group_by(int) %>% 
+      mutate(Hospital = Hospital - lag(Hospital))
+  }
+
+  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+  # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = observed_data %>% mutate(Hospital = if (cumulative) cumulative_hospitalizations else daily_hospitalizations, int = "Base") %>%
+    rename(time = day)
+
+  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+
+  ggplot(out_fit, aes(x = time, y = Hospital, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + 
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "",
+                                                             title = 
+      paste0("Comparison to ", if (cumulative) "Cumulative " else "Daily ", "Hospitalizations Data")) +
+    scale_linetype(name = "Scenario", labels = c("Base Case", "Intervention"))
+}
+
+#' Plot Fit to Observed Deaths Data - Intervention 
+plot_fit_to_observed_deaths_data_int <- function(out,
+  observed_data = load_SCC_time_series(),
+  cumulative = TRUE
+  ) {
+  # out_cases <- compute_cases(out)
+
+  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+  # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = observed_data %>% mutate(value = cumulative_deaths, id='Observed', int='Base') %>%
+    rename(time = day)
+
+  out_deaths <- 
+    out %>% ungroup() %>% filter(time <= max(observed_data$day), comp == 'D') %>% 
+      group_by(time, int) %>% 
+      summarize(value = sum(value), id='Estimated') %>%
+      ungroup() 
+
+    if (cumulative) { 
+      out_deaths %<>% 
+        ungroup() %>% 
+        group_by(int, id) %>% 
+        mutate(value = cumsum(value))
+    }
+
+  out_fit = bind_rows(out_deaths, ts)
+
+  ggplot(out_fit, aes(x = time, y = value, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Comparison to Data") +
-    scale_linetype(name = "")
+                                                             title = 
+      paste0("Comparison to ", if (cumulative) "Cumulative " else "Daily ", "Deaths Data")) +
+    scale_linetype(name = "Scenario", labels = c("Base Case", "Intervention"))
 }
 
-#' Format Model Outcomes for Plotting
-format_simulation_outcomes_for_plotting <- function(sim_outcomes) {
-  sim_outcomes %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-
-      # reformat compartments
-      comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-      comp2 = ifelse(comp=="E", "Exposed", comp2),
-      comp2 = ifelse(comp=="R", "Recovered", comp2),
-      comp2 = ifelse(comp=="S", "Susceptible", comp2),
-      comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-          "Symptomatic", "Recovered")),
-
-      # compartments with U/D
-      comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-      comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-      comp3 = ifelse(comp=="E", "Exposed", comp3),
-      comp3 = ifelse(comp=="R", "Recovered", comp3),
-      comp3 = ifelse(comp=="S", "Susceptible", comp3),
-      comp3 = factor(comp3, levels = c("Susceptible", "Exposed",
-          "Detected", "Undetected", "Infected",
-          "Recovered")),
-
-      # reformat strata
-      strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-      strat2 = ifelse(strat=="2", "21-65", strat2),
-      strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-      strat2 = ifelse(strat=="3", ">65", strat2),
-      strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-      strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-          "21-65", "21-65 (SD)",
-          ">65", ">65 (SD)")),
-
-      # get only age
-      strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-}
-
-
-#' Format Model Outcomes for Plotting - Intervention
-format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcomes_int) {
-
-  out_base = sim_outcomes %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-
-           # reformat compartments
-           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-           comp2 = ifelse(comp=="E", "Exposed", comp2),
-           comp2 = ifelse(comp=="R", "Recovered", comp2),
-           comp2 = ifelse(comp=="S", "Susceptible", comp2),
-           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-                                            "Symptomatic", "Recovered")),
-
-           # compartments with U/D
-           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-           comp3 = ifelse(comp=="E", "Exposed", comp3),
-           comp3 = ifelse(comp=="R", "Recovered", comp3),
-           comp3 = ifelse(comp=="S", "Susceptible", comp3),
-           comp3 = factor(comp3, levels = c("Susceptible", "Exposed",
-                                            "Detected", "Undetected", "Infected",
-                                            "Recovered")),
-
-           # reformat strata
-           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-           strat2 = ifelse(strat=="2", "21-65", strat2),
-           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-           strat2 = ifelse(strat=="3", ">65", strat2),
-           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-                                              "21-65", "21-65 (SD)",
-                                              ">65", ">65 (SD)")),
-
-           # get only age
-           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-
-  out_int = sim_outcomes_int %>%
-    gather(var, value, -time) %>% { suppressWarnings(separate(., var, into = c("comp", "strat", "cum"), sep = "_")) } %>%
-    mutate(cum = ifelse(is.na(cum), F, T),
-
-           # reformat compartments
-           comp2 = ifelse(comp %in% c("UA","DA","A"), "Asymptomatic", "Symptomatic"),
-           comp2 = ifelse(comp=="E", "Exposed", comp2),
-           comp2 = ifelse(comp=="R", "Recovered", comp2),
-           comp2 = ifelse(comp=="S", "Susceptible", comp2),
-           comp2 = factor(comp2, levels = c("Susceptible", "Exposed", "Asymptomatic",
-                                            "Symptomatic", "Recovered")),
-
-           # compartments with U/D
-           comp3 = ifelse(comp %in% c("DI","DA"), "Detected", "Undetected"),
-           comp3 = ifelse(comp %in% c("I","A"), "Infected", comp3),
-           comp3 = ifelse(comp=="E", "Exposed", comp3),
-           comp3 = ifelse(comp=="R", "Recovered", comp3),
-           comp3 = ifelse(comp=="S", "Susceptible", comp3),
-           comp3 = factor(comp3, levels = c("Susceptible", "Exposed",
-                                            "Detected", "Undetected", "Infected",
-                                            "Recovered")),
-
-           # reformat strata
-           strat2 = ifelse(strat=="1", "<20", "<20 (SD)"),
-           strat2 = ifelse(strat=="2", "21-65", strat2),
-           strat2 = ifelse(strat=="2Q", "21-65 (SD)", strat2),
-           strat2 = ifelse(strat=="3", ">65", strat2),
-           strat2 = ifelse(strat=="3Q", ">65 (SD)", strat2),
-           strat2 = factor(strat2, levels = c("<20", "<20 (SD)",
-                                              "21-65", "21-65 (SD)",
-                                              ">65", ">65 (SD)")),
-
-           # get only age
-           strat3 = factor(sub(" \\(SD\\)", "", strat2), levels = c("<20", "21-65", ">65"))
-    )
-
-  out = bind_rows(out_base %>% mutate(int = "Base"), out_int %>% mutate(int = "Intervention"))
-  return(out)
-}
 
 #' Plot hospital bed needs over time along with capacity
 #'

@@ -28,3 +28,23 @@ filter_states_data <- function(state) {
   df
 }
 
+
+#' Read In Detection Rates
+#' 
+#' @export
+load_detection_rates <- function() {
+  det_table <- read.csv(system.file("detection_input.csv", package="covid.epi"), as.is = T)
+  return(det_table)
+}
+
+#' Make Detection Table
+#'
+#' Helper to make a detection table
+#' 
+#' Currently assumes constants over time
+#' 
+#' @export
+#' 
+make_detection_table <- function(t, rdetecti, rdetecta) {
+  data.frame(time = 1:t, rdetecti = rdetecti, rdetecta = rdetecta)
+}

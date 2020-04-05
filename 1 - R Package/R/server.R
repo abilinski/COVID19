@@ -255,10 +255,17 @@ server <- function(input, output, session) {
       as.data.frame()
   })
 
-  # Reformat for specifically plotting cases
-  formatForCasesPlotting <- reactive({
+  # Reformat for specifically plotting cumulative cases
+  formatForCumulativeCasesPlotting <- reactive({
     df <- formatSimsForPlotting()
-    compute_cases_intervention(df) %>% 
+    compute_cumulative_cases_intervention(df, input$hospitalized, input$respirator) %>% 
+      as.data.frame()
+  })
+
+  # Reformat for specifically plotting daily case rates
+  formatForDailyCasesPlotting <- reactive({
+    df <- formatSimsForPlotting()
+    compute_daily_cases_intervention(df, input$hospitalized, input$respirator) %>% 
       as.data.frame()
   })
   
@@ -283,21 +290,51 @@ server <- function(input, output, session) {
   )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCasesPlotting(), observed_data$cases) }) # model_plots()[[8]] 
+    output$fit <- renderPlot({ 
+      
+      switch(input$comparisonDataPlotChoice,
+        "Cases" = { 
+          plot_fit_to_observed_case_data_int(formatSimsForPlotting(), observed_data$cases, 
+            input$comparisonDataPlotCumulative == 'Cumulative')
+        }, 
+        "Hospitalizations" = {
+          plot_fit_to_observed_hospitalizations_data_int(formatSimsForPlotting(), observed_data$hospitalizations, input$hospitalized,
+            input$comparisonDataPlotCumulative == 'Cumulative')
+        },
+        "Deaths" = {
+          plot_fit_to_observed_deaths_data_int(formatSimsForPlotting(), observed_data$deaths,
+            input$comparisonDataPlotCumulative == 'Cumulative')
+        }
+      )
+    }, res=120)  
     
     ## output for Comp flows tab
-    output$comp_flow<- renderPlot({ plot_flows_by_compartment2_int(formatSimsForPlotting()) }) # model_plots()[[7]] 
+    output$comp_flow<- renderPlot({ 
+      plot_flows_by_compartment_strata_int(formatSimsForPlotting(), input$compartmentFlowSelectedComps) 
+    }, 
+    height=1200, 
+    res=120) 
     
-    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCasesPlotting()) })
-    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCasesPlotting()) })
+    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), 
+      input$cases_cumulative == 'Cumulative') }, res=120)
+    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(),
+      input$cases_cumulative == 'Cumulative') }, res=120)
     
     ## output for Death & New case ratio tab
-    output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting()) })
-    output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) })
+    output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = (input$deaths_cumulative == 'Cumulative')) }, res=120)
+    output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) }, res=120)
     
     ## output for Advanced care & Symptoms ratio tab
-    output$cases_needing_advanced_care <- renderPlot({ plot_cases_needing_advanced_care_int(formatForCasesPlotting()) })
-    output$cumulative_cases_by_symptoms <- renderPlot({ plot_cases_by_symptom_status_int(formatSimsForPlotting()) })
+    output$cases_needing_advanced_care <- renderPlot({ 
+      if (input$adv_care_and_symptoms_cumulative == 'Cumulative') {
+        plot_cases_needing_advanced_care_int(formatForCumulativeCasesPlotting(), cumulative=TRUE) 
+      } else if (input$adv_care_and_symptoms_cumulative == 'Daily Rates') {
+        plot_cases_needing_advanced_care_int(formatForDailyCasesPlotting(), cumulative=FALSE) 
+      }
+    }, res=120)
+    output$cumulative_cases_by_symptoms <- renderPlot({ 
+      plot_cases_by_symptom_status_int(formatSimsForPlotting(), cumulative = (input$adv_care_and_symptoms_cumulative == 'Cumulative'))
+    }, res=120)
 
     # if the user preses the Reset All Parameters actionButton, use the
     # shinyjs::reset function to reset all parameters to their default values. 
@@ -347,6 +384,14 @@ server <- function(input, output, session) {
     
     observeEvent(c(input$n), {
       updateSliderInput(session, 'n_int', value = input$n)
+    })
+
+    observeEvent(input$respirator, {
+      updateSliderInput(session, 'respirator_int', value = input$respirator)
+    })
+
+    observeEvent(input$hospitalized, {
+      updateSliderInput(session, 'hospitalized_int', value = input$hospitalized)
     })
 
     # Render the doubling time interval with the maximum as the 
@@ -472,7 +517,7 @@ server <- function(input, output, session) {
     
     output$download_doc <- downloadHandler(
       filename = function() {
-        'banana.pdf'
+        'CSPEC_Epi_Model_Documentation.pdf'
       },
       content = function(file) {
         file.copy(system.file('Epi_Model_Documentation.pdf', package='covid.epi'), file)
