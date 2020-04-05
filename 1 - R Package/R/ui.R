@@ -46,6 +46,8 @@ generate_ui <- function() {
           tags$a("Johns Hopkins CSSE Repository", href='https://github.com/CSSEGISandData/COVID-19'),
           br(),
           tags$a("New York Times Data Repository", href='https://github.com/nytimes/covid-19-data'),
+          br(),
+          tags$a("U.S. CDC - COVID-19 Cases in U.S.", href='https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/cases-in-us.html')
           )
         )
         ),
@@ -111,8 +113,8 @@ generate_ui <- function() {
       tabPanel("Documentation",
         fluidPage(
           uiOutput('documentation_page'),
+          downloadButton("download_doc", "Download our Technical Documentation")
           ),
-        downloadButton("download_doc", "Download our Technical Documentation")
         )
       ),
 
