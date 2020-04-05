@@ -4,7 +4,9 @@
 \alias{plot_flows_by_compartment_strata_int}
 \title{Plot Flows by Compartment Version 2 - Intervention}
 \usage{
-plot_flows_by_compartment_strata_int(out)
+plot_flows_by_compartment_strata_int(out,
+  selected_compartments = c("Susceptible", "Exposed", "Asymptomatic",
+  "Symptomatic", "Recovered"))
 }
 \description{
 Not sure what the difference between this and plot_flows_by_compartment is

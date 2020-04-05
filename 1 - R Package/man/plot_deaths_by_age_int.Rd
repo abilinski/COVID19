@@ -4,7 +4,7 @@
 \alias{plot_deaths_by_age_int}
 \title{Plot Deaths by Age - Intervention}
 \usage{
-plot_deaths_by_age_int(out)
+plot_deaths_by_age_int(out, cumulative = TRUE)
 }
 \description{
 Plot Deaths by Age - Intervention

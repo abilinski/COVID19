@@ -4,7 +4,7 @@
 \alias{plot_cases_by_symptom_status_int}
 \title{Plot cases by symptom status - Intervention}
 \usage{
-plot_cases_by_symptom_status_int(out)
+plot_cases_by_symptom_status_int(out, cumulative = TRUE)
 }
 \description{
 Plot cases by symptom status - Intervention

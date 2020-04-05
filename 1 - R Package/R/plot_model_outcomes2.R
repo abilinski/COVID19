@@ -90,6 +90,24 @@ format_simulation_outcomes_for_plotting <- function(sim_outcomes) {
 
 
 #' Format Model Outcomes for Plotting - Intervention
+#' 
+#' @examples
+#' param_vec <- load_parameters()
+#' det_table <- make_detection_table(180, .1, 0)
+#' 
+#' param_vec_int <- param_vec
+#' param_vec_int['s'] <- .5
+#' 
+#' # run simulations
+#' sim_out <- run_param_vec(params = param_vec, days_out1 = 180, det_table=det_table)
+#' # run intervention scenario
+#' sim_out_int <- run_param_vec(params = param_vec, params2 = param_vec_int, 
+#'    days_out1 = 30, days_out2 = 180, days_out3 = 180, det_table=det_table,
+#'    model_type = run_int)
+#' 
+#' # reformat for plotting
+#' sim_out_formatted <- format_simulation_outcomes_for_plotting_int(sim_out, sim_out_int)
+#' 
 format_simulation_outcomes_for_plotting_int <- function(sim_outcomes, sim_outcomes_int) {
 
   # Reformat the base case and interventions for plotting

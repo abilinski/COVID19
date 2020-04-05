@@ -4,7 +4,7 @@
 \alias{plot_cases_needing_advanced_care_int}
 \title{Plot Cases Needing Advanced Care - Intervention}
 \usage{
-plot_cases_needing_advanced_care_int(out_cases)
+plot_cases_needing_advanced_care_int(out_cases, cumulative = TRUE)
 }
 \description{
 Plot Cases Needing Advanced Care - Intervention

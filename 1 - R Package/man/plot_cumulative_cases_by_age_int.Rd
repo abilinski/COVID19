@@ -4,7 +4,7 @@
 \alias{plot_cumulative_cases_by_age_int}
 \title{Plot Cumulative Cases by Age - Intervention}
 \usage{
-plot_cumulative_cases_by_age_int(out_cases)
+plot_cumulative_cases_by_age_int(out_cases, cumulative = TRUE)
 }
 \description{
 Plot Cumulative Cases by Age - Intervention
@@ -27,6 +27,9 @@ sim_out_int <- run_param_vec(params = param_vec, params2 = param_vec_int,
 # reformat for plotting
 sim_out_formatted <- format_simulation_outcomes_for_plotting_int(sim_out, sim_out_int)
 
+# reformat for plotting cumulative cases
+sim_out_formatted_cases <- compute_cases_intervention(sim_out_formatted)
+
 # plot!
-plot_cumulative_cases_by_age_int(sim_out_formatted)
+plot_cumulative_cases_by_age_int(sim_out_formatted_cases)
 }

@@ -88,6 +88,7 @@ server <- function(input, output, session) {
 
     df[[3]] <- cumsum(df[[2]])
 
+
     df %>% 
     rhandsontable() %>% 
     hot_col(col = "day", readOnly = TRUE) %>%
@@ -100,22 +101,22 @@ server <- function(input, output, session) {
   # 
   # use shiny::isolate on this so we don't overwrite their data when they
   # change the choice of what data they're inputting
-  observe({
-    if (!is.null(input$observedData)) { 
+  observeEvent({ 
+		input$observedData }, {
+    # if (!is.null(input$observedData)) { 
       isolate({
-      switch(input$cases_hospitalizations_or_deaths,
-        "Cases" = { 
-          observed_data$cases <- hot_to_r(input$observedData) 
-        }, 
-        "Hospitalizations" = { 
-          observed_data$hospitalizations <- hot_to_r(input$observedData) 
-        },
-        "Deaths" = { 
-          observed_data$deaths <- hot_to_r(input$observedData) 
-        }
-    )
-    })
-    }
+				switch(input$cases_hospitalizations_or_deaths,
+					"Cases" = { 
+						observed_data$cases <- hot_to_r(input$observedData) 
+					}, 
+					"Hospitalizations" = { 
+						observed_data$hospitalizations <- hot_to_r(input$observedData) 
+					},
+					"Deaths" = { 
+						observed_data$deaths <- hot_to_r(input$observedData) 
+					}
+				)
+			})
   })
 
 
@@ -291,7 +292,7 @@ server <- function(input, output, session) {
     
     ## output for Fits tab
     output$fit <- renderPlot({ 
-      
+
       switch(input$comparisonDataPlotChoice,
         "Cases" = { 
           plot_fit_to_observed_case_data_int(formatSimsForPlotting(), observed_data$cases, 
@@ -342,7 +343,7 @@ server <- function(input, output, session) {
     # right now this includes the interventions, is that the behavior we want?
     observeEvent(input$reset_inputs, { sapply(c(param_names_base, param_names_int), 
         shinyjs::reset)
-    })
+    }, ignoreNULL = TRUE)
 
     # Calculate old population fraction from young and medium
     observeEvent(c(input$young, input$medium), {

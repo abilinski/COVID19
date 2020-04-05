@@ -5,7 +5,7 @@
 \title{Plot Diagnosed Cumulative Cases by Age
 Note that these are "observed" meaning diagnosed}
 \usage{
-plot_diagnosed_cumulative_cases_by_age_int(out_cases)
+plot_diagnosed_cumulative_cases_by_age_int(out_cases, cumulative = TRUE)
 }
 \description{
 Plot Diagnosed Cumulative Cases by Age
