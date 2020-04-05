@@ -65,7 +65,7 @@ generate_ui <- function() {
           selected = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'))
         ),
 
-      tabPanel("Cumulative cases", 
+      tabPanel("Cases by age", 
         # Side by side layout for cumulative infections and diagnosed cases by age
         column(6, 
           plotOutput('cumulative_infections_by_age')
@@ -164,7 +164,7 @@ generate_ui <- function() {
                   sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
                     max = 1, value = 1),
                   sliderInput("hospitalized", label = "hosp: hospitalization rate for infected", min = 0, max = 1, value = 0.17),
-                  sliderInput("respirator", label = "resp: frc infected needing respirator", min = 0, max = 1, value = 0.05)
+                  sliderInput("respirator", label = "resp: rate of needing respirator for infected", min = 0, max = 1, value = 0.05)
                   ),
                 column(4,
                   sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
@@ -248,8 +248,8 @@ generate_ui <- function() {
                   max = 1, value = 0.1),
                 sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
                   max = 1, value = 1),
-                disabled(sliderInput("hospitalized_int", label = "hosp: frc needing hospitalization", min = 0, max = 1, value = 0.17)),
-                disabled(sliderInput("respirator_int", label = "resp: frc needing respirator", min = 0, max = 1, value = 0.05))
+                disabled(sliderInput("hospitalized_int", label = "hosp: hospitalization rate for infected", min = 0, max = 1, value = 0.17)),
+                disabled(sliderInput("respirator_int", label = "resp: rate of needing respirator", min = 0, max = 1, value = 0.05))
                 ),
               column(4,
                 disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
