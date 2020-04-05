@@ -203,7 +203,7 @@ plot_cases_needing_advanced_care <- function(out_cases, cumulative=TRUE) {
   ggplot(out_cases %>% gather(var, value, Hospital, Ventilator),
               aes(x = time, y = value, group = var, col = var)) + geom_line() +
     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases needing advanced care"))
+                                                             title = paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases needing advanced care"))
 }
 
 #' Plot Cases Needing Advanced Care - Intervention
@@ -214,7 +214,7 @@ plot_cases_needing_advanced_care_int <- function(out_cases, cumulative=TRUE) {
             scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
             scale_y_continuous(labels = scales::comma_format()) + 
     theme_minimal() + scale_color_discrete(name = "Cases") + labs(x = "Time (days)", y = "",
-                                                             title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases needing advanced care"))
+                                                             title = paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases needing advanced care"))
 }
 
 

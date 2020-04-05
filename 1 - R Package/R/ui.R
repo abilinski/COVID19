@@ -23,7 +23,7 @@ generate_ui <- function() {
     # Plot Outcomes
 
     tabsetPanel(
-      selected = "Cumulative cases",
+      selected = "Cases by age",
       tabPanel("Data Input",
         column(12,
           column(5, 
