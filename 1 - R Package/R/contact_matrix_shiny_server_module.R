@@ -17,7 +17,6 @@
 #"   - NSD_int <- NSD
 #"
 #" @seealso contact_matrix_ui_for_base_case contact_matrix_ui_for_intervention
-
 contact_matrix_server_module <- function(input, output, session) {
   observeEvent(input$v11, {
       updateNumericInput(session, "v11Q", value = input$v11 * input$e)
