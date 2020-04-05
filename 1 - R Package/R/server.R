@@ -296,7 +296,6 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       source(system.file("rmd/app_report/render.R", package='covid.epi'), local=TRUE)
-      file.copy(output_file, file)
     }
   )
     

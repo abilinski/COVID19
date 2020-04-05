@@ -30,12 +30,12 @@ observed_data_hospitalizations <- observed_data$hospitalizations
 observed_data_deaths <- observed_data$deaths
 
 # Output File Path
-output_file <- file.path(tempdir(), "/covid_app_report.pdf")
+# output_file <- file.path(tempdir(), "/covid_app_report.pdf")
 
 # Render the document
 rmarkdown::render(
   # system.file gets the path to the rmarkdown from inside the package
   system.file("rmd/app_report/app_report.rmd", package = 'covid.epi'), 
   output_format = 'pdf_document',
-  output_file = output_file
+  output_file = file
   )
