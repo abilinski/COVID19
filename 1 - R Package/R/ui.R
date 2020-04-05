@@ -293,12 +293,12 @@ generate_ui <- function() {
           )
         )
       )
-    ),
-    column(2,
-      downloadButton("downloadReport", 'Download All Plots'),
-      br(),
-      br()
-    )
+    )#,
+    # column(2,
+    #   downloadButton("downloadReport", 'Download All Plots'),
+    #   br(),
+    #   br()
+    # )
   )
 
   return(ui)
