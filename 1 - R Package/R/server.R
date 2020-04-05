@@ -289,6 +289,16 @@ server <- function(input, output, session) {
       write.csv(param_vec_int_reactive(), file, row.names = FALSE)
     }
   )
+
+  output$downloadReport <- downloadHandler(
+    filename = function() {
+      paste("covid_app_report_",Sys.Date(),".pdf", sep = "")
+    },
+    content = function(file) {
+      source(system.file("rmd/app_report/render.R", package='covid.epi'), local=TRUE)
+      file.copy(output_file, file)
+    }
+  )
     
     ## output for Fits tab
     output$fit <- renderPlot({ 
@@ -316,14 +326,20 @@ server <- function(input, output, session) {
     height=1200, 
     res=120) 
     
-    output$cumulative_infections_by_age <- renderPlot({ plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), 
+    output$cumulative_infections_by_age <- renderPlot({ 
+      plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), 
       input$cases_cumulative == 'Cumulative') }, res=120)
-    output$cumulative_diagnosed_by_age <- renderPlot({ plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(),
+    output$cumulative_diagnosed_by_age <- renderPlot({ 
+      plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(),
       input$cases_cumulative == 'Cumulative') }, res=120)
     
     ## output for Death & New case ratio tab
-    output$deaths_by_age <- renderPlot({ plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = (input$deaths_cumulative == 'Cumulative')) }, res=120)
-    output$effective_reproductive_number <- renderPlot({ plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) }, res=120)
+    output$deaths_by_age <- renderPlot({ 
+      plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = (input$deaths_cumulative == 'Cumulative')) 
+    }, res=120)
+    output$effective_reproductive_number <- renderPlot({ 
+      plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) 
+    }, res=120)
     
     ## output for Advanced care & Symptoms ratio tab
     output$cases_needing_advanced_care <- renderPlot({ 

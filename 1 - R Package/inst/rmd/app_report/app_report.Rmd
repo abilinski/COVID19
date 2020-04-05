@@ -1,0 +1,81 @@
+---
+title: "Interactive Projection Tool for COVID-19 Interventions"
+author: "C-SPEC"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r run_simulations}
+# print(params)
+print("### Base Case Parameters")
+print(as.list(param_vec))
+print("### Intervention Parameters")
+print(as.list(param_vec_int))
+
+### run model without intervention
+simulation_outcomes = run_param_vec(params = param_vec, params2 = NULL, days_out1 = sim_time,
+  days_out2 = NULL, days_out3 = sim_time, model_type = run_basic, det_table = det_table) 
+### run intervention halfway
+simulation_outcomes_int = run_param_vec(params = param_vec, params2 = param_vec_int, days_out1 = days_out1,
+  days_out2 = sim_time, days_out3 = days_out3, model_type = run_int, det_table = det_table_int)
+```
+
+```{r reformat_results}
+df_formatted <- 
+    format_simulation_outcomes_for_plotting_int(simulation_outcomes, simulation_outcomes_int) %>% 
+      as.data.frame()
+```
+
+```{r reformat_for_cases}
+cumulative_cases_df <- compute_cumulative_cases_intervention(df_formatted, hospitalized, respirator) %>% 
+      as.data.frame()
+
+daily_cases_df <- compute_daily_cases_intervention(df_formatted, hospitalized, respirator) %>% 
+      as.data.frame()
+```
+
+```{r plot fit}
+plot_fit_to_observed_case_data_int(df_formatted, observed_data_cases, TRUE)
+plot_fit_to_observed_case_data_int(df_formatted, observed_data_cases, FALSE)
+
+plot_fit_to_observed_hospitalizations_data_int(df_formatted, observed_data_hospitalizations, hospitalized, TRUE)
+plot_fit_to_observed_hospitalizations_data_int(df_formatted, observed_data_hospitalizations, hospitalized, FALSE)
+
+plot_fit_to_observed_deaths_data_int(df_formatted, observed_data_deaths, TRUE)
+plot_fit_to_observed_deaths_data_int(df_formatted, observed_data_deaths, FALSE)
+```
+
+```{r}
+plot_flows_by_compartment_strata_int(formatSimsForPlotting(), input$compartmentFlowSelectedComps) 
+```
+
+```{r}
+plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), TRUE)
+plot_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), FALSE)
+
+plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), TRUE) 
+plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(), FALSE) 
+```
+
+```{r}
+plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = TRUE) 
+plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = FALSE) 
+```
+
+```{r}
+plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) 
+```
+
+```{r}
+plot_cases_needing_advanced_care_int(formatForCumulativeCasesPlotting(), cumulative=TRUE) 
+plot_cases_needing_advanced_care_int(formatForDailyCasesPlotting(), cumulative=FALSE) 
+```
+
+```{r}
+plot_cases_by_symptom_status_int(formatSimsForPlotting(), cumulative = TRUE)
+plot_cases_by_symptom_status_int(formatSimsForPlotting(), cumulative = FALSE)
+```
+
