@@ -41,6 +41,16 @@ model_diagram_path <- system.file('documentation/model_diagram/model_diagram.png
 knitr::include_graphics(model_diagram_path)
 ```
 
+## Similar Work
+
+See similar projects, such as:
+  - C-SPEC's own [COVID-19 Hospital Capacity Model](https://forrestcrawford.shinyapps.io/covid19_icu/) 
+  - [COVID-19 Hospital Impact Model for Epidemics (CHIME)](https://penn-chime.phl.io/) 
+  - [COVID-19 Scenarios](https://github.com/neherlab/covid19_scenarios)
+  - [Epidemic Calculator](http://gabgoh.github.io/COVID/index.html)
+  - [Modeling COVID-19 Spread vs Healthcare Capacity](https://alhill.shinyapps.io/COVID19seir/)
+  - [Potential Long-Term Intervention Strategies for COVID-19](https://covid-measures.github.io/) 
+
 ## About C-SPEC
 
 Please feel free to reach out to us with any questions at <c19spec@gmail.com>
