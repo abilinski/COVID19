@@ -45,3 +45,11 @@ knitr::include_graphics(model_diagram_path)
 
 Please feel free to reach out to us with any questions at <c19spec@gmail.com>
 
+## How can I find out more? 
+
+Learn more about us at our website <covid-spec.org>. 
+
+Visit the GitHub repository for this project at <https://github.com/abilinski/COVID19>. 
+
+Read our technical documentation, linked below for download.
+
