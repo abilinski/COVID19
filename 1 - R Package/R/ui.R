@@ -139,7 +139,14 @@ generate_ui <- function() {
                   sliderInput("rdetecti", label = "Symptomatic detection rate", 
                     min = 0, max = 1, value = 0.1),
                   sliderInput("rdetecta", label = "Asymptomatic detection rate", 
-                    min = 0, max = 1, value = 0.01)
+                    min = 0, max = 1, value = 0.01),
+                  downloadButton("download", "Download parameters"),
+                  br(),
+                  br(),
+
+                  # reset_inputs triggers an observeEvent in the server which takes 
+                  # all of the user inputs and resets them to their default values
+                  actionButton("reset_inputs", "Reset All Parameters")
                   ),
                 column(4,
                   sliderInput("s", label = "s: Frc socially distanced", min = 0.01, 
@@ -155,7 +162,9 @@ generate_ui <- function() {
                   sliderInput("m3", label = "m3: mortality old", min = 0, 
                     max = 1, value = 0.1),
                   sliderInput("k_report", label = "k_report: rel rep rate for yng", min = 0, 
-                    max = 1, value = 1)
+                    max = 1, value = 1),
+                  sliderInput("hospitalized", label = "hosp: hospitalization rate for infected", min = 0, max = 1, value = 0.17),
+                  sliderInput("respirator", label = "resp: frc infected needing respirator", min = 0, max = 1, value = 0.05)
                   ),
                 column(4,
                   sliderInput("alpha1", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
@@ -174,12 +183,7 @@ generate_ui <- function() {
                     max = 1, value = 1),
                   sliderInput("k_susp", label = "k_susp: rel. suscep for yng", min = 0, 
                     max = 1, value = 1)
-                  ),
-                downloadButton("download", "Download parameters"),
-
-                # reset_inputs triggers an observeEvent in the server which takes 
-                # all of the user inputs and resets them to their default values
-                actionButton("reset_inputs", "Reset All Parameters"),
+                  )
               )
               ),
             tabPanel(
@@ -200,7 +204,7 @@ generate_ui <- function() {
                 h5('* Please note that the estimated doubling time and Re are only sensible during exponentail growth period.')
               )
             )
-          )
+            )
         )
       )
       ),
@@ -226,7 +230,8 @@ generate_ui <- function() {
                 sliderInput("rdetecti_int", label = "Symptomatic detection rate", 
                   min = 0, max = 1, value = 0.1),
                 sliderInput("rdetecta_int", label = "Asymptomatic detection rate", 
-                  min = 0, max = 1, value = 0.01)
+                  min = 0, max = 1, value = 0.01),
+                downloadButton("download_int", "Download parameters")
                 ),
               column(4,
                 sliderInput("s_int", label = "s: Frc socially distanced", min = 0.01, 
@@ -242,7 +247,9 @@ generate_ui <- function() {
                 sliderInput("m3_int", label = "m3: mortality old", min = 0, 
                   max = 1, value = 0.1),
                 sliderInput("k_report_int", label = "k_report: rel rep rate for yng", min = 0, 
-                  max = 1, value = 1)
+                  max = 1, value = 1),
+                disabled(sliderInput("hospitalized_int", label = "hosp: frc needing hospitalization", min = 0, max = 1, value = 0.17)),
+                disabled(sliderInput("respirator_int", label = "resp: frc needing respirator", min = 0, max = 1, value = 0.05))
                 ),
               column(4,
                 disabled(sliderInput("alpha1_int", label = HTML("&alpha;1: Pr(asymp) yng"), min = 0, 
@@ -262,8 +269,7 @@ generate_ui <- function() {
                   sliderInput("k_susp_int", label = "k_susp: rel. suscep for yng", min = 0, 
                     max = 1, value = 1)
                 )
-                ),
-              downloadButton("download_int", "Download parameters")
+                )
               ),
             tabPanel(
               title = "contact matrix",

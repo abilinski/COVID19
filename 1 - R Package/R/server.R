@@ -258,14 +258,14 @@ server <- function(input, output, session) {
   # Reformat for specifically plotting cumulative cases
   formatForCumulativeCasesPlotting <- reactive({
     df <- formatSimsForPlotting()
-    compute_cumulative_cases_intervention(df) %>% 
+    compute_cumulative_cases_intervention(df, input$hospitalized, input$respirator) %>% 
       as.data.frame()
   })
 
   # Reformat for specifically plotting daily case rates
   formatForDailyCasesPlotting <- reactive({
     df <- formatSimsForPlotting()
-    compute_daily_cases_intervention(df) %>% 
+    compute_daily_cases_intervention(df, input$hospitalized, input$respirator) %>% 
       as.data.frame()
   })
   
@@ -290,7 +290,23 @@ server <- function(input, output, session) {
   )
     
     ## output for Fits tab
-    output$fit <- renderPlot({ plot_fit_to_observed_data_int(formatForCumulativeCasesPlotting(), observed_data$cases) }, res=120)  
+    output$fit <- renderPlot({ 
+      
+      switch(input$comparisonDataPlotChoice,
+        "Cases" = { 
+          plot_fit_to_observed_case_data_int(formatSimsForPlotting(), observed_data$cases, 
+            input$comparisonDataPlotCumulative == 'Cumulative')
+        }, 
+        "Hospitalizations" = {
+          plot_fit_to_observed_hospitalizations_data_int(formatSimsForPlotting(), observed_data$hospitalizations, input$hospitalized,
+            input$comparisonDataPlotCumulative == 'Cumulative')
+        },
+        "Deaths" = {
+          plot_fit_to_observed_deaths_data_int(formatSimsForPlotting(), observed_data$deaths,
+            input$comparisonDataPlotCumulative == 'Cumulative')
+        }
+      )
+    }, res=120)  
     
     ## output for Comp flows tab
     output$comp_flow<- renderPlot({ 
@@ -368,6 +384,14 @@ server <- function(input, output, session) {
     
     observeEvent(c(input$n), {
       updateSliderInput(session, 'n_int', value = input$n)
+    })
+
+    observeEvent(input$respirator, {
+      updateSliderInput(session, 'respirator_int', value = input$respirator)
+    })
+
+    observeEvent(input$hospitalized, {
+      updateSliderInput(session, 'hospitalized_int', value = input$hospitalized)
     })
 
     # Render the doubling time interval with the maximum as the 

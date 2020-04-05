@@ -356,53 +356,142 @@ plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
 
 
 #' Plot Fit to Observed Data
-plot_fit_to_observed_data <- function(out,
-  observed_data =
-    load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T))
-{
-  ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
+# plot_fit_to_observed_data <- function(out,
+#   observed_data =
+#     load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T))
+# {
+#   ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
 
-  out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+#   out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
 
-  ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) +
-    geom_line() +
-    geom_point(data = filter(out_fit, id = 'Observed')) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Calibration") +
-    scale_linetype(name = "")
-}
+#   ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) +
+#     geom_line() +
+#     geom_point(data = filter(out_fit, id = 'Observed')) +
+#     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
+#                                                              title = "Calibration") +
+#     scale_linetype(name = "")
+# }
 
 
 #' Plot Fit to Observed Data - Intervention 
-#plot_fit_to_observed_data_int <- function(out_cases) {
+# plot_fit_to_observed_data_int <- function(out_cases,
+#   observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+#   ) {
 
-#  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-#  ts = read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), 
-#    as.is = T)[6:20,] %>% # These rows are for March 1st - 15th# Set a reasonable range of p
+#   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+#   # These rows are for March 1st - 15th# Set a reasonable range of p
+#   ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>%
+#     rename(time = day)
 
-#  mutate(time = 1:15, Total_obs = cum_cases, int = "Base")
-#  #out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% group_by(int) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) %>% ungroup()
+#   out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
 
-#  out_fit = bind_rows(out_cases %>% filter(time <= 15) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed")) 
-#  #this was copied from yuhan's update, but this update was not markered as different from prvious commit, so may have been changed long ago
+#   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+#     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
+#                                                              title = "Comparison to Data") +
+#     scale_linetype(name = "")
+# }
 
-
-plot_fit_to_observed_data_int <- function(out_cases,
-  observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+#' Plot Fit to Observed Data - Intervention 
+plot_fit_to_observed_case_data_int <- function(out,
+  observed_data = load_SCC_time_series(), # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+  cumulative = TRUE
   ) {
+  out_cases <- compute_cumulative_cases_intervention(out) 
+
+  out_cases %<>% group_by(time, int) %>% 
+    summarize(Total_obs = sum(Total_obs)) %>% 
+    ungroup()
+
+  if (! cumulative) {
+    out_cases %<>% group_by(int) %>% 
+      arrange(time) %>% 
+      mutate(Total_obs = Total_obs - lag(Total_obs))
+  }
 
   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
   # These rows are for March 1st - 15th# Set a reasonable range of p
-  ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>%
+  ts = observed_data %>% mutate(Total_obs = if (cumulative) cumulative_cases else daily_cases, int = "Base") %>%
     rename(time = day)
 
-  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+  out_fit = bind_rows(out_cases %>% filter(time <= max(ts$time)) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
 
   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
-    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-                                                             title = "Comparison to Data") +
-    scale_linetype(name = "")
+    theme_minimal() + scale_color_discrete(name = "") + 
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "",
+                                                             title = 
+      paste0("Comparison to ", if (cumulative) "Cumulative " else "Daily ", "Case Data")) +
+    scale_linetype(name = "Scenario", labels = c("Base Case", "Intervention"))
 }
+
+#' Plot Fit to Observed Hospitalization Data - Intervention 
+plot_fit_to_observed_hospitalizations_data_int <- function(out,
+  observed_data = load_SCC_time_series(),
+  hospitalized,
+  cumulative = TRUE
+  ) {
+  out_cases <- compute_cumulative_cases_intervention(out, hospitalized) 
+
+  out_cases %<>% group_by(time, int) %>% 
+    summarize(Hospital = sum(Hospital)) %>% 
+    ungroup()
+
+
+  if (! cumulative) {
+    out_cases %<>% group_by(int) %>% 
+      mutate(Hospital = Hospital - lag(Hospital))
+  }
+
+  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+  # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = observed_data %>% mutate(Hospital = if (cumulative) cumulative_hospitalizations else daily_hospitalizations, int = "Base") %>%
+    rename(time = day)
+
+  out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
+
+  ggplot(out_fit, aes(x = time, y = Hospital, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + 
+    scale_y_continuous(labels = scales::comma_format()) + 
+    labs(x = "Time (days)", y = "",
+                                                             title = 
+      paste0("Comparison to ", if (cumulative) "Cumulative " else "Daily ", "Hospitalizations Data")) +
+    scale_linetype(name = "Scenario", labels = c("Base Case", "Intervention"))
+}
+
+#' Plot Fit to Observed Deaths Data - Intervention 
+plot_fit_to_observed_deaths_data_int <- function(out,
+  observed_data = load_SCC_time_series(),
+  cumulative = TRUE
+  ) {
+  # out_cases <- compute_cases(out)
+
+  # Check fit (won't include intervention, since we are only fitting 15 days data for now)
+  # These rows are for March 1st - 15th# Set a reasonable range of p
+  ts = observed_data %>% mutate(value = cumulative_deaths, id='Observed', int='Base') %>%
+    rename(time = day)
+
+  out_deaths <- 
+    out %>% ungroup() %>% filter(time <= max(observed_data$day), comp == 'D') %>% 
+      group_by(time, int) %>% 
+      summarize(value = sum(value), id='Estimated') %>%
+      ungroup() 
+
+    if (cumulative) { 
+      out_deaths %<>% 
+        ungroup() %>% 
+        group_by(int, id) %>% 
+        mutate(value = cumsum(value))
+    }
+
+  out_fit = bind_rows(out_deaths, ts)
+
+  ggplot(out_fit, aes(x = time, y = value, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
+    theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
+                                                             title = 
+      paste0("Comparison to ", if (cumulative) "Cumulative " else "Daily ", "Deaths Data")) +
+    scale_linetype(name = "Scenario", labels = c("Base Case", "Intervention"))
+}
+
 
 #' Plot hospital bed needs over time along with capacity
 #'
