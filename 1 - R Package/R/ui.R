@@ -223,7 +223,7 @@ generate_ui <- function() {
               column(4,
                 uiOutput('interventionInterval'),
                 disabled(numericInput("R0_int", label="R0", value=1.0)),
-                disabled(numericInput("p_int", label="p: Pr(transmission/contact)", value=0.05)),
+                disabled(numericInput("p_int", label="p: Pr(transmission per contact)", value=0.05)),
                 disabled(numericInput("td_int", label="Disease Free Equilibrium Doubling Time", value=2.5)),
                 numericInput("delta_int", label=HTML("&delta;: 1/(dur of incub)"), value=0.2),
                 numericInput("gamma_int", label=HTML("&gamma;: 1/(dur of infectious)"), value=0.2),
