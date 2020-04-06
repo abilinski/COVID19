@@ -160,7 +160,6 @@ R_0 <- function (params){
   tempvector[30] <- vA3Q1*k_det_c/N3Q;
   
   F[1,] <- S10*params$k_susp*p* tempvector; 
-  print(tempvector)
   
   tempvector<- rep(0L, 30);
   tempvector[2] <- params$k_inf*v12/N1 ;
@@ -245,7 +244,6 @@ R_0 <- function (params){
   tempvector[30] <- vA3Q1Q*k_det_c/N3Q;
   
   F[16,] <- S1Q0*params$k_susp*p* tempvector; 
-  print(tempvector)
   
   tempvector<- rep(0L, 30);
   tempvector[2] <- params$k_inf*v12Q/N1 ;
@@ -371,11 +369,8 @@ R_0 <- function (params){
   V[30,29] <- -(k_report*rdetecta);
   V[30,30] <- gamma;
   
-  print(F[1,])
-  print(F[16,])
+  #print(F)
   #print(V) 
-  print(DFE)
-  print(S10)
   return (eigen(F %*% solve(V))$values[1])
   
 }
