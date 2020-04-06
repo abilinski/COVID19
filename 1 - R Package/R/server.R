@@ -486,8 +486,8 @@ server <- function(input, output, session) {
     })
     
     
-    # show the corresponding p and R0 when entering td
-    # Change this to update R0 and td based on p (done)
+    # Show the corresponding R0 and td based on p
+    # and make sure intervantion matches base scenario
     observeEvent(input$p, {
       R0_and_td <- R0_td_value()
 
