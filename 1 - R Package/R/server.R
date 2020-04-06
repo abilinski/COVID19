@@ -491,8 +491,8 @@ server <- function(input, output, session) {
     observeEvent(input$p, {
       R0_and_td <- R0_td_value()
 
-      R0 = R0_and_td[1]
-      td = R0_and_td[2]
+      R0 = round(R0_and_td[1], digits = 3)
+      td = round(R0_and_td[2], digits =3)
 
       updateNumericInput(session, 'R0', value = R0)
       updateNumericInput(session, 'R0_int', value = R0)
