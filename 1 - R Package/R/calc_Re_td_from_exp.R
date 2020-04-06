@@ -12,10 +12,10 @@ calc_Re_td_from_exp <- function(params, time_series=NULL, S=0.9) {
   b <- exp(fit$coefficients[[2]])
   lamda <- b - 1
   td <- log(2)/lamda
-  # Re <- S*(lamda+params$delta)*(lamda+params$gamma)/(params$delta*params$gamma)
+  Re <- S*(lamda+params$delta)*(lamda+params$gamma)/(params$delta*params$gamma)
   # use R0 from model, so we can take into account of individuals in Q
-  R0 <- R_0(params)
-  Re <-S*R0
+  # R0 <- R_0(params)
+  # Re <-S*R0
   
   return(c(td, Re))
 }
@@ -35,23 +35,23 @@ a <- exp(fit$coefficients[[1]])
 b <- exp(fit$coefficients[[2]])
 lamda <- b - 1
 td <- log(2)/lamda
-#Re <- S*(lamda+params$delta)*(lamda+params$gamma)/(params$delta*params$gamma)
+Re <- S*(lamda+params$delta)*(lamda+params$gamma)/(params$delta*params$gamma)
 # use R0 from model, so we can take into account of individuals in Q
-R0_base <- R_0(params)
-if (is.null(time_series)){
-  R0_int = R0_base
-} else {
-  R0_int = R_0(params_int)
-}
-# weight R0 based on when intervention takes place (might be improved in the future)
-if (td_end_time<=int_start_time){
-  Re<-S*R0_base
-} else if (td_start_time>=int_start_time){
-  Re<-S*R0_int
-} else {
-  R0_weight<- (R0_base*(int_start_time-td_start_time+1) + R0_int*(td_end_time-int_start_time))/(td_end_time-td_start_time+1)
-  Re<-S*R0_weight
-}
+# R0_base <- R_0(params)
+# if (is.null(time_series)){
+#   R0_int = R0_base
+# } else {
+#   R0_int = R_0(params_int)
+# }
+# # weight R0 based on when intervention takes place (might be improved in the future)
+# if (td_end_time<=int_start_time){
+#   Re<-S*R0_base
+# } else if (td_start_time>=int_start_time){
+#   Re<-S*R0_int
+# } else {
+#   R0_weight<- (R0_base*(int_start_time-td_start_time+1) + R0_int*(td_end_time-int_start_time))/(td_end_time-td_start_time+1)
+#   Re<-S*R0_weight
+# }
 
 return(c(td, Re))
 }

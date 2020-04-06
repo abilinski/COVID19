@@ -185,13 +185,14 @@ server <- function(input, output, session) {
   Re_td_value_exp <- reactive({
     req(input$doublingTimeInterval)
     param_vec <- param_vec_reactive()
+    e <- param_vec$e
 
     simulation_outcomes <- runSimulations()[[1]]
     
     start_t = input$doublingTimeInterval[1]
     end_t = input$doublingTimeInterval[2]
     cum_case = data.frame(day=c(start_t:end_t), cumulative_cases=(simulation_outcomes$I_1_cum + simulation_outcomes$I_2_cum + simulation_outcomes$I_3_cum + simulation_outcomes$I_1Q_cum + simulation_outcomes$I_2Q_cum + simulation_outcomes$I_3Q_cum)[start_t:end_t])
-    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q))
+    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+e*(simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q)))
     avg_s_t = mean(s_t[start_t:end_t,2])/param_vec$n
     # Edit this to compute Re and td from exponential curve (done)
     Re = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[2]), digits=3)
@@ -206,13 +207,14 @@ server <- function(input, output, session) {
     req(input$doublingTimeInterval)
     param_vec <- param_vec_reactive()
     param_vec_int <- param_vec_int_reactive()
+    e_int<-param_vec_int$e
 
     simulation_outcomes <- runSimulations()[[2]]
     
     start_t = input$doublingTimeInterval[1]
     end_t = input$doublingTimeInterval[2]
     cum_case = data.frame(day=c(start_t:end_t), cumulative_cases=(simulation_outcomes$I_1_cum + simulation_outcomes$I_2_cum + simulation_outcomes$I_3_cum + simulation_outcomes$I_1Q_cum + simulation_outcomes$I_2Q_cum + simulation_outcomes$I_3Q_cum)[start_t:end_t])
-    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q))
+    s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+e_int*(simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q)))
     avg_s_t = mean(s_t[start_t:end_t,2])/param_vec$n
     # Edit this to compute Re and td from exponential curve (done)
     Re = round(as.numeric(calc_Re_td_from_exp_int(param_vec, param_vec_int, cum_case, avg_s_t, start_t, end_t, input$interventionInterval[1], input$interventionInterval[2])[2]), digits=3)
