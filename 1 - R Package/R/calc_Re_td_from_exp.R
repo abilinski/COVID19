@@ -12,7 +12,7 @@ calc_Re_td_from_exp <- function(params, time_series=NULL, S=0.9) {
   b <- exp(fit$coefficients[[2]])
   lamda <- b - 1
   td <- log(2)/lamda
-  #Re <- S*(lamda+params$delta)*(lamda+params$gamma)/(params$delta*params$gamma)
+  # Re <- S*(lamda+params$delta)*(lamda+params$gamma)/(params$delta*params$gamma)
   # use R0 from model, so we can take into account of individuals in Q
   R0 <- R_0(params)
   Re <-S*R0
@@ -46,7 +46,7 @@ if (is.null(time_series)){
 # weight R0 based on when intervention takes place (might be improved in the future)
 if (td_end_time<=int_start_time){
   Re<-S*R0_base
-} else if (td_star>=int_start_time){
+} else if (td_start_time>=int_start_time){
   Re<-S*R0_int
 } else {
   R0_weight<- (R0_base*(int_start_time-td_start_time+1) + R0_int*(td_end_time-int_start_time))/(td_end_time-td_start_time+1)

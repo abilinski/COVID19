@@ -204,7 +204,8 @@ server <- function(input, output, session) {
   # Re_td_value_exp <- reactive({
   Re_td_value_exp_int <- reactive({
     req(input$doublingTimeInterval)
-    param_vec <- param_vec_int_reactive()
+    param_vec <- param_vec_reactive()
+    param_vec_int <- param_vec_int_reactive()
 
     simulation_outcomes <- runSimulations()[[2]]
     
@@ -214,9 +215,8 @@ server <- function(input, output, session) {
     s_t = data.frame(day=c(1:dim(simulation_outcomes)[1]), s_t = (simulation_outcomes$S_1+simulation_outcomes$S_2+simulation_outcomes$S_3+simulation_outcomes$S_1Q+simulation_outcomes$S_2Q+simulation_outcomes$S_3Q))
     avg_s_t = mean(s_t[start_t:end_t,2])/param_vec$n
     # Edit this to compute Re and td from exponential curve (done)
-    Re = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[2]), digits=3)
-    td = round(as.numeric(calc_Re_td_from_exp(param_vec,cum_case, avg_s_t)[1]), digits=3)
-    
+    Re = round(as.numeric(calc_Re_td_from_exp_int(param_vec, param_vec_int, cum_case, avg_s_t, start_t, end_t, input$interventionInterval[1], input$interventionInterval[2])[2]), digits=3)
+    td = round(as.numeric(calc_Re_td_from_exp_int(param_vec, param_vec_int, cum_case, avg_s_t, start_t, end_t, input$interventionInterval[1], input$interventionInterval[2])[1]), digits=3)
     return (c(Re, td))
   })
 
