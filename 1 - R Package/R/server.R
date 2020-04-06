@@ -501,8 +501,7 @@ server <- function(input, output, session) {
       updateNumericInput(session, 'td_int', value = td)
     })
     
-    # show the corresponding p and R0 when entering td
-    # Change this to update R0 and td based on p (done)
+    # Set doubling time inerval of intervention the same as base scneario
     observeEvent(input$doublingTimeInterval, {
       updateSliderInput(session, 'doublingTimeIntervalInt', 
                         value=c(input$doublingTimeInterval[1],input$doublingTimeInterval[2]))
