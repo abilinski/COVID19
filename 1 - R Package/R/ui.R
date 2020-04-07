@@ -112,7 +112,8 @@ generate_ui <- function() {
       ),
       tabPanel("Documentation",
         fluidPage(
-          uiOutput('documentation_page'),
+          # uiOutput('documentation_page'),
+          includeHTML(system.file("documentation/app/app_documentation.html", package='covid.epi')),
           downloadButton("download_doc", "Download our Technical Documentation")
           ),
         )

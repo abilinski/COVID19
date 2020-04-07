@@ -512,12 +512,7 @@ server <- function(input, output, session) {
     # Module for updating the contact matrices entries
     callModule(contact_matrix_server_module, id = NULL)
 
-
-    # Documentation page
-    output$documentation_page <- renderUI({
-        includeHTML(system.file("documentation/app/app_documentation.html", package='covid.epi'))
-    })
-    
+    # Documentation Download Button Handler
     output$download_doc <- downloadHandler(
       filename = function() {
         'CSPEC_Epi_Model_Documentation.pdf'
