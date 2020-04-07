@@ -2,11 +2,11 @@
 % Please edit documentation in R/calc_Re_td_from_exp.R
 \name{calc_Re_td_from_exp}
 \alias{calc_Re_td_from_exp}
-\title{This function takes the input time series, S(t), and the parameter vector as inputs and calculates the
-corresponding R0 and doubling time}
+\title{This function takes the input time series, S(t), and the parameter vector and cumulative cases from siumation
+as inputs and calculates the corresponding Re and doubling time}
 \usage{
 calc_Re_td_from_exp(params, time_series = NULL, S = 0.9)
 }
 \description{
-Calculate R0 and td from exponential curve
+Calculate Re and td from exponential curve
 }

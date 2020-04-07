@@ -1,17 +1,10 @@
 Package: covid.epi
 Title: Interactive Projection Tool for COVID-19 Interventions
-Version: 0.0.0.9000
-Authors@R: c(
-  person("Alyssa", "Bilinski", email = "abilinski@g.harvard.edu", role = c("aut", "cre")),
-  person("Christian", "Testa", email = "ctesta@hsph.harvard.edu", role = "aut"),
-  person("Yu-Han", "Kao", email = "yu-han.kao@yale.edu", role = "aut"),
-  person("Lin", "Zhu", email = "linzhu1@stanford.edu", role = "aut"),
-  person("Kayoko", "Shioda", email = "kayoko.shioda@yale.edu", role = "aut"),
-  person("Ruthie", "Bierger", email = "ruthie.birger@yale.edu", role = "aut"),
-  person("Joshua", "Salomon", email = "salomon1@stanford.edu", role = "crp"),
-  person("Meagan", "Fitzpatrick", email = "meagan.fitzpatrick@som.umaryland.edu", role = "crp")
-  )
-Description: What the package does (one paragraph).
+Version: 1.0.0
+Authors@R: c(person("COVID-SPEC", email = "c19spec@gmail.com", role = c("aut", "cre")))
+Description: Provides an R package and Shiny web app interface to an epidemiological
+    model of an SEIR-type model intended for use in modeling the transmission
+    and outbreak of COVID-19 as well as transmission control scenarios. 
 License: MIT
 Encoding: UTF-8
 LazyData: true
