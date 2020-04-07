@@ -2,15 +2,11 @@
 % Please edit documentation in R/plot_model_outcomes.R
 \name{plot_fit_to_observed_case_data_int}
 \alias{plot_fit_to_observed_case_data_int}
-\title{Plot Fit to Observed Data
-Plot Fit to Observed Data - Intervention 
-Plot Fit to Observed Data - Intervention}
+\title{Plot Fit to Observed Data - Intervention}
 \usage{
-plot_fit_to_observed_case_data_int(out,
-  observed_data = load_SCC_time_series(), cumulative = TRUE)
+plot_fit_to_observed_case_data_int(out, observed_data = NULL,
+  cumulative = TRUE)
 }
 \description{
-Plot Fit to Observed Data
-Plot Fit to Observed Data - Intervention 
 Plot Fit to Observed Data - Intervention
 }
