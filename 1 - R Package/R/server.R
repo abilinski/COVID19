@@ -127,9 +127,9 @@ server <- function(input, output, session) {
 
   # define the parameters we're going to be using
   param_names_base <- c(social_distancing_params, "s", "e", "p", "kappa",
-    "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2", "m3","c",
-    "obs","k_report","k_inf", "k_susp", "young", "medium", "old", "n",
-    "rdetecti", "rdetecta","td")
+    "k_det_c", "alpha1", "alpha2", "alpha3", "delta","gamma","m1", "m2",
+    "m3","c", "obs","k_report","k_inf", "k_susp", "young", "medium", "old",
+    "n", "rdetecti", "rdetecta","td")
 
   # append _int to construct the names of intervention parameters
   param_names_int <- paste0(param_names_base, "_int")
