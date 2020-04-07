@@ -44,6 +44,7 @@ knitr::include_graphics(model_diagram_path)
 ## Similar Work
 
 See similar projects, such as:
+
   - C-SPEC's own [COVID-19 Hospital Capacity Model](https://forrestcrawford.shinyapps.io/covid19_icu/) 
   - [COVID-19 Hospital Impact Model for Epidemics (CHIME)](https://penn-chime.phl.io/) 
   - [COVID-19 Scenarios](https://github.com/neherlab/covid19_scenarios)
@@ -57,7 +58,7 @@ Please feel free to reach out to us with any questions at <c19spec@gmail.com>
 
 ## How can I find out more? 
 
-Learn more about us at our website <covid-spec.org>. 
+Learn more about us at our website <https://covid-spec.org>. 
 
 Visit the GitHub repository for this project at <https://github.com/abilinski/COVID19>. 
 

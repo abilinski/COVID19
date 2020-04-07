@@ -515,21 +515,7 @@ server <- function(input, output, session) {
 
     # Documentation page
     output$documentation_page <- renderUI({
-
-      tempDocumentation <- file.path(tempdir(), "documentation.md") 
-
-      shiny::withMathJax(
-        HTML(
-          markdown::markdownToHTML(
-            knitr::knit(
-              input = system.file(
-                'documentation/app/app_documentation.Rmd', 
-                package='covid.epi'), 
-              output = tempDocumentation,
-              quiet=TRUE),
-            fragment.only = TRUE
-            ))
-      )
+        includeHTML(system.file("documentation/app/app_documentation.html", package='covid.epi'))
     })
     
     output$download_doc <- downloadHandler(
