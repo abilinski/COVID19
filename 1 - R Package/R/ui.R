@@ -41,7 +41,7 @@ generate_ui <- function() {
           br(),
           h4("Where can I find data to use here?"),
           p("Check out sources such as:"),
-          tags$a("covidtracking.comcovidtracker.com", href='https://covidtracking.com'),
+          tags$a("covidtracking.com", href='https://covidtracking.com'),
           br(),
           tags$a("Johns Hopkins CSSE Repository", href='https://github.com/CSSEGISandData/COVID-19'),
           br(),
