@@ -340,7 +340,6 @@ plot_cases_by_symptom_status <- function(out) {
       paste0(if (cumulative) "Cumulative " else "Daily ", "cases by symptoms"))
 }
 
-
 #' Plot cases by symptom status - Intervention
 plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
 
@@ -358,45 +357,9 @@ plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
 }
 
 
-#' Plot Fit to Observed Data
-# plot_fit_to_observed_data <- function(out,
-#   observed_data =
-#     load_SCC_time_series()) # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T))
-# {
-#   ts = observed_data %>%  mutate(Total_obs = cumulative_cases) %>% rename(time = day)
-
-#   out_fit = bind_rows(out_cases %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-
-#   ggplot(out_fit, aes(x = time, y = Total_obs, group = id, col=id)) +
-#     geom_line() +
-#     geom_point(data = filter(out_fit, id = 'Observed')) +
-#     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-#                                                              title = "Calibration") +
-#     scale_linetype(name = "")
-# }
-
-
-#' Plot Fit to Observed Data - Intervention 
-# plot_fit_to_observed_data_int <- function(out_cases,
-#   observed_data = load_SCC_time_series() # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
-#   ) {
-
-#   # Check fit (won't include intervention, since we are only fitting 15 days data for now)
-#   # These rows are for March 1st - 15th# Set a reasonable range of p
-#   ts = observed_data %>% mutate(Total_obs = cumulative_cases, int = "Base") %>%
-#     rename(time = day)
-
-#   out_fit = bind_rows(out_cases %>% filter(time <= max(observed_data$day)+2) %>% mutate(id = "Estimated"), ts %>% mutate(id = "Observed"))
-
-#   ggplot(out_fit, aes(x = time, y = Total_obs, group = interaction(int,id), col=id)) + geom_line(aes(lty = int)) +
-#     theme_minimal() + scale_color_discrete(name = "") + labs(x = "Time (days)", y = "",
-#                                                              title = "Comparison to Data") +
-#     scale_linetype(name = "")
-# }
-
 #' Plot Fit to Observed Data - Intervention 
 plot_fit_to_observed_case_data_int <- function(out,
-  observed_data = load_SCC_time_series(), # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
+  observed_data = NULL, # load_SCC_time_series(), # read.csv(system.file("time_series/time_series_SCC.csv", package="covid.epi"), as.is = T) 
   cumulative = TRUE
   ) {
   out_cases <- compute_cumulative_cases_intervention(out) 
