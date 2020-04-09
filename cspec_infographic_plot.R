@@ -4,6 +4,7 @@ library(reshape2)
 library(directlabels)
 library(waffle)
 library(extrafont)
+library(grid)
 library(scales)
 library(dplyr)
 library(ggplot2)
@@ -127,10 +128,10 @@ make_out<-function(test, params){
 #at x=20 is the comparison of case counts at day 49 
 #(intervention day 21-intervention day 1). 
 timing_plot<-function(){
-
+  
   df <- load_parameters_table()
   timing_ratio_list<-list()
-
+  
   simulation_length_vec<-28:78
   timing_ratio_vec<-rep(0,length(simulation_length_vec))
   cases_vec<-effect_ratio_vec<-rep(0,length(simulation_length_vec))
@@ -154,7 +155,7 @@ timing_plot<-function(){
     ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
     ##### #####  explore the effects of intervention timing  ##### #####
     ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
-
+    
     #basecase is start intervention on day 1
     intv_timing_early<-1
     #compare to starting it on day n 
@@ -179,24 +180,24 @@ timing_plot<-function(){
     
     sdl_test = run_param_vec(params = bc_params, params2 = sd_params, days_out1 = intv_timing_late,
                              days_out2 = simulation_length, days_out3 = simulation_length, model_type = run_int, det_table = sdl_det_table)
-
+    
     ###format the data 
     sde_out<-make_out(sde_test, sde_params)
     sdl_out<-make_out(sdl_test, sdl_params)
     ###filter down to total infected (detected and total)
-
+    
     sde_out_cases = sde_out %>% filter(cum == T & comp!="D") %>% group_by(time, comp3) %>% 
       summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) 
     sdl_out_cases = sdl_out %>% filter(cum == T & comp!="D") %>% group_by(time, comp3) %>% 
       summarize(val2 = sum(value)) %>% spread(comp3, val2) %>% group_by(time) 
-
+    
     #whats the difference of cases based on timing
     cases_vec[i]<-as.numeric(sdl_out_cases[simulation_length,3]-sde_out_cases[simulation_length,3])
   } 
-##make a bar plot
+  ##make a bar plot
   #make a dataframe 
   cases_df<-data.frame(Delay=1:50, CaseRatio=cases_vec[-1] )
-
+  
   t3<- ggplot(cases_df, aes(x=CaseRatio, y=Delay))+geom_col(fill=cspec_pal[2])+coord_flip()+
     labs(y="Intervention Delay (in Days)", x="Additional Cases vs. Day 1 Intervention",
          title="Every day we delay an intervention, cases counts increase!")+cspec_theme()
@@ -208,7 +209,7 @@ timing_plot<-function(){
 #distancing after 4 weeks. 
 
 effective_plot<-function(){
-
+  
   df <- load_parameters_table()
   
   simulation_length<-30
@@ -244,7 +245,7 @@ effective_plot<-function(){
   
   sdhalf_test = run_param_vec(params = bc_params, params2 = sdhalf_params, days_out1 = intv_timing_early,
                               days_out2 = simulation_length, model_type = run_int, det_table = sde_det_table)
-
+  
   ###format the data 
   #format as "out"
   sdhalf_out<-make_out(sdhalf_test, sdhalf_params)
@@ -264,28 +265,28 @@ effective_plot<-function(){
   #melt it down
   sd_effective_melt<-melt(sd_effective_cases, id.vars = "time")
   #calculate the ratio of cases with effectiveness
-  effective_ratio<-round(as.numeric(sdhalf_out_cases[simulation_length,3])/as.numeric(sde_out_cases[simulation_length,3]),1)
-
-e1 = ggplot(sd_effective_melt, aes(x = time, y = value, group=variable, color=variable)) +
+  effective_ratio<-round(as.numeric(sdhalf_out_cases[simulation_length,3])/as.numeric(sde_out_cases[simulation_length,3]),2)
+  
+  e1 = ggplot(sd_effective_melt, aes(x = time, y = value, group=variable, color=variable)) +
     scale_color_manual(values=c(cspec_pal[1], cspec_pal[3]))+
     geom_line(size=1.5) + theme(legend.position = c(0.1,.32))+
     # geom_dl(aes(label=round(value,0)), method=list(dl.trans(x = x + .2), "last.points")) +
     labs(color="Population in Social Distancing", x = "Time (days)", y = "", 
          title = paste0("Implementing public health measures at half effectiveness results in ", effective_ratio,  " times more cases in 4 weeks.")) +cspec_theme2()
-
+  
   return(e1)
 }
 
 #####make a plot that shows that ending measures early will result in more cases
 #This plot shows the case ratio for a simulation that has social distancing of 
-#50% of the population. We will start two interventions on day 3 of the simulation
-#one will run for 4 weeks and another for 3 weeks. Case counts are evaluated on day 
-#100 of the simulation. 
+#50% of the population. We will start two interventions on the first day of the seventh week
+#of the simulation; one will run for 4 weeks and another for 8 weeks. Case counts are evaluated on day 
+#140 of the simulation. 
 persist_plot<-function(){
-
+  
   df <- load_parameters_table()
   
-  simulation_length<-100 #4 week intervention starting on day 3; allow for ~10 weeks of follow up (mid-june)
+  simulation_length<-140 
   #set the detection rates equal 
   #rates of detection 
   bc_rdetecti<-sd_rdetecti<-.1
@@ -299,10 +300,10 @@ persist_plot<-function(){
   ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
   ###Explore the effects of Persistence ##### ##### ##### ##### ##### 
   ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
-  intv_timing_early<-3
+  intv_timing_early<-43
   #assign the parameters for social distancing at 50% of population
   sd_params<-df[8,]
-
+  
   sde_det_table <- data.frame(
     time = 1:(simulation_length),
     rdetecti = c(rep(bc_rdetecti, intv_timing_early), rep(sd_rdetecti, (simulation_length - intv_timing_early))),
@@ -310,10 +311,10 @@ persist_plot<-function(){
   
   ### run intervention
   sde_test = run_param_vec(params = bc_params, params2 = sd_params, days_out1 = intv_timing_early,
-                           days_out2 = simulation_length, days_out3 = 30, model_type = run_int, det_table = sde_det_table)
+                           days_out2 = simulation_length, days_out3 = 99, model_type = run_int, det_table = sde_det_table)
   
   sdend_test = run_param_vec(params = bc_params, params2 = sd_params, days_out1 = intv_timing_early,
-                             days_out2 = simulation_length, days_out3 = 23, model_type = run_int, det_table = sde_det_table)
+                             days_out2 = simulation_length, days_out3 = 71, model_type = run_int, det_table = sde_det_table)
   ###format the data 
   #format as "out"
   sdend_out<-make_out(sdend_test, sde_params)
@@ -331,19 +332,19 @@ persist_plot<-function(){
                            "earlyend"=sdend_out_cases[30:100,3],
                            "full"=sde_out_cases[30:100,3]
   )
-  colnames(sd_end_cases)<-c("time", "3weeks", "4weeks")
+  colnames(sd_end_cases)<-c("time", "4weeks", "8weeks")
   #melt it down
   sd_end_melt<-melt(sd_end_cases, id.vars = "time")
   
   #waffle plot
   waffle_size<-52
   inf_full<-20
-  case_ratio<-round(sd_end_cases[nrow(sd_end_cases),2]/sd_end_cases[nrow(sd_end_cases),3],1)
+  case_ratio<-round(sd_end_cases[nrow(sd_end_cases),2]/sd_end_cases[nrow(sd_end_cases),3],2)
   inf_end<-inf_full*case_ratio
   
   per_waffle<-waffle(
-    c(`4 week intervention`=inf_full, `3 week intervention`=inf_end), use_glyph = "user", colors = c(cspec_pal[1],cspec_pal[3]),
-    legend_pos = "right", rows=5,title = paste0("Ending public health measures one week earlier will result in ", case_ratio , " times more cases after 10 weeks." ))+cspec_theme_waf()
+    c(`8 week intervention`=inf_full, `4 week intervention`=inf_end), use_glyph = "user", colors = c(cspec_pal[1],cspec_pal[3]),
+    legend_pos = "right", rows=5,title = paste0("Ending public health measures four weeks earlier will result in ", case_ratio , " times more cases after 6 weeks." ))+cspec_theme_waf()
   
   return(per_waffle)
 }
@@ -353,11 +354,11 @@ persist_plot<-function(){
 #to show the case detection lag.
 
 patience_plot<-function(){
-#load in the model parameters
-df <- load_parameters_table()
-#factor to reduce social distancing by
-prob<-c(0,.25,.33)
-#x is necessary for accumulating case counts later 
+  #load in the model parameters
+  df <- load_parameters_table()
+  #factor to reduce social distancing by
+  prob<-c(0,.25,.33)
+  #x is necessary for accumulating case counts later 
   x<-1:4
   for(i in 1:length(prob)){
     print(paste("running simulation #", i, "of 3"))   
@@ -367,7 +368,7 @@ prob<-c(0,.25,.33)
     #rates of detection 
     bc_rdetecti<-sd_rdetecti<-.1
     bc_rdetecta<-sd_rdetecta<-.01
-#set the base case parameters    
+    #set the base case parameters    
     bc_params<-df[1,]
     bc_det_table <- data.frame(
       time = 1:simulation_length,
@@ -418,7 +419,7 @@ prob<-c(0,.25,.33)
                                    "infected"=as.numeric(as.character(unlist(sdp_out_cases2[,4])))+as.numeric(as.character(unlist(sdp_out_cases2[,5])))
     )
     #combine all the different runs together
-        x<-rbind(x,sd_patience_cases2)
+    x<-rbind(x,sd_patience_cases2)
   }
   #remove the dummy row 
   x<-x[-1,]
@@ -440,7 +441,7 @@ prob<-c(0,.25,.33)
                                 "25% of current disease transmission rate", 
                                 "33% of current disease transmission rate",
                                 "Maximum Cases Reached"),values=c("grey35", cspec_pal[1],cspec_pal[3], cspec_pal[2]))+theme(    legend.margin = margin(0, 0, 0, 0))
-
+  
   return(pat3)
 }
 
@@ -454,8 +455,8 @@ patience<-patience_plot()
 # Generate Infographic in PNG Format
 png("~/Desktop/cspec_infographic2.png", width = 12, height = 22, units = "in", res = 500)
 grid.newpage() 
-pushViewport(viewport(layout = grid.layout(nrow=9, ncol=4, 
-                                           heights =c(5,1, 5,1, 5,1,5,1.2,5))))
+pushViewport(viewport(layout = grid.layout(nrow=10, ncol=4, 
+                                           heights =c(5,1, 5,1, 5,1,5,1.2,5,.5))))
 vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
 
 grid.rect(gp = gpar(fill = cspec_pal[4], col = cspec_pal[4]))
@@ -463,6 +464,7 @@ grid.text("COVID-19", y = unit(1, "npc"), x = unit(0.5, "npc"), vjust = 1, hjust
 grid.text("action plan", y = unit(0.92, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[1], cex = 6.4))
 grid.text("by COVID-19 Statistics, Policy Modeling, and Epidemiology Collective", vjust = 0, y = unit(0.89, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[2], cex = 1))
 grid.text("http://covid-spec.org/", vjust = 0, y = unit(0.881, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[2], cex = 1))
+grid.text("code and documentation can be found at https://github.com/abilinski/COVID19/blob/master/cspec_infographic_plot.R", vjust = 0, y = unit(0.005, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[1], cex = 1))
 
 ####line break 
 grid.text("it's on you to...", y = unit(0.86, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 5))
@@ -475,18 +477,53 @@ print(effect, vp = vplayout(5, 1:4))
 print(persist, vp = vplayout(7, 1:3))
 #fourth plot 
 print(patience, vp = vplayout(9, 1:4))
-#text block one 
+#text block one
 grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(0.82, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
 grid.text("...BE IMMEDIATE", y = unit(0.82, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
-#text block two 
-grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(.605, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
-grid.text("...BE DEFINITIVE", y = unit(.605, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
-#text block three 
-grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(.40, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
-grid.text("...BE PERSISTENT", y = unit(.40, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
+#text block two
+grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(.615, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
+grid.text("...BE DEFINITIVE", y = unit(.615, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
+#text block three
+grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(.41, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
+grid.text("...BE PERSISTENT", y = unit(.41, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
 #text block four
-grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(0.195, "npc"), width = unit(1, "npc"), height = unit(0.034, "npc"))
-grid.text("...BE PATIENT", y = unit(0.195, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
+grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(0.205, "npc"), width = unit(1, "npc"), height = unit(0.034, "npc"))
+grid.text("...BE PATIENT", y = unit(0.205, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
+
+dev.off()
+
+# Generate Infographic in PNG Format (without the persist plot)
+png("~/Desktop/cspec_infographic3.png", width = 12, height = 18, units = "in", res = 500)
+grid.newpage() 
+pushViewport(viewport(layout = grid.layout(nrow=8, ncol=4, 
+                                           heights =c(4,1,5,1,5,1,5,.5))))
+vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
+
+grid.rect(gp = gpar(fill = cspec_pal[4], col = cspec_pal[4]))
+grid.text("COVID-19", y = unit(1, "npc"), x = unit(0.5, "npc"), vjust = 1, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 12))
+grid.text("action plan", y = unit(0.93, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[1], cex = 6.4))
+grid.text("by COVID-19 Statistics, Policy Modeling, and Epidemiology Collective", vjust = 0, y = unit(0.89, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[2], cex = 1))
+grid.text("http://covid-spec.org/", vjust = 0, y = unit(0.881, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[2], cex = 1))
+grid.text("code and documentation can be found at https://github.com/abilinski/COVID19/blob/master/cspec_infographic_plot.R", vjust = 0, y = unit(0.005, "npc"), gp = gpar(fontfamily = "Impact", col = cspec_pal[1], cex = 1))
+
+####line break 
+grid.text("it's on you to...", y = unit(0.86, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 5))
+
+#first plot
+print(time, vp = vplayout(3, 1:4))
+#second plot
+print(effect, vp = vplayout(5, 1:4))
+#fourth plot 
+print(patience, vp = vplayout(7, 1:4))
+#text block one
+grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(0.80, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
+grid.text("...BE IMMEDIATE", y = unit(0.80, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
+#text block two
+grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(.535, "npc"), width = unit(1, "npc"), height = unit(0.035, "npc"))
+grid.text("...BE DEFINITIVE", y = unit(.535, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
+#text block four
+grid.rect(gp = gpar(fill = cspec_pal[1], col = cspec_pal[1]), x = unit(0.5, "npc"), y = unit(0.27, "npc"), width = unit(1, "npc"), height = unit(0.034, "npc"))
+grid.text("...BE PATIENT", y = unit(0.27, "npc"), x = unit(0.5, "npc"), vjust = .5, hjust = .5, gp = gpar(fontfamily = "Impact", col = cspec_pal[3], cex = 4))
 
 dev.off()
 
