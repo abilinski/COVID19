@@ -64,7 +64,9 @@ generate_ui <- function() {
           inputId = 'compartmentFlowSelectedComps', 
           label = 'Select Compartments Shown',
           choices = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'),
-          selected = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered'))
+          selected = c('Susceptible', 'Exposed', 'Asymptomatic', 'Symptomatic', 'Recovered')),
+        downloadButton('compartments_download',
+          label = 'Download Compartment Flows Data')
         ),
 
       tabPanel("Cases by age", 
@@ -79,7 +81,9 @@ generate_ui <- function() {
           inputId = 'cases_cumulative', 
           label = "Outcomes format:",
           choices = c("Cumulative", "Daily Rates"),
-          )
+          ),
+        downloadButton('cases_download',
+          label = 'Download Cases Data')
         ), 
       tabPanel("Deaths & New case ratio", 
         # side by side layout for deaths by age and new cases / existing cases
@@ -93,7 +97,11 @@ generate_ui <- function() {
           inputId = 'deaths_cumulative', 
           label = "Outcomes format for deaths:",
           choices = c("Cumulative", "Daily Rates"),
-          )
+          ),
+        downloadButton('deaths_download',
+          label = 'Download Deaths Data'),
+        downloadButton('ncr_download',
+          label = 'Download New Case Ratio Data')
         ),
       tabPanel("Advanced care & Symptoms", 
         # side by side layout for those needing advanced care and cumulative
@@ -108,11 +116,14 @@ generate_ui <- function() {
           inputId = 'adv_care_and_symptoms_cumulative', 
           label = "Outcomes format:",
           choices = c("Cumulative", "Daily Rates"),
-          )
+          ),
+        downloadButton('advanced_care_download',
+          label = 'Download Advanced Cases Data'),
+        downloadButton('symptoms_download',
+          label = 'Download Symptoms Data')
       ),
       tabPanel("Documentation",
         fluidPage(
-          # uiOutput('documentation_page'),
           includeHTML(system.file("documentation/app/app_documentation.html", package='covid.epi')),
           downloadButton("download_doc", "Download our Technical Documentation")
           ),

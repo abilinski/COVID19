@@ -215,13 +215,18 @@ plot_cases_needing_advanced_care_int <- function(out_cases, cumulative=TRUE) {
   # out will typically be formatted by either compute_cumulative_cases_intervention or 
   # compute_daily_cases_intervention
 
-  ggplot(out_cases %>% gather(var, value, Hospital, Ventilator) %>% drop_na,
-              aes(x = time, y = value, group = interaction(var, int), col = var)) + 
-            geom_line(aes(lty = int)) +
-            scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
-            scale_y_continuous(labels = scales::comma_format()) + 
-    theme_minimal() + scale_color_discrete(name = "Cases") + labs(x = "Time (days)", y = "",
+  return(list(
+      data = out_cases,
+      plot = 
+
+        ggplot(out_cases %>% gather(var, value, Hospital, Ventilator) %>% drop_na,
+                    aes(x = time, y = value, group = interaction(var, int), col = var)) + 
+                  geom_line(aes(lty = int)) +
+                  scale_linetype_discrete(name = "Scenario", labels = c("Base Case", "Intervention")) + 
+                  scale_y_continuous(labels = scales::comma_format()) + 
+          theme_minimal() + scale_color_discrete(name = "Cases") + labs(x = "Time (days)", y = "",
                                                              title = paste0(if (cumulative) "Cumulative " else "Daily ", "cases needing advanced care"))
+          ))
 }
 
 
@@ -244,13 +249,25 @@ plot_ratio_of_new_to_existing_cases <- function(out) {
 #' Plot Ratio of New To Exisitng Cases - Intervention
 plot_ratio_of_new_to_existing_cases_int <- function(out) {
 
-  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>%
-    group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
-    summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
+  # out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I")) %>% mutate(comp=replace(comp,comp!="I", "I")) %>%
+  #   group_by(time,cum,int) %>% summarize(val2=sum(value))%>% spread(cum, val2) %>% group_by(time,int) %>%
+  #   summarize(existing_inf = sum(`FALSE`), new_inf = sum(`TRUE`), ratio = new_inf/existing_inf) %>% ungroup()
 
-  ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) +
-    theme_minimal() + scale_color_discrete(name = "") +
-    labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+  out_Re = out %>% subset(select=-comp3) %>% filter(comp %in% c("UI","DI","I", "UA", "DA", "A")) %>%
+    mutate(comp=replace(comp,comp %in% c("UI","DI","UA","DA"), "I")) %>%
+    group_by(time,cum,int) %>% summarize(val2=sum(value)) %>% spread(cum, val2) %>%
+    rename(existing_inf = "FALSE", cum_inf = "TRUE") %>% as.data.frame() %>%
+    group_by(int) %>% 
+    mutate(new_inf=ifelse(time==1, cum_inf, cum_inf-lag(cum_inf)), ratio = new_inf/existing_inf) %>% 
+    ungroup()
+
+  return(list(
+      data = out_Re,
+      plot = 
+        ggplot(out_Re, aes(x = time, y = ratio)) + geom_line(aes(lty = int)) +
+        theme_minimal() + scale_color_discrete(name = "") +
+        labs(x = "Time (days)", y = "", title = "Ratio of new to existing cases")
+      ))
 }
 
 
@@ -321,12 +338,16 @@ plot_deaths_by_age_int <- function(out, cumulative=TRUE) {
       drop_na()
   }
 
-  ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty=int), col = "black") +
-    theme_minimal() + scale_color_discrete(name = "Age Groups") + 
-    scale_linetype_discrete(name = "Total Deaths", labels = c("Base Case", "Intervention")) + 
-      labs(x = "Time (days)", y = "", title = 
-      paste0(if (cumulative) "Cumulative " else "Daily ", "deaths by age"))
+  return(list(
+      data = out_death,
+      plot = 
+        ggplot(out_death, aes(x = time, y = val2, group = interaction(strat3, int), col = strat3)) + geom_line(aes(lty = int)) +
+        geom_line(aes(y = Total, group = int, lty=int), col = "black") +
+        theme_minimal() + scale_color_discrete(name = "Age Groups") + 
+        scale_linetype_discrete(name = "Total Deaths", labels = c("Base Case", "Intervention")) + 
+        labs(x = "Time (days)", y = "", title = 
+          paste0(if (cumulative) "Cumulative " else "Daily ", "deaths by age"))
+        ))
 }
 
 #' Plot cases by symptom status
@@ -346,14 +367,18 @@ plot_cases_by_symptom_status_int <- function(out, cumulative = TRUE) {
   out_symp = out %>% filter(cum == cumulative & ! comp %in% c("S", "D", "R") & !is.na(strat3)) %>% group_by(time, comp2, int) %>%
     summarize(val2 = sum(value)) %>% group_by(time, int) %>% mutate(Total = sum(val2)) %>% ungroup()
 
-  ggplot(out_symp %>% drop_na, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + 
-    geom_line(aes(lty = int)) +
-    geom_line(aes(y = Total, group = int, lty = int), col='black') +
-    theme_minimal() + scale_color_discrete(name = "Symptom Status") + 
-    scale_linetype_discrete(name = "Total Cases", labels = c("Base Case", "Intervention")) + 
-    scale_y_continuous(labels = scales::comma_format()) + 
-    labs(x = "Time (days)", y = "", title = 
-      paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases by symptoms")) 
+  return(list(
+      data = out_symp,
+      plot = 
+        ggplot(out_symp %>% drop_na, aes(x = time, y = val2, group = interaction(comp2, int), col = comp2)) + 
+          geom_line(aes(lty = int)) +
+          geom_line(aes(y = Total, group = int, lty = int), col='black') +
+          theme_minimal() + scale_color_discrete(name = "Symptom Status") + 
+          scale_linetype_discrete(name = "Total Cases", labels = c("Base Case", "Intervention")) + 
+          scale_y_continuous(labels = scales::comma_format()) + 
+          labs(x = "Time (days)", y = "", title = 
+            paste0(if (cumulative) "Cumulative " else "Ongoing ", "cases by symptoms")) 
+          ))
 }
 
 

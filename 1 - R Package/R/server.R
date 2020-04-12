@@ -271,6 +271,89 @@ server <- function(input, output, session) {
     compute_daily_cases_intervention(df, input$hospitalized, input$respirator) %>% 
       as.data.frame()
   })
+
+  ## download data for compartment flows
+  output$compartments_download <- downloadHandler(
+    filename = function() {
+      paste("covid_epi_model_outcomes_",
+        "compartment_flows_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(formatSimsForPlotting(), file, row.names = FALSE)
+    })
+
+  ## download data for cases
+  output$cases_download <- downloadHandler(
+    filename = function() {
+      paste("covid_epi_model_outcomes_",
+        if (input$cases_cumulative == 'Cumulative') {
+          'cumulative_'
+        } else {
+          'daily_'
+        }, "cases_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      if(input$cases_cumulative == 'Cumulative') {
+        write.csv(formatForCumulativeCasesPlotting(), file, row.names = FALSE)
+      } else {
+        write.csv(formatForDailyCasesPlotting(), file, row.names = FALSE)
+      }
+    })
+
+  # deaths download data
+  output$deaths_download <- downloadHandler(
+    filename = function() {
+      paste("covid_epi_model_outcomes_",
+        if (input$deaths_cumulative == 'Cumulative') {
+          'cumulative_'
+        } else {
+          'daily_'
+        },
+        "deaths_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(deathsDataPlot()[['data']], file, row.names = FALSE)
+    })
+
+  # ratio download data
+  output$ncr_download <- downloadHandler(
+    filename = function() {
+      paste("covid_epi_model_outcomes_",
+        "new_case_ratio_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(newCaseRatioDataPlot()[['data']], file, row.names = FALSE)
+    })
+
+  # advanced care download data
+  output$advanced_care_download <- downloadHandler(
+    filename = function() {
+      paste("covid_epi_model_outcomes_",
+        if (input$adv_care_and_symptoms_cumulative == 'Cumulative') {
+          'cumulative_'
+        } else {
+          'daily_'
+        },
+        "advanced_cases_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(advancedCareDataPlot()[['data']], file, row.names = FALSE)
+    })
+
+  # symptoms download data
+  output$symptoms_download <- downloadHandler(
+    filename = function() {
+      paste("covid_epi_model_outcomes_",
+        if (input$adv_care_and_symptoms_cumulative == 'Cumulative') {
+          'cumulative_'
+        } else {
+          'daily_'
+        },
+        "symptoms_",Sys.Date(),".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(symptomsDataPlot()[['data']], file, row.names = FALSE)
+    })
   
   ## download adjusted base parameters
   output$download <- downloadHandler(
@@ -333,25 +416,46 @@ server <- function(input, output, session) {
     output$cumulative_diagnosed_by_age <- renderPlot({ 
       plot_diagnosed_cumulative_cases_by_age_int(formatForCumulativeCasesPlotting(),
       input$cases_cumulative == 'Cumulative') }, res=120)
+
+
+    deathsDataPlot <- reactive({
+      plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = (input$deaths_cumulative == 'Cumulative')) 
+    })
     
     ## output for Death & New case ratio tab
     output$deaths_by_age <- renderPlot({ 
-      plot_deaths_by_age_int(formatSimsForPlotting(), cumulative = (input$deaths_cumulative == 'Cumulative')) 
+      deathsDataPlot()[['plot']]
     }, res=120)
+
+
+    newCaseRatioDataPlot <- reactive({
+      plot_ratio_of_new_to_existing_cases_int(formatSimsForPlotting()) 
+    })
+
     output$effective_reproductive_number <- renderPlot({ 
-      plot_ratio_of_new_to_existing_cases(formatSimsForPlotting()) 
+      newCaseRatioDataPlot()[['plot']]
     }, res=120)
-    
-    ## output for Advanced care & Symptoms ratio tab
-    output$cases_needing_advanced_care <- renderPlot({ 
+
+
+    advancedCareDataPlot <- reactive({
       if (input$adv_care_and_symptoms_cumulative == 'Cumulative') {
         plot_cases_needing_advanced_care_int(formatForCumulativeCasesPlotting(), cumulative=TRUE) 
       } else if (input$adv_care_and_symptoms_cumulative == 'Daily Rates') {
         plot_cases_needing_advanced_care_int(formatForDailyCasesPlotting(), cumulative=FALSE) 
       }
+    })
+    
+    ## output for Advanced care & Symptoms ratio tab
+    output$cases_needing_advanced_care <- renderPlot({ 
+      advancedCareDataPlot()[['plot']]
     }, res=120)
-    output$cumulative_cases_by_symptoms <- renderPlot({ 
+
+    symptomsDataPlot <- reactive({ 
       plot_cases_by_symptom_status_int(formatSimsForPlotting(), cumulative = (input$adv_care_and_symptoms_cumulative == 'Cumulative'))
+    })
+
+    output$cumulative_cases_by_symptoms <- renderPlot({ 
+      symptomsDataPlot()[['plot']]
     }, res=120)
 
     # if the user preses the Reset All Parameters actionButton, use the
