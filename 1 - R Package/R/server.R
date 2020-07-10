@@ -56,7 +56,7 @@
 server <- function(input, output, session) {
 
   # Get the default parameter vector for the model
-  default_param_vec = load_parameters() 
+  default_param_vec = unlist(load_parameters())
 
   # render the intervention time period interval as a slider 
   # between 0 and the total sim time
@@ -146,7 +146,7 @@ server <- function(input, output, session) {
 
     ### update the params using inputs
     user_inputs<-c(unlist(reactiveValuesToList(input)))
-    param_vec <- load_parameters()
+    param_vec <- unlist(load_parameters())
     param_vec[param_names_base]<-as.numeric(user_inputs[param_names_base])
     param_vec$Scenario<-'Base'
     return(param_vec)
@@ -156,7 +156,7 @@ server <- function(input, output, session) {
   param_vec_int_reactive <- reactive({
     ### update the params using inputs
     user_inputs<-c(unlist(reactiveValuesToList(input)))
-    param_vec_int <- load_parameters()
+    param_vec_int <- unlist(load_parameters())
     for (param_name in param_names_base) {
       param_name_int <- paste0(param_name, "_int")
       if (! is.na(user_inputs[param_name_int])) { 
