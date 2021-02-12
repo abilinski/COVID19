@@ -1,39 +1,29 @@
+import os
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-from dash.exceptions import PreventUpdate
 
 from dash.dependencies import Input, Output, State
 from webapp import model
 
+from webapp.app import Application
 from webapp.config import Config
 from webapp.layout import Layout
-from webapp.parameters import Parameters
-from webapp.vizualizations import Vizualizations
+from webapp.parameters.core import make_parameters
+from webapp.vizualizations.core import make_vizualizations
 
 
-app = dash.Dash(__name__)
-server = app.server
+app, server = Application.init()
 
-chart1 = html.Div(
-    id="submit-status",
-    title="Contains information about the success or failure of your commands.",
-    children=["Test"]
-)
-
-chart2 = html.Div(
-    children="Something else"
-)
-
-parameters = Parameters()
-vizualizations = Vizualizations([chart1, chart2])
 
 def make_submit_control():
-    return html.Div(
-        [html.Button("Submit", id="submit-button", n_clicks=0)],
-        #  title="Click to send all of the control values to the spectrometer.",
-        #  className="control",
+    return html.Button(
+        "Submit", id="submit-button", className="ui primary button fluid", n_clicks=0
     )
+
+
+parameters = make_parameters()
+vizualizations = make_vizualizations()
 
 app.layout = Layout().render(
     parameter_renderer=parameters.render,
@@ -41,22 +31,37 @@ app.layout = Layout().render(
     output_renderer=vizualizations.render,
 )
 
+Application.register_callbacks(app)
+
+@server.route("/buildinfo")
+def build_info(*args):
+    if os.path.isfile("/buildinfo"):
+        with open("/buildinfo") as f:
+            return "Running in docker container: %s" % (f.read(),)
+
+    return "Not running in docker"
+
+
+@server.route("/model")
+def run_model(*args):
+    model_output = model.run({})
+    return str(model_output)
+
 @app.callback(
     Output("submit-status", "children"),
     [Input("submit-button", "n_clicks_timestamp")],
-    state=[State(ctrl.selector, ctrl.get_value()) for ctrl in parameters.parameter_controls]
+    state=[State(ctrl.selector, ctrl.value_key()) for ctrl in parameters.controls()],
 )
 def calculate(n_clicks_timestamp, *state):
     if n_clicks_timestamp is None:
         raise PreventUpdate
 
-    controls = parameters.parameter_controls
+    controls = parameters.parameter_groups
     # dictionary of commands; component id and associated value
-    commands = {controls[i].selector: state[i] for i in range(len(controls))}
+    commands = {ctrl.selector: state[i] for i, ctrl in enumerate(parameters.controls())}
 
-    model_output = model.run(state)
-    #  failed, succeeded = spec.send_control_values(commands)
-#
+    model_output = model.run(commands)
+
     summary = []
 
     summary.append("The following parameters were successfully updated: ")
@@ -67,11 +72,16 @@ def calculate(n_clicks_timestamp, *state):
         summary.append(f"{key.upper()}: {value}")
         summary.append(html.Br())
 
-    summary.append("Model output: %s" % (model_output))
-    summary.append(html.Br())
+    #summary.append(model_output)
+    #summary.append(html.Br())
 
     return html.Div(summary)
 
 
 if __name__ == "__main__":
-    app.run_server(debug=Config.DEBUG)
+    if os.environ.get("BIND_ALL_IPS"):
+        host = "0.0.0.0"
+    else:
+        host = None
+
+    app.run_server(host=host, debug=Config.DEBUG)

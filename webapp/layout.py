@@ -6,27 +6,71 @@ class Layout:
     def __init__(self):
         pass
 
-    def render(self, parameter_renderer=None, submit_renderer=None, output_renderer=None):
+    def render(
+        self, parameter_renderer=None, submit_renderer=None, output_renderer=None
+    ):
 
         parameters = parameter_renderer() if parameter_renderer else None
         submit = submit_renderer() if submit_renderer else None
         outputs = output_renderer() if output_renderer else None
 
-
         return html.Div(
-            id="app-container",
             children=[
-                # Banner
-                html.Div(id="banner", className="banner", children="Tester",),
-
-                # Left column
                 html.Div(
-                    id="left-column", className="four columns", children=[parameters, submit]
+                    id="banner",
+                    className="ui fixed inverted menu",
+                    children=[
+                        html.Div(
+                            className="ui container fluid",
+                            children=[
+                                html.Div(
+                                    className="header item",
+                                    children="C-SPEC: COVID-19 Science, Policy, and Epidemiology Collective",
+                                )
+                            ],
+                        )
+                    ],
                 ),
-
-                # Right column
                 html.Div(
-                    id="right-column", className="eight columns", children=outputs,
+                    className="ui main container fluid",
+                    children=[
+                        html.Div(
+                            className="ui padded grid divided stackable",
+                            children=[
+                                html.Div(
+                                    className="row",
+                                    children=[
+                                        # Left column
+                                        html.Div(
+                                            id="parameters",
+                                            className="four wide column",
+                                            children=[
+                                                html.H2("Parameters"),
+                                                html.Div(
+                                                    className="row",
+                                                    children=[parameters],
+                                                ),
+                                                html.Div(
+                                                    className="row",
+                                                    children=[
+                                                        html.Div(
+                                                            className="ui basic",
+                                                            children=submit,
+                                                        )
+                                                    ],
+                                                ),
+                                            ],
+                                        ),
+                                        # Right column
+                                        html.Div(
+                                            className="twelve wide column",
+                                            children=outputs,
+                                        ),
+                                    ],
+                                )
+                            ],
+                        )
+                    ],
                 ),
-            ],
+            ]
         )

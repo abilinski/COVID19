@@ -1,0 +1,15 @@
+/* adjustment to get content section
+ * to fall below header, semanticui
+ * doesn't play do that automatically */
+
+.main.container {
+  margin-top: 6em;
+}
+
+.parameter-info {
+  margin-left: .25em;
+}
+
+.parameter-icon {
+  vertical-align: middle;
+}
